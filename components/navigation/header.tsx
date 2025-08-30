@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { User, Settings, LogOut, Shield, Search, Home, Menu, X } from "lucide-react"
+import { UserRole } from "@/lib/types"
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -36,8 +37,8 @@ export function Header() {
 
   const userNavigationItems = user
     ? [
-        ...(user.role === "provider" ? [{ href: "/dashboard", label: "Dashboard" }] : []),
-        ...(user.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
+        ...(user.role === UserRole.PROVIDER ? [{ href: "/dashboard", label: "Dashboard" }] : []),
+        ...(user.role === UserRole.ADMIN ? [{ href: "/admin", label: "Admin" }] : []),
       ]
     : []
 
@@ -50,8 +51,8 @@ export function Header() {
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">SC</span>
             </div>
-            <span className="text-xl font-bold text-primary">ServiceConnect</span>
-            {user?.role === "admin" && (
+            <span className="text-xl font-bold text-primary">ListUp</span>
+            {user?.role === UserRole.ADMIN && (
               <Badge variant="secondary" className="ml-2">
                 Admin
               </Badge>
@@ -113,7 +114,7 @@ export function Header() {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  {user.role === "provider" && (
+                  {user.role === UserRole.PROVIDER && (
                     <DropdownMenuItem asChild>
                       <Link href="/dashboard">
                         <User className="mr-2 h-4 w-4" />
@@ -121,7 +122,7 @@ export function Header() {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {user.role === "admin" && (
+                  {user.role === UserRole.ADMIN && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin">
                         <Shield className="mr-2 h-4 w-4" />

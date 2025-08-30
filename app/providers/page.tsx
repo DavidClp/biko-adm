@@ -78,7 +78,7 @@ export default function ProvidersPage() {
 
   const handleWhatsAppContact = (phone: string, providerName: string) => {
     const message = encodeURIComponent(
-      `Olá ${providerName}, encontrei seu perfil no ServiceConnect e gostaria de saber mais sobre seus serviços.`,
+      `Olá ${providerName}, encontrei seu perfil no ListUp e gostaria de saber mais sobre seus serviços.`,
     )
     window.open(`https://wa.me/55${phone.replace(/\D/g, "")}?text=${message}`, "_blank")
   }

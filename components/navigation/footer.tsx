@@ -9,9 +9,9 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">SC</span>
+                <span className="text-primary-foreground font-bold text-sm">LU</span>
               </div>
-              <span className="text-xl font-bold text-primary">ServiceConnect</span>
+              <span className="text-xl font-bold text-primary">ListUp</span>
             </div>
             <p className="text-muted-foreground text-sm">
               Conectando pessoas e transformando negócios através de serviços de qualidade.
@@ -91,7 +91,7 @@ export function Footer() {
         </div>
 
         <div className="border-t pt-8 mt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 ServiceConnect. Todos os direitos reservados.</p>
+          <p>&copy; 2025 ListUp. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

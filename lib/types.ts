@@ -20,30 +20,41 @@ export interface RegisterResponse {
   message?: string
 }
 
-// Tipos para usuários
+export enum UserRole {
+  'CLIENT',
+  'PROVIDER',
+  ADMIN
+}
+
 export interface User {
   id: string
   name: string
   email: string
-  type: "client" | "provider" | "admin"
+  role: UserRole;
   avatar?: string
-  phone?: string
   createdAt?: string
-  updatedAt?: string
+  updatedAt?: string;
+  client?: Client | null;
+  provider?: Provider | null;
 }
 
 export interface Client extends User {
-  type: "client"
   phone: string
-  preferences?: string[]
+  userId: string
+  createdAt?: string
 }
 
 export interface Provider extends User {
-  type: "provider"
   phone: string
   services: string[]
   location: string
   description: string
+  photoUrl?: string
+  createdAt: string
+  socialMedia?: {
+    instagram?: string
+    facebook?: string
+  }
   experience: string
   portfolio?: string
   website?: string
@@ -54,7 +65,6 @@ export interface Provider extends User {
   verified?: boolean
 }
 
-// Tipos para serviços
 export interface Service {
   id: string
   name: string
