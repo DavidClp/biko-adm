@@ -1,4 +1,3 @@
-// Tipos globais para respostas da API
 export interface ApiResponse<T = any> {
   success: boolean
   data?: T
@@ -21,10 +20,11 @@ export interface RegisterResponse {
 }
 
 export enum UserRole {
-  'CLIENT',
-  'PROVIDER',
-  ADMIN
+  CLIENT = 'CLIENT',
+  PROVIDER = 'PROVIDER',
+  ADMIN = 'ADMIN'
 }
+
 
 export interface User {
   id: string

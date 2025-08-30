@@ -9,16 +9,33 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
-import { ArrowLeft, MapPin, Star, MessageCircle, Instagram, Facebook, Linkedin, Phone } from "lucide-react"
+import { ArrowLeft, MapPin, Star, MessageCircle, Instagram, Facebook, Linkedin, Send } from "lucide-react"
 
 export default function ProviderProfilePage() {
   const params = useParams()
   const [review, setReview] = useState("")
   const [rating, setRating] = useState(0)
+  const [contactForm, setContactForm] = useState({
+    serviceType: "",
+    description: "",
+    urgency: "normal",
+    budget: "",
+    location: "",
+  })
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
+  const [isContactSent, setIsContactSent] = useState(false)
 
-  // Mock provider data - in real app, fetch from API using params.id
   const provider = {
     id: params.id,
     name: "João Silva",
@@ -62,19 +79,26 @@ export default function ProviderProfilePage() {
     ],
   }
 
-  const handleWhatsAppContact = () => {
-    const message = encodeURIComponent(
-      `Olá ${provider.name}, encontrei seu perfil no ListUp e gostaria de contratar seus serviços.`,
-    )
-    window.open(`https://wa.me/55${provider.phone.replace(/\D/g, "")}?text=${message}`, "_blank")
+  const handleSendContact = () => {
+    console.log("Contact request sent:", contactForm)
+    setIsContactSent(true)
+    setTimeout(() => {
+      setIsContactModalOpen(false)
+      setIsContactSent(false)
+      setContactForm({
+        serviceType: "",
+        description: "",
+        urgency: "normal",
+        budget: "",
+        location: "",
+      })
+    }, 2000)
   }
 
   const handleSubmitReview = () => {
-    // In real app, submit review to API
     console.log("Review submitted:", { rating, comment: review })
     setReview("")
     setRating(0)
-    // Show success message
   }
 
   const renderStars = (currentRating: number, interactive = false, onStarClick?: (rating: number) => void) => {
@@ -203,14 +227,107 @@ export default function ProviderProfilePage() {
                 <CardTitle>Contato</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button onClick={handleWhatsAppContact} className="w-full" size="lg">
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Contatar via WhatsApp
-                </Button>
+                <Dialog open={isContactModalOpen} onOpenChange={setIsContactModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full" size="lg">
+                      <MessageCircle className="h-5 w-5 mr-2" />
+                      Solicitar Orçamento
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Solicitar Orçamento</DialogTitle>
+                      <DialogDescription>
+                        Descreva o serviço que você precisa e {provider.name} entrará em contato com você.
+                      </DialogDescription>
+                    </DialogHeader>
 
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <span>{provider.phone}</span>
+                    {!isContactSent ? (
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="serviceType">Tipo de serviço</Label>
+                          <Input
+                            id="serviceType"
+                            placeholder="Ex: Instalação elétrica, reparo..."
+                            value={contactForm.serviceType}
+                            onChange={(e) => setContactForm({ ...contactForm, serviceType: e.target.value })}
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="description">Descrição detalhada</Label>
+                          <Textarea
+                            id="description"
+                            placeholder="Descreva o que você precisa fazer..."
+                            rows={3}
+                            value={contactForm.description}
+                            onChange={(e) => setContactForm({ ...contactForm, description: e.target.value })}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="urgency">Urgência</Label>
+                            <select
+                              id="urgency"
+                              className="w-full p-2 border rounded-md"
+                              value={contactForm.urgency}
+                              onChange={(e) => setContactForm({ ...contactForm, urgency: e.target.value })}
+                            >
+                              <option value="normal">Normal</option>
+                              <option value="urgent">Urgente</option>
+                              <option value="flexible">Flexível</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="budget">Orçamento estimado</Label>
+                            <Input
+                              id="budget"
+                              placeholder="R$ 0,00"
+                              value={contactForm.budget}
+                              onChange={(e) => setContactForm({ ...contactForm, budget: e.target.value })}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="location">Localização</Label>
+                          <Input
+                            id="location"
+                            placeholder="Endereço ou região"
+                            value={contactForm.location}
+                            onChange={(e) => setContactForm({ ...contactForm, location: e.target.value })}
+                          />
+                        </div>
+
+                        <Button
+                          onClick={handleSendContact}
+                          className="w-full"
+                          disabled={!contactForm.serviceType || !contactForm.description}
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          Enviar Solicitação
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-green-600 text-2xl">✓</span>
+                        </div>
+                        <h3 className="font-semibold text-lg mb-2">Solicitação enviada!</h3>
+                        <p className="text-muted-foreground">
+                          {provider.name} recebeu sua solicitação e entrará em contato em breve.
+                        </p>
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Todas as conversas acontecem dentro da plataforma ListUp
+                  </p>
                 </div>
               </CardContent>
             </Card>

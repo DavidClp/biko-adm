@@ -75,12 +75,8 @@ export default function RegisterProviderPage() {
         city: formData.city,
         description: formData.description,
         phone: formData.phone,
-        socialMedia: {
-          instagram: formData.instagram,
-          facebook: formData.facebook,
-          linkedin: formData.linkedin,
-        },
       })
+      
       router.push("/dashboard")
     } catch (err) {
       setError("Erro ao criar conta. Verifique os dados e tente novamente.")

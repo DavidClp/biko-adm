@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
-import { User, Settings, LogOut, Shield, Search, Home, Menu, X } from "lucide-react"
+import { User, Settings, LogOut, Shield, Search, Home, Menu, X, MessageCircle } from "lucide-react"
 import { UserRole } from "@/lib/types"
 
 export function Header() {
@@ -41,7 +41,7 @@ export function Header() {
         ...(user.role === UserRole.ADMIN ? [{ href: "/admin", label: "Admin" }] : []),
       ]
     : []
-
+  console.log("user",user?.role === UserRole.CLIENT)
   return (
     <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -49,7 +49,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">SC</span>
+              <span className="text-primary-foreground font-bold text-sm">LU</span>
             </div>
             <span className="text-xl font-bold text-primary">ListUp</span>
             {user?.role === UserRole.ADMIN && (
@@ -113,7 +113,17 @@ export function Header() {
                       <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
+                  
                   <DropdownMenuSeparator />
+
+                  {user.role === UserRole.CLIENT && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/my-requests">
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Minhas Solicitações
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   {user.role === UserRole.PROVIDER && (
                     <DropdownMenuItem asChild>
                       <Link href="/dashboard">

@@ -20,14 +20,9 @@ interface AuthContextType {
     email: string
     password: string
     phone: string
-    services: string[]
-    location: string
+    service: string
+    city: string
     description: string
-    experience: string
-    portfolio?: string
-    website?: string
-    instagram?: string
-    facebook?: string
   }) => Promise<void>
 }
 
@@ -38,17 +33,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is logged in on mount
     const checkAuth = async () => {
       try {
         const token = localStorage.getItem("token")
         if (token) {
-          // Simulate API call to verify token and get user data
-          const userData = await api.get<User>("/auth/me")
-          setUser(userData)
+          const userData = localStorage.getItem("userData")
+          if (userData) {
+            try {
+              const parsedUser = JSON.parse(userData)
+              setUser(parsedUser)
+            } catch (e) {
+              console.error("Erro ao parsear dados do usuário:", e)
+              localStorage.removeItem("userData")
+              localStorage.removeItem("token")
+            }
+          } else {
+            localStorage.removeItem("token")
+          }
         }
       } catch (error) {
+        console.error("Erro ao verificar autenticação:", error)
         localStorage.removeItem("token")
+        localStorage.removeItem("userData")
       } finally {
         setLoading(false)
       }
@@ -61,8 +67,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     try {
       const response = await api.post<LoginResponse>("/auth/login", { email, password })
-      localStorage.setItem("token", response.token)
-      setUser(response.user)
+
+      if (response?.token !== undefined) {
+        localStorage.setItem("token", response.token)
+
+        if (response && typeof response === 'object') {
+          delete (response as any).token
+        }
+
+        if (response.user) {
+          localStorage.setItem("userData", JSON.stringify(response.user))
+        }
+
+        setUser(response.user || null)
+      }
     } catch (error) {
       throw error
     } finally {
@@ -72,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("userData")
     setUser(null)
   }
 
@@ -87,6 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       localStorage.setItem("token", response.token)
 
+      if (response.user) {
+        localStorage.setItem("userData", JSON.stringify(response.user))
+      }
+
       setUser(response.user)
     } catch (error) {
       throw error
@@ -100,20 +123,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string
     password: string
     phone: string
-    services: string[]
-    location: string
+    service: string
     description: string
-    experience: string
-    portfolio?: string
-    website?: string
-    instagram?: string
-    facebook?: string
+    city: string
   }) => {
     setLoading(true)
+
     try {
-      const response = await api.post<RegisterResponse>("/auth/register/provider", data)
-      localStorage.setItem("token", response.token)
-      setUser(response.user)
+      const response = await api.post<ApiResponse<RegisterResponse>>("/providers", data)
+
+      if (response?.data?.token !== undefined) {
+        localStorage.setItem("token", response.data.token)
+
+        if (response.data && typeof response.data === 'object') {
+          delete (response.data as any).token
+        }
+
+        // Salvar dados do usuário no localStorage
+        if (response.data.user) {
+          localStorage.setItem("userData", JSON.stringify(response.data.user))
+        }
+
+        setUser(response.data.user || null)
+      }
     } catch (error) {
       throw error
     } finally {

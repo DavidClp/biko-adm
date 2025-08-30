@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -12,12 +12,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/use-auth"
 import { Loader2, ArrowLeft, Mail, Lock } from "lucide-react"
+import { UserRole } from "@/lib/types"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const { login, loading } = useAuth()
+  const { login, loading, user } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,11 +27,21 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
-      router.push("/dashboard")
+
     } catch (err) {
       setError("Email ou senha incorretos. Tente novamente.")
     }
   }
+
+  useEffect(() => {
+    if (user?.role === UserRole.PROVIDER) {
+      router.push("/dashboard")
+    } else if (user?.role === UserRole.CLIENT) {
+      router.push("/providers")
+    } else if (user?.role === UserRole.ADMIN) {
+      router.push("/admin")
+    }
+  }, [user?.role])
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/20 to-accent/5">

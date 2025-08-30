@@ -11,12 +11,11 @@ export default function HomePage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      {/* Hero Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-primary/15">
         <div className="container mx-auto text-center max-w-4xl">
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
             Conecte-se com os melhores
-            <span className="text-secondary"> prestadores de serviços</span>
+            <span> prestadores de serviços</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-12 text-pretty max-w-2xl mx-auto">
             A ListUp conecta você aos profissionais mais qualificados da sua região com segurança e praticidade

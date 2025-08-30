@@ -55,6 +55,41 @@ export default function DashboardPage() {
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileSuccess, setProfileSuccess] = useState(false)
 
+  // Messaging state for internal chat system
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Record<string, any[]>>({
+    "1": [
+      {
+        id: "1",
+        sender: "client",
+        senderName: "Maria Santos",
+        message:
+          "Olá! Preciso instalar pontos de energia em uma sala comercial de 50m². Quando você poderia fazer uma visita técnica?",
+        timestamp: "2024-01-20 14:30",
+        type: "text",
+      },
+      {
+        id: "2",
+        sender: "provider",
+        senderName: "João Silva",
+        message: "Olá Maria! Posso fazer a visita técnica amanhã pela manhã. Qual o endereço?",
+        timestamp: "2024-01-20 15:45",
+        type: "text",
+      },
+    ],
+    "2": [
+      {
+        id: "3",
+        sender: "client",
+        senderName: "Carlos Oliveira",
+        message: "Urgente! O disjuntor principal está desarmando constantemente. Preciso de reparo hoje se possível.",
+        timestamp: "2024-01-18 09:15",
+        type: "text",
+      },
+    ],
+  })
+  const [newMessage, setNewMessage] = useState("")
+
   // Mock orders data
   const orders = [
     {
@@ -168,6 +203,32 @@ export default function DashboardPage() {
     }
   }
 
+  // Function to handle sending messages in internal chat
+  const handleSendMessage = (orderId: string) => {
+    if (!newMessage.trim()) return
+
+    const message = {
+      id: Date.now().toString(),
+      sender: "provider",
+      senderName: profileData.name,
+      message: newMessage,
+      timestamp: new Date().toLocaleString("pt-BR"),
+      type: "text",
+    }
+
+    setMessages((prev) => ({
+      ...prev,
+      [orderId]: [...(prev[orderId] || []), message],
+    }))
+    setNewMessage("")
+  }
+
+  // Function to handle order status changes
+  const handleOrderAction = (orderId: string, action: "accept" | "reject") => {
+    // Simulate API call to update order status
+    console.log(`Order ${orderId} ${action}ed`)
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -182,7 +243,7 @@ export default function DashboardPage() {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
-              Pedidos
+              Mensagens
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -198,50 +259,136 @@ export default function DashboardPage() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pedidos recebidos</CardTitle>
-                <CardDescription>Gerencie os pedidos de serviços dos seus clientes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {orders.map((order) => (
-                    <Card key={order.id}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="font-semibold">{order.clientName}</h3>
-                            <p className="text-sm text-muted-foreground">{order.service}</p>
-                          </div>
-                          <div className="text-right">
-                            {getStatusBadge(order.status)}
-                            <p className="text-sm text-muted-foreground mt-1">{order.date}</p>
-                          </div>
-                        </div>
-                        <p className="text-muted-foreground mb-4">{order.description}</p>
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-primary">{order.budget}</span>
-                          {order.status === "pending" && (
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline">
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Recusar
-                              </Button>
-                              <Button size="sm">
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Aceitar
-                              </Button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Orders List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Solicitações de Orçamento</CardTitle>
+                  <CardDescription>Clique em uma solicitação para ver a conversa</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {orders.map((order) => (
+                      <Card
+                        key={order.id}
+                        className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+                          selectedOrder === order.id ? "ring-2 ring-primary" : ""
+                        }`}
+                        onClick={() => setSelectedOrder(order.id)}
+                      >
+                        <CardContent className="pt-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h3 className="font-semibold text-sm">{order.clientName}</h3>
+                              <p className="text-xs text-muted-foreground">{order.service}</p>
                             </div>
-                          )}
+                            <div className="text-right">
+                              {getStatusBadge(order.status)}
+                              <p className="text-xs text-muted-foreground mt-1">{order.date}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{order.description}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-semibold text-primary">{order.budget}</span>
+                            {messages[order.id] && (
+                              <Badge variant="secondary" className="text-xs">
+                                {messages[order.id].length} mensagens
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Chat Interface */}
+              <Card className="flex flex-col">
+                <CardHeader>
+                  <CardTitle>
+                    {selectedOrder
+                      ? `Conversa com ${orders.find((o) => o.id === selectedOrder)?.clientName}`
+                      : "Selecione uma solicitação"}
+                  </CardTitle>
+                  {selectedOrder && (
+                    <CardDescription>
+                      {orders.find((o) => o.id === selectedOrder)?.service} -{" "}
+                      {orders.find((o) => o.id === selectedOrder)?.budget}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+
+                {selectedOrder ? (
+                  <>
+                    <CardContent className="flex-1 max-h-96 overflow-y-auto">
+                      <div className="space-y-4">
+                        {messages[selectedOrder]?.map((message) => (
+                          <div
+                            key={message.id}
+                            className={`flex ${message.sender === "provider" ? "justify-end" : "justify-start"}`}
+                          >
+                            <div
+                              className={`max-w-[80%] rounded-lg p-3 ${
+                                message.sender === "provider" ? "bg-primary text-primary-foreground" : "bg-muted"
+                              }`}
+                            >
+                              <p className="text-sm">{message.message}</p>
+                              <p
+                                className={`text-xs mt-1 ${
+                                  message.sender === "provider" ? "text-primary-foreground/70" : "text-muted-foreground"
+                                }`}
+                              >
+                                {message.timestamp}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+
+                    <div className="p-4 border-t">
+                      {orders.find((o) => o.id === selectedOrder)?.status === "pending" && (
+                        <div className="flex gap-2 mb-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleOrderAction(selectedOrder, "reject")}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Recusar
+                          </Button>
+                          <Button size="sm" onClick={() => handleOrderAction(selectedOrder, "accept")}>
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Aceitar
+                          </Button>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                      )}
+
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Digite sua mensagem..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          onKeyPress={(e) => e.key === "Enter" && handleSendMessage(selectedOrder)}
+                        />
+                        <Button onClick={() => handleSendMessage(selectedOrder)}>
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <CardContent className="flex-1 flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Selecione uma solicitação para iniciar a conversa</p>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Profile Tab */}
