@@ -26,24 +26,14 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  Lock,
 } from "lucide-react"
+import { ProfileTab } from "./components/profile-tab"
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const router = useRouter()
 
-  // Profile editing state
-  const [profileData, setProfileData] = useState({
-    name: "João Silva",
-    service: "Eletricista",
-    city: "São Paulo",
-    description:
-      "Eletricista com mais de 10 anos de experiência em instalações residenciais e comerciais. Especializado em sistemas elétricos modernos, automação residencial e manutenção preventiva.",
-    phone: "(11) 99999-9999",
-    instagram: "@joaoeletricista",
-    facebook: "facebook.com/joaoeletricista",
-    linkedin: "linkedin.com/in/joaosilva",
-  })
 
   // AI Tools state
   const [aiPrompt, setAiPrompt] = useState("")
@@ -51,9 +41,7 @@ export default function DashboardPage() {
   const [generatedImage, setGeneratedImage] = useState("")
   const [aiLoading, setAiLoading] = useState(false)
 
-  // Loading states
-  const [profileLoading, setProfileLoading] = useState(false)
-  const [profileSuccess, setProfileSuccess] = useState(false)
+
 
   // Messaging state for internal chat system
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null)
@@ -121,22 +109,6 @@ export default function DashboardPage() {
     },
   ]
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setProfileLoading(true)
-    setProfileSuccess(false)
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setProfileSuccess(true)
-      setTimeout(() => setProfileSuccess(false), 3000)
-    } catch (error) {
-      console.error("Error updating profile:", error)
-    } finally {
-      setProfileLoading(false)
-    }
-  }
 
   const handleGenerateText = async () => {
     if (!aiPrompt.trim()) return
@@ -150,7 +122,7 @@ export default function DashboardPage() {
 ✨ Mais de 10 anos de experiência
 ⚡ Atendimento rápido e confiável  
 🏠 Especialista em automação residencial
-📞 Orçamento gratuito: ${profileData.phone}
+📞 Orçamento gratuito: TESTE
 
 #eletricista #saopaulo #automacao #seguranca #qualidade`
 
@@ -210,7 +182,7 @@ export default function DashboardPage() {
     const message = {
       id: Date.now().toString(),
       sender: "provider",
-      senderName: profileData.name,
+      senderName: "TESTE",
       message: newMessage,
       timestamp: new Date().toLocaleString("pt-BR"),
       type: "text",
@@ -272,9 +244,8 @@ export default function DashboardPage() {
                     {orders.map((order) => (
                       <Card
                         key={order.id}
-                        className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                          selectedOrder === order.id ? "ring-2 ring-primary" : ""
-                        }`}
+                        className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedOrder === order.id ? "ring-2 ring-primary" : ""
+                          }`}
                         onClick={() => setSelectedOrder(order.id)}
                       >
                         <CardContent className="pt-4">
@@ -330,15 +301,13 @@ export default function DashboardPage() {
                             className={`flex ${message.sender === "provider" ? "justify-end" : "justify-start"}`}
                           >
                             <div
-                              className={`max-w-[80%] rounded-lg p-3 ${
-                                message.sender === "provider" ? "bg-primary text-primary-foreground" : "bg-muted"
-                              }`}
+                              className={`max-w-[80%] rounded-lg p-3 ${message.sender === "provider" ? "bg-primary text-primary-foreground" : "bg-muted"
+                                }`}
                             >
                               <p className="text-sm">{message.message}</p>
                               <p
-                                className={`text-xs mt-1 ${
-                                  message.sender === "provider" ? "text-primary-foreground/70" : "text-muted-foreground"
-                                }`}
+                                className={`text-xs mt-1 ${message.sender === "provider" ? "text-primary-foreground/70" : "text-muted-foreground"
+                                  }`}
                               >
                                 {message.timestamp}
                               </p>
@@ -393,119 +362,7 @@ export default function DashboardPage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Editar perfil</CardTitle>
-                <CardDescription>Mantenha suas informações sempre atualizadas</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {profileSuccess && (
-                  <Alert className="mb-6 bg-green-50 border-green-200">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">Perfil atualizado com sucesso!</AlertDescription>
-                  </Alert>
-                )}
-
-                <form onSubmit={handleProfileUpdate} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome completo</Label>
-                      <Input
-                        id="name"
-                        value={profileData.name}
-                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                        disabled={profileLoading}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="service">Serviço</Label>
-                      <Input
-                        id="service"
-                        value={profileData.service}
-                        onChange={(e) => setProfileData({ ...profileData, service: e.target.value })}
-                        disabled={profileLoading}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">Cidade</Label>
-                      <Input
-                        id="city"
-                        value={profileData.city}
-                        onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
-                        disabled={profileLoading}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">WhatsApp</Label>
-                      <Input
-                        id="phone"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                        disabled={profileLoading}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Descrição dos serviços</Label>
-                    <Textarea
-                      id="description"
-                      value={profileData.description}
-                      onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
-                      disabled={profileLoading}
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Redes sociais</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="instagram">Instagram</Label>
-                        <Input
-                          id="instagram"
-                          value={profileData.instagram}
-                          onChange={(e) => setProfileData({ ...profileData, instagram: e.target.value })}
-                          disabled={profileLoading}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="facebook">Facebook</Label>
-                        <Input
-                          id="facebook"
-                          value={profileData.facebook}
-                          onChange={(e) => setProfileData({ ...profileData, facebook: e.target.value })}
-                          disabled={profileLoading}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="linkedin">LinkedIn</Label>
-                        <Input
-                          id="linkedin"
-                          value={profileData.linkedin}
-                          onChange={(e) => setProfileData({ ...profileData, linkedin: e.target.value })}
-                          disabled={profileLoading}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button type="submit" disabled={profileLoading}>
-                    {profileLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Salvando...
-                      </>
-                    ) : (
-                      "Salvar alterações"
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <ProfileTab userId={user?.id!} providerId={user?.provider?.id!} />
           </TabsContent>
 
           {/* AI Tools Tab */}
@@ -531,7 +388,7 @@ export default function DashboardPage() {
                       rows={3}
                     />
                   </div>
-                  <Button onClick={handleGenerateText} disabled={aiLoading || !aiPrompt.trim()} className="w-full">
+                  <Button disabled={true} onClick={handleGenerateText} /* disabled={aiLoading || !aiPrompt.trim()} */ className="w-full">
                     {aiLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -539,7 +396,8 @@ export default function DashboardPage() {
                       </>
                     ) : (
                       <>
-                        <Wand2 className="mr-2 h-4 w-4" />
+                 {/*        <Wand2 className="mr-2 h-4 w-4" /> */}
+                        <Lock/>
                         Gerar Legenda
                       </>
                     )}
@@ -569,7 +427,7 @@ export default function DashboardPage() {
                   <CardDescription>Crie imagens profissionais para seu marketing</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button onClick={handleGenerateImage} disabled={aiLoading} className="w-full">
+                  <Button onClick={handleGenerateImage} disabled={true} /* disabled={aiLoading} */ className="w-full">
                     {aiLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -577,7 +435,8 @@ export default function DashboardPage() {
                       </>
                     ) : (
                       <>
-                        <ImageIcon className="mr-2 h-4 w-4" />
+                        {/* <ImageIcon className="mr-2 h-4 w-4" /> */}
+                        <Lock/>
                         Gerar Imagem Profissional
                       </>
                     )}

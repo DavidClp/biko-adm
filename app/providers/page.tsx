@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,15 +13,18 @@ import { Footer } from "@/components/navigation/footer"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useProviders } from "@/hooks/use-providers"
 import { Search, MapPin, Star, MessageCircle } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/navigation"
+import { CitiesSelector } from "@/components/cities-selector"
 
 export default function ProvidersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCity, setSelectedCity] = useState("all")
   const [selectedService, setSelectedService] = useState("all")
+  const { user } = useAuth();
+  const router = useRouter()
 
-  const { providers, loading, error, fetchProviders } = useProviders({
-    autoFetch: false,
-  })
+  const { providers, loading, error, /* fetchProviders */ } = useProviders()
 
   // Mock data for demonstration
   const mockProviders = [
@@ -63,7 +66,6 @@ export default function ProvidersPage() {
     },
   ]
 
-  const cities = ["São Paulo", "Rio de Janeiro", "Belo Horizonte", "Brasília", "Salvador"]
   const services = ["Eletricista", "Designer", "Fotógrafo", "Encanador", "Pintor", "Marceneiro"]
 
   const filteredProviders = mockProviders.filter((provider) => {
@@ -76,12 +78,14 @@ export default function ProvidersPage() {
     return matchesSearch && matchesCity && matchesService
   })
 
-  const handleWhatsAppContact = (phone: string, providerName: string) => {
-    const message = encodeURIComponent(
-      `Olá ${providerName}, encontrei seu perfil no ListUp e gostaria de saber mais sobre seus serviços.`,
-    )
-    window.open(`https://wa.me/55${phone.replace(/\D/g, "")}?text=${message}`, "_blank")
-  }
+  const handleRequestContact = useCallback((providerId: string) => {
+    if (!user) {
+      router.push("/login")
+      return
+    }
+
+    router.push(`/providers/${providerId}?isContactModalOpen=true`)
+  }, [])
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -100,27 +104,15 @@ export default function ProvidersPage() {
                   placeholder="Buscar por nome ou serviço..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="w-full border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 pl-10"
                 />
               </div>
             </div>
 
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas as cidades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as cidades</SelectItem>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+           <CitiesSelector onCitySelect={setSelectedCity} />
 
             <Select value={selectedService} onValueChange={setSelectedService}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200">
                 <SelectValue placeholder="Todos os serviços" />
               </SelectTrigger>
               <SelectContent>
@@ -185,9 +177,9 @@ export default function ProvidersPage() {
                         Ver Perfil
                       </Button>
                     </Link>
-                    <Button onClick={() => handleWhatsAppContact(provider.phone, provider.name)} className="flex-1">
+                    <Button onClick={() => handleRequestContact(provider.id)} className="flex-1">
                       <MessageCircle className="h-4 w-4 mr-2" />
-                      WhatsApp
+                      Solicitar Orçamento
                     </Button>
                   </div>
                 </CardContent>

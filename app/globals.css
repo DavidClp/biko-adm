@@ -5,20 +5,20 @@
 
 :root {
   /* Updated to elegant green with sophisticated neutral grays */
-  --background: oklch(0.961 0.002 106.423); /* #f5f5f5 - Light gray background */
+  --background: #ffffff; /* #f5f5f5 - Light gray background */
   --foreground: oklch(0.278 0.004 106.423); /* #616161 - Dark gray primary text */
   --card: oklch(1 0 0); /* #ffffff - White card backgrounds */
   --card-foreground: #474747; /* #9e9e9e - Medium gray card text */
   --popover: oklch(1 0 0); /* #ffffff - White popover backgrounds */
   --popover-foreground: oklch(0.478 0.004 106.423); /* #616161 - Dark gray popover text */
-  --primary: oklch(0.627 0.176 142.495); /* #4caf50 - Sophisticated green primary */
-  --primary-foreground: oklch(1 0 0); /* #ffffff - White text on primary */
-  --secondary:#306527; /* #9e9e9e - Medium gray secondary */
+  --primary: #f8ce27; /* #4caf50 - Sophisticated green primary */
+  --primary-foreground: #1A1A1A; /* #ffffff - White text on primary */
+  --secondary:#db9d01; /* #9e9e9e - Medium gray secondary */
   --secondary-foreground: oklch(1 0 0); /* #ffffff - White text on secondary */
-  --muted: oklch(0.961 0.002 106.423); /* #f5f5f5 - Light gray muted */
+  --muted: #f8ce2781; /* #f5f5f5 - Light gray muted */
   --muted-foreground: oklch(0.478 0.004 106.423); /* #616161 - Dark gray muted text */
   --accent: oklch(1 0 0); /* #ffffff - White accents */
-  --accent-foreground: oklch(0.627 0.176 142.495); /* #4caf50 - Green accent text */
+  --accent-foreground: #004AAD; /* #4caf50 - Green accent text */
   --destructive: oklch(0.577 0.245 27.325); /* #ea580c - Orange destructive */
   --destructive-foreground: oklch(1 0 0); /* #ffffff - White destructive text */
   --border: oklch(0.647 0.004 106.423); /* #9e9e9e - Medium gray borders */

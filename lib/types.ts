@@ -6,6 +6,19 @@ export interface ApiResponse<T = any> {
   statusCode?: number
 }
 
+export interface City {
+  id: string
+  name: string
+  state: {
+    id: string
+    initials: string
+    name: string
+  }
+  country?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
 // Tipos para autenticação
 export interface LoginResponse {
   token: string
@@ -46,8 +59,9 @@ export interface Client extends User {
 
 export interface Provider extends User {
   phone: string
-  services: string[]
-  location: string
+  service: string
+  cityId: string;
+  cityName: string;
   description: string
   photoUrl?: string
   createdAt: string

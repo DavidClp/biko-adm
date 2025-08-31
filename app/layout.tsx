@@ -4,9 +4,10 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import { AuthProvider } from "@/hooks/use-auth"
+import { QueryProvider } from "@/components/query-provider"
 
 export const metadata: Metadata = {
-  title: "ListUp - Plataforma de Serviços",
+  title: "Listão - Plataforma de Serviços",
   description: "Conecte-se com os melhores prestadores de serviços da sua região",
   generator: "v0.app",
 }
@@ -19,7 +20,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <AuthProvider>{children}</AuthProvider>
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   )

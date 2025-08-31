@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { User, Settings, LogOut, Shield, Search, Home, Menu, X, MessageCircle } from "lucide-react"
 import { UserRole } from "@/lib/types"
+import { WorkerIcon } from "@/lib/icons/worker"
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -37,11 +38,11 @@ export function Header() {
 
   const userNavigationItems = user
     ? [
-        ...(user.role === UserRole.PROVIDER ? [{ href: "/dashboard", label: "Dashboard" }] : []),
-        ...(user.role === UserRole.ADMIN ? [{ href: "/admin", label: "Admin" }] : []),
-      ]
+      ...(user.role === UserRole.PROVIDER ? [{ href: "/dashboard", label: "Dashboard" }] : []),
+      ...(user.role === UserRole.ADMIN ? [{ href: "/admin", label: "Admin" }] : []),
+    ]
     : []
-  console.log("user",user?.role === UserRole.CLIENT)
+
   return (
     <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -49,9 +50,9 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">LU</span>
+              <span className="text-primary-foreground font-bold text-sm"><WorkerIcon /></span>
             </div>
-            <span className="text-xl font-bold text-primary">ListUp</span>
+            <span className="text-xl font-bold text-primary">Listão</span>
             {user?.role === UserRole.ADMIN && (
               <Badge variant="secondary" className="ml-2">
                 Admin
@@ -67,9 +68,8 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(item.href) ? "text-primary" : "text-muted-foreground"
-                  }`}
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary" : "text-muted-foreground"
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
@@ -81,9 +81,8 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(item.href) ? "text-primary" : "text-muted-foreground"
-                }`}
+                className={`text-sm font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary" : "text-muted-foreground"
+                  }`}
               >
                 {item.label}
               </Link>
@@ -113,7 +112,7 @@ export function Header() {
                       <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
-                  
+
                   <DropdownMenuSeparator />
 
                   {user.role === UserRole.CLIENT && (
@@ -179,9 +178,8 @@ export function Header() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-                      isActive(item.href) ? "text-primary" : "text-muted-foreground"
-                    }`}
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary" : "text-muted-foreground"
+                      }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Icon className="h-4 w-4" />
@@ -194,9 +192,8 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(item.href) ? "text-primary" : "text-muted-foreground"
-                  }`}
+                  className={`text-sm font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary" : "text-muted-foreground"
+                    }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}

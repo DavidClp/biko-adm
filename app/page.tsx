@@ -18,7 +18,7 @@ export default function HomePage() {
             <span> prestadores de serviços</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-12 text-pretty max-w-2xl mx-auto">
-            A ListUp conecta você aos profissionais mais qualificados da sua região com segurança e praticidade
+            A Listão conecta você aos profissionais mais qualificados da sua região com segurança e praticidade
           </p>
 
           {/* CTA Buttons */}
@@ -63,7 +63,7 @@ export default function HomePage() {
       <section className="py-20 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Por que escolher a ListUp?</h2>
+            <h2 className="text-3xl font-bold mb-4">Por que escolher a Listão?</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Nossa plataforma oferece segurança, praticidade e qualidade para conectar clientes e prestadores
             </p>

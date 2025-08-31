@@ -78,9 +78,9 @@ export default function ProviderLandingPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+      <section className="py-20 px-4 bg-primary/10 from-primary/5 to-secondary/5">
         <div className="container mx-auto text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 bg-primary/30 text-secondary px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Sparkles className="h-4 w-4" />
             Plataforma #1 para Prestadores de Serviços
           </div>

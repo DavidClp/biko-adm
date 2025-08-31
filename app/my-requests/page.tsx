@@ -389,7 +389,7 @@ export default function MyRequestsPage() {
             <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50">
               <div className="text-center text-gray-500">
                 <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <h3 className="text-lg font-medium mb-2">Bem-vindo ao ListUp</h3>
+                <h3 className="text-lg font-medium mb-2">Bem-vindo ao Listão</h3>
                 <p>Selecione uma conversa para começar a conversar com um prestador</p>
               </div>
             </div>
