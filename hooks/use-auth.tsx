@@ -24,17 +24,30 @@ interface AuthContextType {
     city: string
     description: string
   }) => Promise<void>
+  routerBeforeLogin: string | null
+  setRouterBeforeLogin: (router: string) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
+  const [routerBeforeLogin, setRouterBeforeLogin] = useState<string | null>(null)
+
+  const setRouterBeforeLoginWithPersistence = (router: string) => {
+    setRouterBeforeLogin(router)
+    localStorage.setItem("routerBeforeLogin", router)
+  }
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        /* const savedRouter = localStorage.getItem("routerBeforeLogin")
+        if (savedRouter) {
+          setRouterBeforeLogin(savedRouter)
+        }
+ */
         const token = localStorage.getItem("token")
         if (token) {
           const userData = localStorage.getItem("userData")
@@ -66,20 +79,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true)
     try {
-      const response = await api.post<LoginResponse>("/auth/login", { email, password })
+      const { data } = await api.post<LoginResponse>("/auth/login", { email, password })
 
-      if (response?.token !== undefined) {
-        localStorage.setItem("token", response.token)
+      if (data?.token !== undefined) {
+        localStorage.setItem("token", data.token)
 
-        if (response && typeof response === 'object') {
-          delete (response as any).token
+        if (data && typeof data === 'object') {
+          delete (data as any).token
         }
 
-        if (response.user) {
-          localStorage.setItem("userData", JSON.stringify(response.user))
+        if (data.user) {
+          localStorage.setItem("userData", JSON.stringify(data.user))
         }
 
-        setUser(response.user || null)
+        setUser(data.user || null)
       }
     } catch (error) {
       throw error
@@ -94,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
-  const registerClient = async (data: {
+  const registerClient = async (params: {
     name: string
     email: string
     password: string
@@ -102,15 +115,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }) => {
     setLoading(true)
     try {
-      const response = await api.post<RegisterResponse>("/clients", data)
+      const { data } = await api.post<RegisterResponse>("/clients", params)
 
-      localStorage.setItem("token", response.token)
+      localStorage.setItem("token", data.token)
 
-      if (response.user) {
-        localStorage.setItem("userData", JSON.stringify(response.user))
+      if (data.user) {
+        localStorage.setItem("userData", JSON.stringify(data.user))
       }
 
-      setUser(response.user)
+      setUser(data.user)
     } catch (error) {
       throw error
     } finally {
@@ -118,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const registerProvider = async (data: {
+  const registerProvider = async (params: {
     name: string
     email: string
     password: string
@@ -130,21 +143,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
 
     try {
-      const response = await api.post<ApiResponse<RegisterResponse>>("/providers", data)
+      const { data } = await api.post<RegisterResponse>("/providers", params)
 
-      if (response?.data?.token !== undefined) {
-        localStorage.setItem("token", response.data.token)
+      if (data?.token !== undefined) {
+        localStorage.setItem("token", data.token)
 
-        if (response.data && typeof response.data === 'object') {
-          delete (response.data as any).token
+        if (data && typeof data === 'object') {
+          delete (data as any).token
         }
 
         // Salvar dados do usuário no localStorage
-        if (response.data.user) {
-          localStorage.setItem("userData", JSON.stringify(response.data.user))
+        if (data.user) {
+          localStorage.setItem("userData", JSON.stringify(data.user))
         }
 
-        setUser(response.data.user || null)
+        setUser(data.user || null)
       }
     } catch (error) {
       throw error
@@ -160,6 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     registerClient,
     registerProvider,
+    routerBeforeLogin,
+    setRouterBeforeLogin: setRouterBeforeLoginWithPersistence,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

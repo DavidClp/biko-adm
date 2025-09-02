@@ -11,47 +11,42 @@ interface UpdateProfileData {
   description: string
 }
 
-export function useProvider({userId, providerId}: {userId?: string, providerId?: string}) {
+export function useProvider({ providerId }: { providerId?: string }) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  // Buscar dados do perfil
   const profileQuery = useQuery({
-    queryKey: ['profile', userId],
+    queryKey: ['profile', providerId],
     queryFn: async (): Promise<Provider> => {
-      if (!userId) throw new Error('ID do provider não fornecido')
-      
       try {
-        const response = await api.get<ApiResponse<Provider>>(`/providers/${userId}`)
+        const { data } = await api.get<Provider>(`/providers/${providerId}`)
 
-        if (!response?.data) {
+        console.log("data", data)
+        if (!data) {
           throw new Error('Provider not found')
         }
 
-        return response?.data
+        return data
       } catch (error) {
         console.error('Erro ao buscar perfil:', error)
         throw error
       }
     },
-    enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    enabled: !!providerId,
+ //   staleTime: 5 * 60 * 1000, // 5 minutos
     retry: 2,
   })
 
-  // Atualizar perfil
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: UpdateProfileData): Promise<Provider> => {
-      if (!providerId) throw new Error('ID do provider não fornecido')
-      
+    mutationFn: async (params: UpdateProfileData): Promise<Provider> => {
       try {
-        const response = await api.put<ApiResponse<Provider>>(`/providers/${providerId}`, data)
+        const { data } = await api.put<Provider>(`/providers/${providerId}`, params)
 
-        if (!response?.data) {
+        if (!data) {
           throw new Error('Provider not found')
         }
 
-        return response?.data
+        return data
       } catch (error) {
         console.error('Erro ao atualizar perfil:', error)
         throw error
@@ -60,7 +55,7 @@ export function useProvider({userId, providerId}: {userId?: string, providerId?:
     onSuccess: (data) => {
       queryClient.setQueryData(['profile', providerId], data)
       queryClient.invalidateQueries({ queryKey: ['provider', providerId] })
-      
+
       toast({
         title: "Perfil atualizado!",
         description: "Suas informações foram salvas com sucesso.",
@@ -77,13 +72,13 @@ export function useProvider({userId, providerId}: {userId?: string, providerId?:
   })
 
   return {
-    profile: profileQuery.data,
+    provider: profileQuery.data,
     isLoading: profileQuery.isLoading,
     error: profileQuery.error,
-    
+
     updateProfile: updateProfileMutation.mutate,
     isUpdating: updateProfileMutation.isPending,
-    
+
     refetch: profileQuery.refetch,
   }
 }

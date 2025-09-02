@@ -199,7 +199,8 @@ export interface ApiError {
 // Tipos para sucesso
 export interface ApiSuccess<T = any> {
   success: true
-  data: T
+  count: number
+  data: T | T[]
   message?: string
 }
 

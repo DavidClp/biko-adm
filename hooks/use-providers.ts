@@ -1,109 +1,103 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useMemo } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api"
+import { ApiSuccess, PaginatedResponse, Provider } from "@/lib/types"
 
-export interface Provider {
-  id: string
-  name: string
-  email: string
-  phone: string
-  services: string[]
-  location: string
-  description: string
-  experience: string
-  rating: number
-  reviewCount: number
-  avatar?: string
-  portfolio?: string
-  website?: string
-  instagram?: string
-  facebook?: string
-  status: "pending" | "approved" | "rejected"
-  createdAt: string
+interface ProvidersFilters {
+  query?: string
+  services?: string[]
+  location?: string
+  minRating?: number
 }
 
-interface UseProvidersReturn {
-  providers: Provider[]
-  loading: boolean
-  error: string | null
-  searchProviders: (
-    query: string,
-    filters?: {
-      services?: string[]
-      location?: string
-      minRating?: number
+const fetchProviders = async (filters?: ProvidersFilters): Promise<Provider[]> => {
+  const params = new URLSearchParams()
+
+  if (filters?.query) params.append("q", filters.query)
+  if (filters?.services?.length) params.append("services", filters.services.join(","))
+  if (filters?.location) params.append("location", filters.location)
+  if (filters?.minRating) params.append("minRating", filters.minRating.toString())
+
+  const queryString = params.toString()
+  const endpoint = `/providers${queryString ? `?${queryString}` : ""}`
+
+  const { data } = await api.get<Provider[]>(endpoint)
+
+  return data;
+}
+
+export function useProviders(filters?: ProvidersFilters) {
+  return useQuery({
+    async queryFn() {
+      const data = await fetchProviders(filters)
+      return data
     },
-  ) => void
-  getProvider: (id: string) => Provider | undefined
-  refreshProviders: () => void
+    queryKey: ["providers", JSON.stringify(filters)],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
+  })
 }
 
-export function useProviders(): UseProvidersReturn {
-  const [providers, setProviders] = useState<Provider[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+// Hook simplificado que aceita parâmetros individuais
+export function useProvidersWithFilters(
+  searchTerm?: string,
+  selectedCity?: string,
+  selectedService?: string
+) {
+  const filters = useMemo(() => {
+    const queryFilters: ProvidersFilters = {}
 
-  const fetchProviders = async (query?: string, filters?: any) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      // Build query parameters
-      const params = new URLSearchParams()
-      if (query) params.append("q", query)
-      if (filters?.services?.length) params.append("services", filters.services.join(","))
-      if (filters?.location) params.append("location", filters.location)
-      if (filters?.minRating) params.append("minRating", filters.minRating.toString())
-
-      const queryString = params.toString()
-      const endpoint = `/providers${queryString ? `?${queryString}` : ""}`
-
-      const data = await api.get<Provider[]>(endpoint)
-      setProviders(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch providers")
-      // Fallback to mock data for development
-      setProviders(getMockProviders())
-    } finally {
-      setLoading(false)
+    if (searchTerm?.trim()) {
+      queryFilters.query = searchTerm.trim()
     }
-  }
 
-  const searchProviders = (
-    query: string,
-    filters?: {
-      services?: string[]
-      location?: string
-      minRating?: number
+    if (selectedCity && selectedCity !== "all") {
+      queryFilters.location = selectedCity
+    }
+
+    if (selectedService && selectedService !== "all") {
+      queryFilters.services = [selectedService]
+    }
+
+    return queryFilters
+  }, [searchTerm, selectedCity, selectedService])
+
+  return useProviders(filters) // sem async/await
+}
+
+// Hook para buscar um provider específico
+export function useProvider(id: string) {
+  return useQuery({
+    queryKey: ["provider", id],
+    queryFn: async () => {
+      try {
+        const data = await api.get<Provider>(`/providers/${id}`)
+        return data
+      } catch (error) {
+        // Em caso de erro, busca nos providers já carregados
+        const queryClient = useQueryClient()
+        const providers = queryClient.getQueryData<Provider[]>(["providers"])
+        return providers?.find(p => p.id === id)
+      }
     },
-  ) => {
-    fetchProviders(query, filters)
-  }
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  })
+}
 
-  const getProvider = (id: string) => {
-    return providers.find((provider) => provider.id === id)
-  }
-
-  const refreshProviders = () => {
-    fetchProviders()
-  }
-
-  useEffect(() => {
-    fetchProviders()
-  }, [])
+// Hook para invalidar cache dos providers
+export function useInvalidateProviders() {
+  const queryClient = useQueryClient()
 
   return {
-    providers,
-    loading,
-    error,
-    searchProviders,
-    getProvider,
-    refreshProviders,
+    invalidateAll: () => queryClient.invalidateQueries({ queryKey: ["providers"] }),
+    invalidateProvider: (id: string) => queryClient.invalidateQueries({ queryKey: ["provider", id] }),
   }
 }
 
-// Mock data for development
+// Mock data para desenvolvimento
 function getMockProviders(): Provider[] {
   return [
     {
@@ -111,12 +105,12 @@ function getMockProviders(): Provider[] {
       name: "João Silva",
       email: "joao@email.com",
       phone: "(11) 99999-9999",
-      services: ["Elétrica", "Instalação"],
-      location: "São Paulo, SP",
+      service: "Elétrica",
+      cityName: "São Paulo, SP",
       description: "Eletricista com 10 anos de experiência em instalações residenciais e comerciais.",
       experience: "10 anos",
       rating: 4.8,
-      reviewCount: 127,
+      reviews: 127,
       avatar: "/professional-electrician.png",
       status: "approved",
       createdAt: "2024-01-15T10:00:00Z",
@@ -126,12 +120,12 @@ function getMockProviders(): Provider[] {
       name: "Maria Santos",
       email: "maria@email.com",
       phone: "(11) 88888-8888",
-      services: ["Design", "Consultoria"],
-      location: "Rio de Janeiro, RJ",
+      service: "Design",
+      cityName: "Rio de Janeiro, RJ",
       description: "Designer de interiores especializada em projetos residenciais modernos.",
       experience: "8 anos",
       rating: 4.9,
-      reviewCount: 89,
+      reviews: 89,
       avatar: "/professional-designer-woman.png",
       status: "approved",
       createdAt: "2024-01-20T14:30:00Z",
@@ -141,8 +135,8 @@ function getMockProviders(): Provider[] {
       name: "Carlos Oliveira",
       email: "carlos@email.com",
       phone: "(11) 77777-7777",
-      services: ["Fotografia", "Eventos"],
-      location: "Belo Horizonte, MG",
+      service: "Fotografia",
+      cityName: "Belo Horizonte, MG",
       description: "Fotógrafo profissional especializado em eventos corporativos e sociais.",
       experience: "12 anos",
       rating: 4.7,

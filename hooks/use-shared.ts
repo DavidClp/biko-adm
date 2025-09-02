@@ -7,8 +7,8 @@ export function useShared() {
     queryKey: ['cities'],
     queryFn: async (): Promise<City[]> => {
       try {
-        const response = await api.get<ApiResponse<City[]>>('/cities')
-        return response?.data || []
+        const {data} = await api.get<City[]>('/cities')
+        return data || []
       } catch (error) {
         console.error('Erro ao buscar cidades:', error)
         return []

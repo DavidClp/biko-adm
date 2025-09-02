@@ -1,21 +1,17 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { useProviders } from "@/hooks/use-providers"
-import { Search, MapPin, Star, MessageCircle } from "lucide-react"
+import { Search } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { CitiesSelector } from "@/components/cities-selector"
+import { ProvidersList } from "@/app/providers/components/providers-list"
+import { useProvidersWithFilters } from "@/hooks/use-providers"
 
 export default function ProvidersPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -24,59 +20,15 @@ export default function ProvidersPage() {
   const { user } = useAuth();
   const router = useRouter()
 
-  const { providers, loading, error, /* fetchProviders */ } = useProviders()
+  // Usar React Query para buscar providers com filtros
+  const { data: providers = [], isLoading: loading, error } = useProvidersWithFilters(
+    searchTerm,
+    selectedCity,
+    selectedService
+  )
 
-  // Mock data for demonstration
-  const mockProviders = [
-    {
-      id: "1",
-      name: "João Silva",
-      service: "Eletricista",
-      city: "São Paulo",
-      description: "Eletricista com 10 anos de experiência em instalações residenciais e comerciais.",
-      phone: "(11) 99999-9999",
-      photo: "/professional-electrician.png",
-      rating: 4.8,
-      reviewCount: 24,
-      approved: true,
-    },
-    {
-      id: "2",
-      name: "Maria Santos",
-      service: "Designer",
-      city: "Rio de Janeiro",
-      description: "Designer gráfica especializada em identidade visual e marketing digital.",
-      phone: "(21) 88888-8888",
-      photo: "/professional-designer-woman.png",
-      rating: 4.9,
-      reviewCount: 31,
-      approved: true,
-    },
-    {
-      id: "3",
-      name: "Carlos Oliveira",
-      service: "Fotógrafo",
-      city: "Belo Horizonte",
-      description: "Fotógrafo profissional especializado em eventos e retratos corporativos.",
-      phone: "(31) 77777-7777",
-      photo: "/professional-photographer.png",
-      rating: 4.7,
-      reviewCount: 18,
-      approved: true,
-    },
-  ]
-
+  console.log(providers)
   const services = ["Eletricista", "Designer", "Fotógrafo", "Encanador", "Pintor", "Marceneiro"]
-
-  const filteredProviders = mockProviders.filter((provider) => {
-    const matchesSearch =
-      provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      provider.service.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCity = selectedCity === "all" || provider.city === selectedCity
-    const matchesService = selectedService === "all" || provider.service === selectedService
-
-    return matchesSearch && matchesCity && matchesService
-  })
 
   const handleRequestContact = useCallback((providerId: string) => {
     if (!user) {
@@ -92,7 +44,6 @@ export default function ProvidersPage() {
       <Header />
 
       <div className="container mx-auto px-4 py-8 flex-1">
-        {/* Search and Filters */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-6">Encontre prestadores de serviços</h1>
 
@@ -126,85 +77,28 @@ export default function ProvidersPage() {
             </Select>
           </div>
 
-          <div className="text-sm text-muted-foreground">{filteredProviders.length} prestador(es) encontrado(s)</div>
+          <div className="text-sm text-muted-foreground">
+            {providers?.length} prestador(es) encontrado(s)
+            {error && (
+              <span className="text-destructive ml-2">
+                (Erro ao carregar dados, mostrando dados de exemplo)
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Providers Grid */}
-        {loading ? (
-          <LoadingSpinner size="lg" />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProviders.map((provider) => (
-              <Card key={provider.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={provider.photo || "/placeholder.svg"} alt={provider.name} />
-                      <AvatarFallback>
-                        {provider.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{provider.name}</CardTitle>
-                      <Badge variant="secondary" className="mb-2">
-                        {provider.service}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        {provider.city}
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
+        <ProvidersList 
+          providers={providers} 
+          loading={loading} 
+          onRequestContact={handleRequestContact}
+          onClearFilters={() => {
+            setSearchTerm("")
+            setSelectedCity("all")
+            setSelectedService("all")
+          }}
+        />
 
-                <CardContent className="pt-0">
-                  <CardDescription className="mb-4 line-clamp-2">{provider.description}</CardDescription>
-
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium">{provider.rating}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">({provider.reviewCount} avaliações)</span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Link href={`/providers/${provider.id}`} className="flex-1">
-                      <Button variant="outline" className="w-full bg-transparent">
-                        Ver Perfil
-                      </Button>
-                    </Link>
-                    <Button onClick={() => handleRequestContact(provider.id)} className="flex-1">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Solicitar Orçamento
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {filteredProviders.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <div className="text-muted-foreground mb-4">Nenhum prestador encontrado com os filtros selecionados.</div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm("")
-                setSelectedCity("all")
-                setSelectedService("all")
-              }}
-            >
-              Limpar filtros
-            </Button>
-          </div>
-        )}
       </div>
-
       <Footer />
     </div>
   )

@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const { login, loading, user } = useAuth()
+  const { login, loading, user, routerBeforeLogin, setRouterBeforeLogin } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,11 +37,15 @@ export default function LoginPage() {
     if (user?.role === UserRole.PROVIDER) {
       router.push("/dashboard")
     } else if (user?.role === UserRole.CLIENT) {
-      router.push("/providers")
+      if (routerBeforeLogin) {
+        router.push(routerBeforeLogin)
+      } else {
+        router.push("/providers")
+      }
     } else if (user?.role === UserRole.ADMIN) {
       router.push("/admin")
     }
-  }, [user?.role])
+  }, [user?.role, routerBeforeLogin, setRouterBeforeLogin])
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/20 to-accent/5">
