@@ -17,11 +17,11 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MessageCircle, Send, Briefcase, FileText, Clock, MapPin } from "lucide-react"
 import { Provider } from "@/lib/types"
-import { useContactRequest } from "@/hooks/use-contact-request"
+import { useRequestService } from "@/hooks/use-requests-services"
 import { useAuth } from "@/hooks/use-auth"
 
 interface ContactFormData {
-  serviceType: string
+  service_type: string
   description: string
   urgency: string
   address: string
@@ -54,14 +54,14 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
     formState: { errors, isSubmitting }
   } = useForm<ContactFormData>({
     defaultValues: {
-      serviceType: "",
+      service_type: "",
       description: "",
       urgency: "urgent",
       address: "",
     }
   })
 
-  const { sendContactRequest, isSending, isSuccess, reset: resetMutation } = useContactRequest();
+  const { sendContactRequest, isSending, isSuccess, reset: resetMutation } = useRequestService();
   const { user } = useAuth();
 
   const onSubmit = async (data: ContactFormData) => {
@@ -72,26 +72,15 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
 
     const requestData = {
       ...data,
-      providerId: provider.id
+      providerId: provider.id,
+      clientId: user?.client?.id!,
     }
 
-    sendContactRequest(requestData, {
-      onSuccess: () => {
-        setIsContactSent(true)
-        setTimeout(() => {
-          setIsContactSent(false)
-          onOpenChange(false)
-          reset()
-          resetMutation()
-          onContactSent?.()
-        }, 2000)
-      }
-    })
+    sendContactRequest(requestData)
   }
 
   const handleOpenChange = (open: boolean) => {
     if (!open && !isContactSent) {
-      // Reset form when closing without sending
       reset()
     }
     onOpenChange(open)
@@ -99,7 +88,7 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
 
   // Watch form values for validation
   const watchedValues = watch()
-  const isFormValid = watchedValues.serviceType && watchedValues.description
+  const isFormValid = watchedValues.service_type && watchedValues.description
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -121,15 +110,15 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
         {!isContactSent ? (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
             <div className="space-y-2 sm:space-y-3">
-              <Label htmlFor="serviceType" className="text-sm font-medium text-foreground">
+              <Label htmlFor="service_type" className="text-sm font-medium text-foreground">
                 Tipo de serviço *
               </Label>
               <div className="relative">
                 <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="serviceType"
+                  id="service_type"
                   placeholder="Ex: Instalação elétrica, reparo..."
-                  {...register("serviceType", { 
+                  {...register("service_type", { 
                     required: "Tipo de serviço é obrigatório",
                     minLength: {
                       value: 3,
@@ -139,8 +128,8 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
                   className="pl-10 h-11 sm:h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 text-sm sm:text-base"
                 />
               </div>
-              {errors.serviceType && (
-                <p className="text-sm text-destructive">{errors.serviceType.message}</p>
+              {errors.service_type && (
+                <p className="text-sm text-destructive">{errors.service_type.message}</p>
               )}
             </div>
 

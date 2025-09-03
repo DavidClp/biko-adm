@@ -79,6 +79,25 @@ export interface Provider extends User {
   verified?: boolean
 }
 
+
+export type requestStatus =  "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED"
+
+export interface IRequestService {
+  id: string;
+  clientId: string;
+  providerId: string;
+  service_type: string;
+  description: string;
+  address: string;
+  urgency: "urgent" | "normal" | "low"; // se houver categorias
+  value: string; // poderia ser number se o backend tratar como número
+  status: "PENDING" | "APPROVED" | "COMPLETED" | "CANCELLED"; // conforme fluxo
+  createdAt: string;
+  client: Client;
+  provider: Provider;
+}
+
+
 export interface Service {
   id: string
   name: string
