@@ -69,6 +69,7 @@ export interface Provider extends User {
     instagram?: string
     facebook?: string
   }
+  userId: string
   experience: string
   portfolio?: string
   website?: string
@@ -138,11 +139,12 @@ export interface Appointment {
 // Tipos para mensagens
 export interface Message {
   id: string
-  senderId: string
-  receiverId: string
   content: string
-  timestamp: string
-  read: boolean
+  sender_id: string
+  receiver_id: string
+  request_id: string
+  viewed: boolean
+  createdAt: string
   sender?: User
   receiver?: User
 }

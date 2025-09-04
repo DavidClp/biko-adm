@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,34 +17,106 @@ import {
 } from "lucide-react";
 import { IRequestService } from "@/lib/types";
 
-interface Message {
-  id: string;
-  content: string;
-  timestamp: string;
-  senderType: "client" | "provider";
-}
+import { Message } from "@/lib/types";
+import { useMessages } from "@/hooks/use-messages";
+import { useAuth } from "@/hooks/use-auth";
+import { socket } from "@/lib/socket";
 
 interface ChatSectionProps {
   selectedRequest: IRequestService | null;
   showChat: boolean;
-  newMessage: string;
-  onNewMessageChange: (message: string) => void;
-  onSendMessage: () => void;
   onBackToRequests: () => void;
   getStatusBadge: (status: string) => React.ReactNode;
-  messages: Message[];
 }
 
 export function ChatSection({
   selectedRequest,
   showChat,
-  newMessage,
-  onNewMessageChange,
-  onSendMessage,
   onBackToRequests,
   getStatusBadge,
-  messages
 }: ChatSectionProps) {
+  const { user } = useAuth();
+
+
+  //const { getMessagesByRequest, sendMessage, isSending: isSendingMessage } = useMessages({ requestId: selectedRequest?.id });
+  //const { data: messages = [], isLoading: isLoadingMessages, isError: isErrorMessages, error: errorMessages } = getMessagesByRequest;
+
+  const [newMessage, setNewMessage] = useState("")
+  const [messages, setMessages] = useState<Message[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  /*  const handleSendMessage = () => {
+     if (!newMessage.trim() || !selectedRequest || !user?.id) return
+ 
+     const messageData = {
+       content: newMessage,
+       sender_id: user.id,
+       receiver_id: selectedRequest.providerId,
+       request_id: selectedRequest.id,
+     }
+ 
+     sendMessage(messageData)
+     setNewMessage("")
+   } */
+
+  const send = () => {
+    const content = inputRef.current!.value.trim()
+    if (!content) return;
+
+    socket.emit("chat:send", { requestId: selectedRequest?.id, toUserId: selectedRequest?.provider?.userId, content })
+
+    inputRef.current!.value = ""
+    setNewMessage("")
+  }
+
+  useEffect(() => {
+    socket.auth = { userId: user?.id }
+    socket.connect()
+
+    socket.emit("chat:join", { requestId: selectedRequest?.id })
+
+    socket.on("chat:new_message", (msg: Message) => {
+      if (msg.request_id === selectedRequest?.id) {
+        setMessages((prev) => [...prev, msg])
+      }
+    })
+
+    socket.on('chat:load_messages', (data) => {
+      setMessages(data?.messages || [])
+    });
+
+    socket.on('chat:message_viewed', (message) => {
+     setMessages((prev) => prev.map(msg => msg.id === message.id ? { ...msg, viewed: true } : msg))
+      console.log('Mensagem marcada como lida:', message);
+    });
+
+    return () => {
+      socket.disconnect()
+      setMessages([])
+      processedMessagesRef.current.clear()
+    }
+  }, [selectedRequest?.id, user?.id])
+
+  const processedMessagesRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    console.log('executou')
+    const lastMessage = messages[messages.length - 1];
+    
+    if (lastMessage && 
+        lastMessage.sender_id !== user?.id && 
+        !lastMessage.viewed) {
+      
+      const timeoutId = setTimeout(() => {
+        socket.emit('chat:viewed', {
+          messageId: lastMessage.id,
+        });
+      }, 1000); 
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, user?.id])
+
   return (
     <div className={`${!showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-2/3 bg-white`}>
       {selectedRequest ? (
@@ -88,41 +160,53 @@ export function ChatSection({
           </div>
 
           <div
-            className="flex-1 bg-opacity-50"
+            className="flex-1 mb-10 bg-opacity-50 overflow-y-auto"
             style={{
               backgroundImage:
                 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fillRule="evenodd"%3E%3Cg fill="%23f0f0f0" fillOpacity="0.1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
             }}
           >
-            <ScrollArea className="h-full p-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`mb-3 flex ${message.senderType === "client" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[85%] md:max-w-[70%] p-3 rounded-2xl shadow-sm ${message.senderType === "client"
-                      ? "bg-primary font-medium rounded-br-md"
-                      : "bg-white font-medium text-gray-900 rounded-bl-md border border-gray-200"
-                      }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                    <div
-                      className={`flex items-center justify-end gap-1 mt-1 ${message.senderType === "client" ? "text-accent-foreground" : "text-accent-foreground"
-                        }`}
-                    >
-                      <span className="text-xs">
-                        {new Date(message.timestamp).toLocaleTimeString("pt-BR", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      {message.senderType === "client" && <CheckCircle className="w-3 h-3" />}
-                    </div>
+            <div className="h-full p-4">
+              {/* isLoadingMessages */false ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
+                    <p className="text-gray-600">Carregando mensagens...</p>
                   </div>
                 </div>
-              ))}
-            </ScrollArea>
+              ) : (
+                messages?.map((message) => {
+                  const isClientMessage = message.sender_id === selectedRequest?.client?.userId;
+                  return (
+                    <div
+                      key={message.id}
+                      className={`mb-3 flex ${isClientMessage ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[85%] md:max-w-[70%] p-3 rounded-2xl shadow-sm ${isClientMessage
+                          ? "bg-primary font-medium rounded-br-md"
+                          : "bg-white font-medium text-gray-900 rounded-bl-md border border-gray-200"
+                          }`}
+                      >
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        <div
+                          className={`flex items-center justify-end gap-1 mt-1 ${isClientMessage ? "text-accent-foreground" : "text-accent-foreground"
+                            }`}
+                        >
+                          <span className="text-xs">
+                            {new Date(message?.createdAt).toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          {message?.viewed && isClientMessage && <CheckCircle className="w-3 h-3" />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
           <div className="p-4 bg-white border-t border-primary">
@@ -131,13 +215,14 @@ export function ChatSection({
                 <Input
                   placeholder="Digite uma mensagem..."
                   value={newMessage}
-                  onChange={(e) => onNewMessageChange(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && onSendMessage()}
+                  ref={inputRef}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && send()}
                   className="border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
               <Button
-                onClick={onSendMessage}
+                onClick={send}
                 size="sm"
                 className="bg-primary hover:bg-secondary rounded-full w-10 h-10 p-0"
                 disabled={!newMessage.trim()}

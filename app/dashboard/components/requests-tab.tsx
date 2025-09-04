@@ -12,23 +12,25 @@ import {
   XCircle,
   Clock,
   Star,
+  Send,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRequestService } from "@/hooks/use-requests-services"
 import { useAuth } from "@/hooks/use-auth"
+import { IRequestService, Message } from "@/lib/types"
+import { socket } from "@/lib/socket"
 
 export function RequestsTab() {
   // Messaging state for internal chat system
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null)
-  const [messages, setMessages] = useState<Record<string, any[]>>()
-  const [newMessage, setNewMessage] = useState("")
+  const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
+  // const [messages, setMessages] = useState<Record<string, any[]>>()
 
   const { user, loading: authLoading } = useAuth()
-  const {getRequestsByProvider  } = useRequestService({ providerId: user?.provider?.id })
+  const { getRequestsByProvider } = useRequestService({ providerId: user?.provider?.id })
 
   const { data: requestsList, isLoading: isLoadingRequests, isError: isErrorRequests, error: errorRequests } = getRequestsByProvider;
 
-  
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -57,118 +59,175 @@ export function RequestsTab() {
     }
   }
 
-  // Function to handle sending messages in internal chat
-  const handleSendMessage = (orderId: string) => {
-    if (!newMessage.trim()) return
 
-    const message = {
-      id: Date.now().toString(),
-      sender: "provider",
-      senderName: "TESTE",
-      message: newMessage,
-      timestamp: new Date().toLocaleString("pt-BR"),
-      type: "text",
-    }
+  // Function to handle order status changes
+  const handleOrderAction = (orderId: string, action: "accept" | "reject") => {
+    // Simulate API call to update order status
+    console.log(`Order ${orderId} ${action}ed`)
+  }
 
-   /*  setMessages((prev) => ({
-      ...prev,
-      [orderId]: [...(prev[orderId] || []), message],
-    })) */
+  const [newMessage, setNewMessage] = useState("")
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const send = () => {
+    const content = inputRef.current!.value.trim()
+    if (!content) return;
+
+    socket.emit("chat:send", { requestId: selectedRequest?.id, toUserId: selectedRequest?.provider?.userId, content })
+
+    inputRef.current!.value = ""
     setNewMessage("")
   }
 
-    // Function to handle order status changes
-    const handleOrderAction = (orderId: string, action: "accept" | "reject") => {
-        // Simulate API call to update order status
-        console.log(`Order ${orderId} ${action}ed`)
+  useEffect(() => {
+    socket.auth = { userId: user?.id }
+    socket.connect()
+
+    socket.emit("chat:join", { requestId: selectedRequest?.id })
+
+    socket.on("chat:new_message", (msg: Message) => {
+      if (msg.request_id === selectedRequest?.id) {
+        setMessages((prev) => [...prev, msg])
       }
+    })
+
+    socket.on('chat:load_messages', (data) => {
+      setMessages(data?.messages || [])
+    });
+
+    socket.on('chat:message_viewed', (message) => {
+      setMessages((prev) => prev.map(msg => msg.id === message.id ? { ...msg, viewed: true } : msg))
+       console.log('Mensagem marcada como lida:', message);
+     });
+
+    return () => {
+      socket.disconnect()
+      setMessages([])
+      processedMessagesRef.current.clear()
+    }
+  }, [selectedRequest?.id, user?.id])
+
+  const processedMessagesRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    console.log('executou')
+    const lastMessage = messages[messages.length - 1];
+
+    if (lastMessage &&
+      lastMessage.sender_id !== user?.id &&
+      !lastMessage.viewed) {
+
+      const timeoutId = setTimeout(() => {
+        socket.emit('chat:viewed', {
+          messageId: lastMessage.id,
+        });
+      }, 1000); // Aguarda 1 segundo
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, user?.id])
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    {/* Orders List */}
-    <Card>
-      <CardHeader>
-        <CardTitle>Solicitações de Orçamento</CardTitle>
-        <CardDescription>Clique em uma solicitação para ver a conversa</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {requestsList?.map((request) => (
-            <Card
-              key={request.id}
-              className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedOrder === request?.id ? "ring-2 ring-primary" : ""
-                }`}
-              onClick={() => setSelectedOrder(request.id)}
-            >
-              <CardContent className="pt-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-sm">{request?.client?.name}</h3>
-                    <p className="text-xs text-muted-foreground">{request?.service_type}</p>
+      {/* Orders List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Solicitações de Orçamento</CardTitle>
+          <CardDescription>Clique em uma solicitação para ver a conversa</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {requestsList?.map((request) => (
+              <Card
+                key={request.id}
+                className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedRequest?.id === request?.id ? "ring-2 ring-primary" : ""
+                  }`}
+                onClick={() => setSelectedRequest(request)}
+              >
+                <CardContent className="pt-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="font-semibold text-sm">{request?.client?.name}</h3>
+                      <p className="text-xs text-muted-foreground">{request?.service_type}</p>
+                    </div>
+                    <div className="text-right">
+                      {getStatusBadge(request?.status)}
+                      <p className="text-xs text-muted-foreground mt-1">{request?.createdAt}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    {getStatusBadge(request?.status)}
-                    <p className="text-xs text-muted-foreground mt-1">{request?.createdAt}</p>
+                  <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{request?.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-primary">{request?.value}</span>
+                    {messages?.length > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {messages?.length} mensagens
+                      </Badge>
+                    )}
                   </div>
-                </div>
-                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{request?.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-primary">{request?.value}</span>
-                  {messages?.[request?.id] && (
-                    <Badge variant="secondary" className="text-xs">
-                      {messages?.[request?.id]?.length} mensagens
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-    {/* Chat Interface */}
-    <Card className="flex flex-col">
-      <CardHeader>
-        <CardTitle>
-          {selectedOrder
-            ? `Conversa com ${requestsList?.find((o) => o.id === selectedOrder)?.client?.name}`
-            : "Selecione uma solicitação"}
-        </CardTitle>
-        {selectedOrder && (
-          <CardDescription>
-            {requestsList?.find((o) => o.id === selectedOrder)?.service_type}
-          </CardDescription>
-        )}
-      </CardHeader>
+      {/* Chat Interface */}
+      <Card className="flex flex-col">
+        <CardHeader>
+          <CardTitle>
+            {selectedRequest?.id
+              ? `Conversa com ${requestsList?.find((o) => o.id === selectedRequest?.id)?.client?.name}`
+              : "Selecione uma solicitação"}
+          </CardTitle>
+          {selectedRequest?.id && (
+            <CardDescription>
+              {requestsList?.find((o) => o.id === selectedRequest?.id)?.service_type}
+            </CardDescription>
+          )}
+        </CardHeader>
 
-      {selectedOrder ? (
-        <>
-          <CardContent className="flex-1 max-h-96 overflow-y-auto">
-            <div className="space-y-4">
-              {messages?.[selectedOrder]?.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender === "provider" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${message.sender === "provider" ? "bg-primary text-primary-foreground" : "bg-muted"
-                      }`}
-                  >
-                    <p className="text-sm">{message.message}</p>
-                    <p
-                      className={`text-xs mt-1 ${message.sender === "provider" ? "text-primary-foreground/70" : "text-muted-foreground"
-                        }`}
+        {selectedRequest?.id ? (
+          <>
+            <CardContent className="flex-1 max-h-96 overflow-y-auto">
+              <div className="space-y-4">
+                {messages?.map((message) => {
+                  const isProviderMessage = message.sender_id === selectedRequest?.provider?.userId;
+
+                  return (
+                    <div
+                      key={message.id}
+                      className={`mb-3 flex ${isProviderMessage ? "justify-end" : "justify-start"}`}
                     >
-                      {message.timestamp}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
+                      <div
+                        className={`max-w-[85%] md:max-w-[70%] p-3 rounded-2xl shadow-sm ${isProviderMessage
+                          ? "bg-primary font-medium rounded-br-md"
+                          : "bg-white font-medium text-gray-900 rounded-bl-md border border-gray-200"
+                          }`}
+                      >
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        <div
+                          className={`flex items-center justify-end gap-1 mt-1 ${isProviderMessage ? "text-accent-foreground" : "text-accent-foreground"
+                            }`}
+                        >
+                          <span className="text-xs">
+                            {new Date(message?.createdAt).toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          {message?.viewed && isProviderMessage && <CheckCircle className="w-3 h-3" />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
 
-          <div className="p-4 border-t">
-            {requestsList?.find((o) => o.id === selectedOrder)?.status === "PENDING" && (
+            <div className="p-4 ">
+              {/*   {requestsList?.find((o) => o.id === selectedOrder)?.status === "PENDING" && (
               <div className="flex gap-2 mb-4">
                 <Button
                   size="sm"
@@ -184,29 +243,40 @@ export function RequestsTab() {
                 </Button>
               </div>
             )}
-
-            <div className="flex gap-2">
-              <Input
-                placeholder="Digite sua mensagem..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSendMessage(selectedOrder)}
-              />
-              <Button onClick={() => handleSendMessage(selectedOrder)}>
-                <MessageSquare className="h-4 w-4" />
-              </Button>
+ */}
+              <div className="p-4 bg-white border-t border-primary">
+                <div className="flex items-center gap-2 justify-center">
+                  <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
+                    <Input
+                      placeholder="Digite uma mensagem..."
+                      value={newMessage}
+                      ref={inputRef}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && send()}
+                      className="border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                  </div>
+                  <Button
+                    onClick={send}
+                    size="sm"
+                    className="bg-primary hover:bg-secondary rounded-full w-10 h-10 p-0"
+                    disabled={!newMessage.trim()}
+                  >
+                    <Send className="w-4 h-4" color="#000" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-        </>
-      ) : (
-        <CardContent className="flex-1 flex items-center justify-center">
-          <div className="text-center text-muted-foreground">
-            <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Selecione uma solicitação para iniciar a conversa</p>
-          </div>
-        </CardContent>
-      )}
-    </Card>
-  </div>
+          </>
+        ) : (
+          <CardContent className="flex-1 flex items-center justify-center">
+            <div className="text-center text-muted-foreground">
+              <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Selecione uma solicitação para iniciar a conversa</p>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+    </div>
   )
 }

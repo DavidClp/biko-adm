@@ -18,30 +18,18 @@ import {
 import { useRouter } from "next/navigation"
 import { IRequestService, UserRole } from "@/lib/types"
 import { useRequestService } from "@/hooks/use-requests-services"
-
-
-interface Message {
-  id: string
-  senderId: string
-  senderName: string
-  senderType: "client" | "provider"
-  content: string
-  timestamp: string
-}
+import { useMessages } from "@/hooks/use-messages"
 
 export default function MyRequestsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [messages, setMessages] = useState<Message[]>([])
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
-  const [newMessage, setNewMessage] = useState("")
   const [showChat, setShowChat] = useState(false)
 
-  const {getRequestsByClient  } = useRequestService({ clientId: user?.client?.id })
- 
+  const { getRequestsByClient } = useRequestService({ clientId: user?.client?.id })
+
   const { data: requestsList, isLoading: isLoadingRequests, isError: isErrorRequests, error: errorRequests } = getRequestsByClient;
 
-  console.log(requestsList)
 
   const getStatusBadge = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -78,34 +66,7 @@ export default function MyRequestsPage() {
     }
   }
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedRequest) return
-
-    const message: Message = {
-      id: Date.now().toString(),
-      senderId: user?.id || "",
-      senderName: user?.name || "",
-      senderType: "client",
-      content: newMessage,
-      timestamp: new Date().toISOString(),
-    }
-
-  /*   setSelectedRequest((prev) =>
-      prev
-        ? {
-            ...prev,
-            messages: [...prev.mess ages, message],
-          }
-        : null,
-    )
-
-    setRequestsList((prev) =>
-      prev.map((req) => (req.id === selectedRequest.id ? { ...req, messages: [...req.messages, message] } : req)),
-    ) */
-
-    setNewMessage("")
-  }
-
+ 
   const handleSelectRequest = (request: IRequestService) => {
     setSelectedRequest(request)
     setShowChat(true)
@@ -132,7 +93,7 @@ export default function MyRequestsPage() {
   return (
     <div className="min-h-screen py-10">
       <Header />
-      
+
       <div className="md:hidden bg-green-600 text-white p-4 sticky top-16 z-10">
         <h1 className="text-lg font-semibold">
           {showChat && selectedRequest ? selectedRequest?.provider?.name : "Minhas Conversas"}
@@ -161,9 +122,8 @@ export default function MyRequestsPage() {
             {requestsList?.map((request) => (
               <div
                 key={request.id}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-primary/15 transition-colors active:bg-gray-100 ${
-                  selectedRequest?.id === request.id ? "bg-primary/15" : ""
-                }`}
+                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-primary/15 transition-colors active:bg-gray-100 ${selectedRequest?.id === request.id ? "bg-primary/15" : ""
+                  }`}
                 onClick={() => handleSelectRequest(request)}
               >
                 <div className="flex items-start gap-3">
@@ -185,9 +145,7 @@ export default function MyRequestsPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-gray-600 truncate flex-1">
-                        {messages?.length > 0
-                          ? messages[messages.length - 1]?.content
-                          : request?.description}
+                        {request?.description}
                       </p>
                       <div className="flex items-center gap-2 ml-2">
                         {getStatusBadge(request?.status)}
@@ -205,10 +163,6 @@ export default function MyRequestsPage() {
         <ChatSection
           selectedRequest={selectedRequest}
           showChat={showChat}
-          messages={messages}
-          newMessage={newMessage}
-          onNewMessageChange={setNewMessage}
-          onSendMessage={handleSendMessage}
           onBackToRequests={handleBackToRequests}
           getStatusBadge={getStatusBadge}
         />
@@ -220,60 +174,59 @@ export default function MyRequestsPage() {
 
 
 
- /*    const mockRequests: ServiceRequest[] = [
-        {
-          id: "1",
-          providerId: "1",
-          providerName: "João Silva",
-          providerAvatar: "/professional-electrician.png",
-          serviceType: "Elétrica",
-          description: "Preciso instalar tomadas na cozinha e trocar o quadro elétrico",
-          urgency: "medium",
-          budget: "R$ 500 - R$ 800",
-          location: "São Paulo, SP",
-          status: "accepted",
-          createdAt: "2024-01-15T10:00:00Z",
-          messages: [
-            {
-              id: "1",
-              senderId: user?.id || "",
-              senderName: user?.name || "",
-              senderType: "client",
-              content: "Olá! Gostaria de um orçamento para instalação de tomadas na cozinha.",
-              timestamp: "2024-01-15T10:00:00Z",
-            },
-            {
-              id: "2",
-              senderId: "1",
-              senderName: "João Silva",
-              senderType: "provider",
-              content: "Olá! Posso ajudar sim. Quando seria melhor para fazer uma visita técnica?",
-              timestamp: "2024-01-15T10:30:00Z",
-            },
-          ],
-        },
-        {
-          id: "2",
-          providerId: "2",
-          providerName: "Maria Santos",
-          providerAvatar: "/professional-designer-woman.png",
-          serviceType: "Design de Interiores",
-          description: "Quero reformar a sala de estar com um estilo moderno",
-          urgency: "low",
-          budget: "R$ 2000 - R$ 3000",
-          location: "Rio de Janeiro, RJ",
-          status: "pending",
-          createdAt: "2024-01-14T14:00:00Z",
-          messages: [
-            {
-              id: "3",
-              senderId: user?.id || "",
-              senderName: user?.name || "",
-              senderType: "client",
-              content: "Gostaria de um projeto de design para minha sala de estar.",
-              timestamp: "2024-01-14T14:00:00Z",
-            },
-          ],
-        },
-      ] */
-      
+/*    const mockRequests: ServiceRequest[] = [
+       {
+         id: "1",
+         providerId: "1",
+         providerName: "João Silva",
+         providerAvatar: "/professional-electrician.png",
+         serviceType: "Elétrica",
+         description: "Preciso instalar tomadas na cozinha e trocar o quadro elétrico",
+         urgency: "medium",
+         budget: "R$ 500 - R$ 800",
+         location: "São Paulo, SP",
+         status: "accepted",
+         createdAt: "2024-01-15T10:00:00Z",
+         messages: [
+           {
+             id: "1",
+             senderId: user?.id || "",
+             senderName: user?.name || "",
+             senderType: "client",
+             content: "Olá! Gostaria de um orçamento para instalação de tomadas na cozinha.",
+             timestamp: "2024-01-15T10:00:00Z",
+           },
+           {
+             id: "2",
+             senderId: "1",
+             senderName: "João Silva",
+             senderType: "provider",
+             content: "Olá! Posso ajudar sim. Quando seria melhor para fazer uma visita técnica?",
+             timestamp: "2024-01-15T10:30:00Z",
+           },
+         ],
+       },
+       {
+         id: "2",
+         providerId: "2",
+         providerName: "Maria Santos",
+         providerAvatar: "/professional-designer-woman.png",
+         serviceType: "Design de Interiores",
+         description: "Quero reformar a sala de estar com um estilo moderno",
+         urgency: "low",
+         budget: "R$ 2000 - R$ 3000",
+         location: "Rio de Janeiro, RJ",
+         status: "pending",
+         createdAt: "2024-01-14T14:00:00Z",
+         messages: [
+           {
+             id: "3",
+             senderId: user?.id || "",
+             senderName: user?.name || "",
+             senderType: "client",
+             content: "Gostaria de um projeto de design para minha sala de estar.",
+             timestamp: "2024-01-14T14:00:00Z",
+           },
+         ],
+       },
+     ] */
