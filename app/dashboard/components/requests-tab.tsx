@@ -70,6 +70,13 @@ export function RequestsTab() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  };
 
   const send = () => {
     const content = inputRef.current!.value.trim()
@@ -128,6 +135,10 @@ export function RequestsTab() {
       return () => clearTimeout(timeoutId);
     }
   }, [messages, user?.id])
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -190,7 +201,7 @@ export function RequestsTab() {
 
         {selectedRequest?.id ? (
           <>
-            <CardContent className="flex-1 max-h-96 overflow-y-auto">
+            <CardContent ref={messagesContainerRef} className="flex-1 max-h-96 overflow-y-auto">
               <div className="space-y-4">
                 {messages?.map((message) => {
                   const isProviderMessage = message.sender_id === selectedRequest?.provider?.userId;

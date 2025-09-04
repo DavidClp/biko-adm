@@ -37,13 +37,13 @@ export function ChatSection({
 }: ChatSectionProps) {
   const { user } = useAuth();
 
-
   //const { getMessagesByRequest, sendMessage, isSending: isSendingMessage } = useMessages({ requestId: selectedRequest?.id });
   //const { data: messages = [], isLoading: isLoadingMessages, isError: isErrorMessages, error: errorMessages } = getMessagesByRequest;
 
   const [newMessage, setNewMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   /*  const handleSendMessage = () => {
      if (!newMessage.trim() || !selectedRequest || !user?.id) return
@@ -68,6 +68,18 @@ export function ChatSection({
     inputRef.current!.value = ""
     setNewMessage("")
   }
+
+  // Função para fazer scroll para baixo
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  };
+
+  // Auto-scroll quando mensagens mudam
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     socket.auth = { userId: user?.id }
@@ -160,6 +172,7 @@ export function ChatSection({
           </div>
 
           <div
+            ref={messagesContainerRef}
             className="flex-1 mb-10 bg-opacity-50 overflow-y-auto"
             style={{
               backgroundImage:
