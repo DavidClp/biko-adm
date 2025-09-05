@@ -7,8 +7,8 @@ import { ApiSuccess, PaginatedResponse, Provider } from "@/lib/types"
 
 interface ProvidersFilters {
   query?: string
-  services?: string[]
-  location?: string
+  service?: string
+  cityId?: string
   minRating?: number
 }
 
@@ -16,8 +16,8 @@ const fetchProviders = async (filters?: ProvidersFilters): Promise<Provider[]> =
   const params = new URLSearchParams()
 
   if (filters?.query) params.append("q", filters.query)
-  if (filters?.services?.length) params.append("services", filters.services.join(","))
-  if (filters?.location) params.append("location", filters.location)
+  if (filters?.service) params.append("service", filters.service)
+  if (filters?.cityId) params.append("cityId", filters.cityId)
   if (filters?.minRating) params.append("minRating", filters.minRating.toString())
 
   const queryString = params.toString()
@@ -35,8 +35,8 @@ export function useProviders(filters?: ProvidersFilters) {
       return data
     },
     queryKey: ["providers", JSON.stringify(filters)],
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    //staleTime: 5 * 60 * 1000, // 5 minutos
+    //gcTime: 10 * 60 * 1000, // 10 minutos
   })
 }
 
@@ -54,11 +54,11 @@ export function useProvidersWithFilters(
     }
 
     if (selectedCity && selectedCity !== "all") {
-      queryFilters.location = selectedCity
+      queryFilters.cityId = selectedCity
     }
 
     if (selectedService && selectedService !== "all") {
-      queryFilters.services = [selectedService]
+      queryFilters.service = selectedService
     }
 
     return queryFilters
@@ -98,7 +98,7 @@ export function useInvalidateProviders() {
 }
 
 // Mock data para desenvolvimento
-function getMockProviders(): Provider[] {
+/* function getMockProviders(): Provider[] {
   return [
     {
       id: "1",
@@ -146,4 +146,4 @@ function getMockProviders(): Provider[] {
       createdAt: "2024-01-25T09:15:00Z",
     },
   ]
-}
+} */

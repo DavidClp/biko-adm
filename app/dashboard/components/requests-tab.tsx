@@ -59,7 +59,6 @@ export function RequestsTab() {
     }
   }
 
-
   // Function to handle order status changes
   const handleOrderAction = (orderId: string, action: "accept" | "reject") => {
     // Simulate API call to update order status

@@ -29,7 +29,7 @@ type ProfileFormData = z.infer<typeof profileFormSchema>;
 
 export function ProfileTab({ userId, providerId }: { userId: string, providerId: string }) {
   
-  const { profile, isLoading, error, updateProfile, isUpdating } = useProvider({userId, providerId});
+  const { provider, isLoading, error, updateProfile, isUpdating } = useProvider({ providerId});
 
   // Inicializar React Hook Form
   const form = useForm<ProfileFormData>({
@@ -48,16 +48,16 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
 
   // Carregar dados iniciais do provider quando disponíveis
   useEffect(() => {
-    if (profile) {
+    if (provider) {
       form.reset({
-        name: profile.name || "",
-        service: profile.service || "",
-        cityId: profile.cityId || "",
-        phone: profile.phone || "",
-        description: profile.description || "",
+        name: provider.name || "",
+        service: provider.service || "",
+        cityId: provider.cityId || "",
+        phone: provider.phone || "",
+        description: provider.description || "",
       });
     }
-  }, [profile, form]);
+  }, [provider, form]);
 
   const onSubmit = useCallback(async (data: ProfileFormData) => {
     updateProfile(data);
@@ -160,7 +160,7 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
                   <FormItem>
                     <FormLabel>Cidade</FormLabel>
                     <FormControl>
-                     <CitiesSelector onCitySelect={field.onChange} defaultCityId={profile?.cityId} />
+                     <CitiesSelector onCitySelect={field.onChange} defaultCityId={provider?.cityId} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

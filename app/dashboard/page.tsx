@@ -89,7 +89,7 @@ export default function DashboardPage() {
         </div>
 
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="requests" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
               Mensagens
@@ -98,10 +98,10 @@ export default function DashboardPage() {
               <User className="h-4 w-4" />
               Perfil
             </TabsTrigger>
-            <TabsTrigger value="ai-tools" className="flex items-center gap-2">
+           {/*  <TabsTrigger value="ai-tools" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
               IA Tools
-            </TabsTrigger>
+            </TabsTrigger> */}
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Configurações
