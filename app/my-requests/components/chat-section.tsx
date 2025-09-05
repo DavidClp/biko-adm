@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,7 +39,13 @@ export function ChatSection({
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const send = () => {
+  const scrollToBottom = useCallback(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [messagesContainerRef])
+
+  const send = useCallback(() => {
     const content = inputRef.current!.value.trim()
     if (!content) return;
 
@@ -47,26 +53,15 @@ export function ChatSection({
 
     inputRef.current!.value = ""
     setNewMessage("")
-  }
-
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  };
-
-  // Auto-scroll quando mensagens mudam
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  }, [selectedRequest?.id, user?.id])
 
   useEffect(() => {
+    if (!user?.id || !selectedRequest?.id) return
+
     socket.auth = { userId: user?.id }
     socket.connect()
 
-    if (selectedRequest?.id) {
-      socket.emit("chat:join", { requestId: selectedRequest?.id })
-    }
+    socket.emit("chat:join", { requestId: selectedRequest?.id })
 
     socket.on("chat:new_message", (msg: Message) => {
       if (msg.request_id === selectedRequest?.id) {
@@ -80,17 +75,16 @@ export function ChatSection({
 
     socket.on('chat:message_viewed', (message) => {
       setMessages((prev) => prev.map(msg => msg.id === message.id ? { ...msg, viewed: true } : msg))
-      console.log('Mensagem marcada como lida:', message);
     });
 
     return () => {
+      socket.off("chat:new_message")
+      socket.off("chat:load_messages")
+      socket.off("chat:message_viewed")
       socket.disconnect()
       setMessages([])
-      processedMessagesRef.current.clear()
     }
   }, [selectedRequest?.id, user?.id])
-
-  const processedMessagesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
@@ -109,18 +103,23 @@ export function ChatSection({
     }
   }, [messages, user?.id])
 
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
   return (
-    <div className={`${!showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-2/3 bg-white`}>
+    <div className={`${!showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-2/3 h-full bg-white`}>
       {selectedRequest ? (
         <>
           <ChatHeader
             selectedRequest={selectedRequest}
             onBackToRequests={onBackToRequests}
             getStatusBadge={getStatusBadge}
+            type="chat-provider"
           />
 
           <div className="p-3 bg-gray-50 border-b border-gray-200">
-            <RequestDetailsModal 
+            <RequestDetailsModal
               selectedRequest={selectedRequest}
               getStatusBadge={getStatusBadge}
             />

@@ -1,73 +1,64 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Header } from "@/components/navigation/header"
 import { ChatSection } from "./components/chat-section"
 import {
-  MessageCircle,
   Clock,
   CheckCircle,
   XCircle,
-  MoreVertical,
-  ArrowLeft,
-  Users,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { IRequestService, UserRole } from "@/lib/types"
 import { useRequestService } from "@/hooks/use-requests-services"
-import { useMessages } from "@/hooks/use-messages"
+
+export const getStatusBadge = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case "pending":
+      return (
+        <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Clock className="w-3 h-3 mr-1" />
+          Pendente
+        </Badge>
+      )
+    case "accepted":
+      return (
+        <Badge variant="outline" className="text-green-600 border-green-600">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Aceito
+        </Badge>
+      )
+    case "rejected":
+      return (
+        <Badge variant="outline" className="text-red-600 border-red-600">
+          <XCircle className="w-3 h-3 mr-1" />
+          Rejeitado
+        </Badge>
+      )
+    case "completed":
+      return (
+        <Badge variant="outline" className="text-blue-600 border-blue-600">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Concluído
+        </Badge>
+      )
+    default:
+      return <Badge variant="outline">Desconhecido</Badge>
+  }
+}
 
 export default function MyRequestsPage() {
-  const { user, loading: authLoading } = useAuth()
-  const router = useRouter()
+  const { user } = useAuth()
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
   const [showChat, setShowChat] = useState(false)
 
   const { getRequestsByClient } = useRequestService({ clientId: user?.client?.id })
 
-  const { data: requestsList, isLoading: isLoadingRequests, isError: isErrorRequests, error: errorRequests } = getRequestsByClient;
-
-
-  const getStatusBadge = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-            <Clock className="w-3 h-3 mr-1" />
-            Pendente
-          </Badge>
-        )
-      case "accepted":
-        return (
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Aceito
-          </Badge>
-        )
-      case "rejected":
-        return (
-          <Badge variant="outline" className="text-red-600 border-red-600">
-            <XCircle className="w-3 h-3 mr-1" />
-            Rejeitado
-          </Badge>
-        )
-      case "completed":
-        return (
-          <Badge variant="outline" className="text-blue-600 border-blue-600">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Concluído
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">Desconhecido</Badge>
-    }
-  }
-
+  const { data: requestsList, isLoading: isLoadingRequests } = getRequestsByClient;
 
   const handleSelectRequest = (request: IRequestService) => {
     setSelectedRequest(request)
@@ -79,13 +70,13 @@ export default function MyRequestsPage() {
     setSelectedRequest(null)
   }
 
-  if (authLoading || isLoadingRequests) {
+  if (isLoadingRequests) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
           <p className="text-gray-600">
-            {authLoading ? "Verificando autenticação..." : "Carregando suas solicitações..."}
+            Carregando suas solicitações...
           </p>
         </div>
       </div>
@@ -93,17 +84,17 @@ export default function MyRequestsPage() {
   }
 
   return (
-    <div >
+    <div className="h-[100vh]">
       <Header />
 
-      <div className="hidden md:block container mx-auto px-4 py-6">
+      {/*   <div className="hidden md:block container mx-auto px-4 py-6">
         <div className="mb-0">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Minhas Solicitações</h1>
           <p className="text-gray-600">Acompanhe suas solicitações de orçamento e converse com os prestadores</p>
         </div>
-      </div>
+      </div> */}
 
-      <div className="flex h-[calc(100vh-80px)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4  rounded-md">
+      <div className="flex h-[calc(100vh-64px)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4 md:border md:border-primary/20  rounded-md">
         <div
           className={`${showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-1/3 bg-white border-r border-gray-200`}
         >
@@ -118,14 +109,13 @@ export default function MyRequestsPage() {
             {requestsList?.map((request) => (
               <div
                 key={request.id}
-                className={`p-4 rounded-2xl border-b border-gray-100 cursor-pointer hover:bg-primary/15 transition-colors active:bg-gray-100 ${selectedRequest?.id === request.id ? "bg-primary/15" : ""
-                  }`}
+                className={`p-4 rounded-2xl border-b border-gray-100 cursor-pointer hover:bg-primary/15 transition-colors active:bg-gray-100 ${selectedRequest?.id === request.id ? "bg-primary/15" : ""}`}
                 onClick={() => handleSelectRequest(request)}
               >
                 <div className="flex items-start gap-3">
                   <div className="relative">
                     <Avatar className="w-12 h-12">
-                      <AvatarImage src={request?.provider?.avatar || "/placeholder.svg"} />
+                      <AvatarImage src={request?.provider?.avatar} />
                       <AvatarFallback className="bg-green-100 text-green-700">
                         {request?.provider?.name?.charAt(0)}
                       </AvatarFallback>
@@ -163,7 +153,6 @@ export default function MyRequestsPage() {
     </div>
   )
 }
-
 
 
 

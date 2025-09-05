@@ -16,9 +16,11 @@ import {
   ArrowLeft,
   Users,
 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useRequestService } from "@/hooks/use-requests-services"
 import { useAuth } from "@/hooks/use-auth"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { IRequestService, Message } from "@/lib/types"
 import { socket } from "@/lib/socket"
 import { RequestDetailsModal } from "@/app/my-requests/components/request-details-modal"
@@ -30,6 +32,8 @@ export function RequestsTab() {
   const [showChat, setShowChat] = useState(false)
   // const [messages, setMessages] = useState<Record<string, any[]>>()
 
+  const router = useRouter()
+  const isMobile = useIsMobile()
   const { user, loading: authLoading } = useAuth()
   const { getRequestsByProvider } = useRequestService({ providerId: user?.provider?.id })
 
@@ -71,8 +75,14 @@ export function RequestsTab() {
   }
 
   const handleSelectRequest = (request: IRequestService) => {
-    setSelectedRequest(request)
-    setShowChat(true)
+    if (isMobile) {
+      // No mobile, redirecionar para página de chat dedicada
+      router.push(`/chat/${request.id}`)
+    } else {
+      // No desktop, usar o chat inline
+      setSelectedRequest(request)
+      setShowChat(true)
+    }
   }
 
   const handleBackToRequests = () => {
@@ -86,13 +96,13 @@ export function RequestsTab() {
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
-  };
+  }, [messagesContainerRef])
 
-  const send = () => {
+  const send = useCallback(() => {
     const content = inputRef.current!.value.trim()
     if (!content) return;
 
@@ -100,7 +110,7 @@ export function RequestsTab() {
 
     inputRef.current!.value = ""
     setNewMessage("")
-  }
+  }, [selectedRequest?.id, user?.id])
 
   useEffect(() => {
     socket.auth = { userId: user?.id }
@@ -120,20 +130,18 @@ export function RequestsTab() {
 
     socket.on('chat:message_viewed', (message) => {
       setMessages((prev) => prev.map(msg => msg.id === message.id ? { ...msg, viewed: true } : msg))
-      console.log('Mensagem marcada como lida:', message);
     });
 
     return () => {
+      socket.off("chat:new_message")
+      socket.off("chat:load_messages")
+      socket.off("chat:message_viewed")
       socket.disconnect()
       setMessages([])
-      processedMessagesRef.current.clear()
     }
   }, [selectedRequest?.id, user?.id])
 
-  const processedMessagesRef = useRef<Set<string>>(new Set());
-
   useEffect(() => {
-    console.log('executou')
     const lastMessage = messages[messages.length - 1];
 
     if (lastMessage &&
@@ -144,8 +152,7 @@ export function RequestsTab() {
         socket.emit('chat:viewed', {
           messageId: lastMessage.id,
         });
-      }, 1000); // Aguarda 1 segundo
-
+      }, 1000); 
       return () => clearTimeout(timeoutId);
     }
   }, [messages, user?.id])
@@ -157,7 +164,7 @@ export function RequestsTab() {
   return (
     <div className="flex h-[calc(100vh-200px)] lg:h-auto lg:grid lg:grid-cols-2 lg:gap-6">
       {/* Orders List */}
-      <div className={`${showChat ? "hidden" : "flex"} lg:flex flex-col w-full lg:w-auto`}>
+      <div className={`${showChat && !isMobile ? "hidden" : "flex"} lg:flex flex-col w-full lg:w-auto`}>
         <Card className="h-full">
           <CardHeader>
             <CardTitle>Solicitações de Orçamento</CardTitle>
@@ -195,8 +202,8 @@ export function RequestsTab() {
         </Card>
       </div>
 
-      {/* Chat Interface */}
-      <div className={`${!showChat ? "hidden" : "flex"} lg:flex flex-col w-full lg:w-auto`}>
+      {/* Chat Interface - Only show on desktop */}
+      <div className={`${!showChat || isMobile ? "hidden" : "flex"} lg:flex flex-col w-full lg:w-auto`}>
         <Card className="flex flex-col h-full border-0 shadow-none md:shadow-md">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-3">

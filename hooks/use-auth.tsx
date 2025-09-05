@@ -49,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
  */
         const token = localStorage.getItem("token")
+       
         if (token) {
           const userData = localStorage.getItem("userData")
           if (userData) {
