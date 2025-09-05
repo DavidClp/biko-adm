@@ -13,6 +13,8 @@ import {
   Clock,
   Star,
   Send,
+  ArrowLeft,
+  Users,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useRequestService } from "@/hooks/use-requests-services"
@@ -25,6 +27,7 @@ import { formatCurrency, formatDate, formatDateWithTime } from "@/lib/utils"
 export function RequestsTab() {
   // Messaging state for internal chat system
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
+  const [showChat, setShowChat] = useState(false)
   // const [messages, setMessages] = useState<Record<string, any[]>>()
 
   const { user, loading: authLoading } = useAuth()
@@ -65,6 +68,16 @@ export function RequestsTab() {
   const handleOrderAction = (orderId: string, action: "accept" | "reject") => {
     // Simulate API call to update order status
     console.log(`Order ${orderId} ${action}ed`)
+  }
+
+  const handleSelectRequest = (request: IRequestService) => {
+    setSelectedRequest(request)
+    setShowChat(true)
+  }
+
+  const handleBackToRequests = () => {
+    setShowChat(false)
+    setSelectedRequest(null)
   }
 
   const [newMessage, setNewMessage] = useState("")
@@ -142,21 +155,22 @@ export function RequestsTab() {
   }, [messages]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="flex h-[calc(100vh-200px)] lg:h-auto lg:grid lg:grid-cols-2 lg:gap-6">
       {/* Orders List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Solicitações de Orçamento</CardTitle>
-          <CardDescription>Clique em uma solicitação para ver a conversa</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {requestsList?.map((request) => (
-              <Card
-                key={request.id}
-                className={`cursor-pointer transition-colors shadow-md hover:bg-muted/50 ${selectedRequest?.id === request?.id ? "ring-2 ring-primary border-none" : ""}`}
-                onClick={() => setSelectedRequest(request)}
-              >
+      <div className={`${showChat ? "hidden" : "flex"} lg:flex flex-col w-full lg:w-auto`}>
+        <Card className="h-full">
+          <CardHeader>
+            <CardTitle>Solicitações de Orçamento</CardTitle>
+            <CardDescription>Clique em uma solicitação para ver a conversa</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {requestsList?.map((request) => (
+                <Card
+                  key={request.id}
+                  className={`cursor-pointer transition-colors shadow-md hover:bg-muted/50 ${selectedRequest?.id === request?.id ? "ring-2 ring-primary border-none" : ""}`}
+                  onClick={() => handleSelectRequest(request)}
+                >
                 <CardContent>
                   <div className="flex flex-col items-start justify-between mb-2 gap-2">
                     <div className="flex justify-between w-full items-center">
@@ -178,18 +192,27 @@ export function RequestsTab() {
             ))}
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
       {/* Chat Interface */}
-      <Card className="flex flex-col">
-        <CardHeader>
-          <CardTitle>
-            {selectedRequest?.id
-              ? `Conversa com ${requestsList?.find((o) => o.id === selectedRequest?.id)?.client?.name}`
-              : "Selecione uma solicitação"}
-          </CardTitle>
+      <div className={`${!showChat ? "hidden" : "flex"} lg:flex flex-col w-full lg:w-auto`}>
+        <Card className="flex flex-col h-full border-0 shadow-none md:shadow-md">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" className="lg:hidden" onClick={handleBackToRequests}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <CardTitle className="text-md">
+                {selectedRequest?.id
+                  ? `${requestsList?.find((o) => o.id === selectedRequest?.id)?.client?.name}`
+                  : "Selecione uma solicitação"}
+              </CardTitle>
+            </div>
+          </div>
           {selectedRequest?.id && (
-            <div className="p-3 bg-gray-50 border-b border-gray-200">
+            <div className="p-3 bg-gray-50 border-b border-gray-200 mt-2">
               <RequestDetailsModal
                 selectedRequest={selectedRequest}
                 getStatusBadge={getStatusBadge}
@@ -286,7 +309,8 @@ export function RequestsTab() {
             </div>
           </CardContent>
         )}
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

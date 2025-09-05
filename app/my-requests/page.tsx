@@ -14,6 +14,8 @@ import {
   CheckCircle,
   XCircle,
   MoreVertical,
+  ArrowLeft,
+  Users,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { IRequestService, UserRole } from "@/lib/types"
@@ -105,7 +107,7 @@ export default function MyRequestsPage() {
         <div
           className={`${showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-1/3 bg-white border-r border-gray-200`}
         >
-          <div className="p-4 border-">
+          <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-gray-900">Conversas ({requestsList?.length})</h2>
               {/*  <MoreVertical className="w-5 h-5 text-gray-500" /> */}
