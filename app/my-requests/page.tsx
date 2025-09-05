@@ -66,7 +66,7 @@ export default function MyRequestsPage() {
     }
   }
 
- 
+
   const handleSelectRequest = (request: IRequestService) => {
     setSelectedRequest(request)
     setShowChat(true)
@@ -91,30 +91,24 @@ export default function MyRequestsPage() {
   }
 
   return (
-    <div className="min-h-screen py-10">
+    <div >
       <Header />
 
-      <div className="md:hidden bg-green-600 text-white p-4 sticky top-16 z-10">
-        <h1 className="text-lg font-semibold">
-          {showChat && selectedRequest ? selectedRequest?.provider?.name : "Minhas Conversas"}
-        </h1>
-      </div>
-
-      <div className="hidden md:block container mx-auto px-4 py-8">
+      <div className="hidden md:block container mx-auto px-4 py-6">
         <div className="mb-0">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Minhas Solicitações</h1>
           <p className="text-gray-600">Acompanhe suas solicitações de orçamento e converse com os prestadores</p>
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-80px)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4 border-2 border-secondary rounded-md">
+      <div className="flex h-[calc(100vh-80px)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4  rounded-md">
         <div
           className={`${showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-1/3 bg-white border-r border-gray-200`}
         >
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-gray-900">Conversas ({requestsList?.length})</h2>
-              <MoreVertical className="w-5 h-5 text-gray-500" />
+              {/*  <MoreVertical className="w-5 h-5 text-gray-500" /> */}
             </div>
           </div>
 
@@ -122,7 +116,7 @@ export default function MyRequestsPage() {
             {requestsList?.map((request) => (
               <div
                 key={request.id}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-primary/15 transition-colors active:bg-gray-100 ${selectedRequest?.id === request.id ? "bg-primary/15" : ""
+                className={`p-4 rounded-2xl border-b border-gray-100 cursor-pointer hover:bg-primary/15 transition-colors active:bg-gray-100 ${selectedRequest?.id === request.id ? "bg-primary/15" : ""
                   }`}
                 onClick={() => handleSelectRequest(request)}
               >
@@ -134,25 +128,22 @@ export default function MyRequestsPage() {
                         {request?.provider?.name?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                    {/*    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div> */}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-medium text-gray-900 truncate">{request?.provider?.name}</h3>
-                      <span className="text-xs text-gray-500">
-                        {new Date(request.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-600 truncate flex-1">
-                        {request?.description}
-                      </p>
                       <div className="flex items-center gap-2 ml-2">
                         {getStatusBadge(request?.status)}
                         {request.status === "APPROVED" && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{request?.service_type}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-500 mt-1">{request?.service_type}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(request.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

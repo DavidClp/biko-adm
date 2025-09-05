@@ -37,27 +37,10 @@ export function ChatSection({
 }: ChatSectionProps) {
   const { user } = useAuth();
 
-  //const { getMessagesByRequest, sendMessage, isSending: isSendingMessage } = useMessages({ requestId: selectedRequest?.id });
-  //const { data: messages = [], isLoading: isLoadingMessages, isError: isErrorMessages, error: errorMessages } = getMessagesByRequest;
-
   const [newMessage, setNewMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-
-  /*  const handleSendMessage = () => {
-     if (!newMessage.trim() || !selectedRequest || !user?.id) return
- 
-     const messageData = {
-       content: newMessage,
-       sender_id: user.id,
-       receiver_id: selectedRequest.providerId,
-       request_id: selectedRequest.id,
-     }
- 
-     sendMessage(messageData)
-     setNewMessage("")
-   } */
 
   const send = () => {
     const content = inputRef.current!.value.trim()
@@ -69,7 +52,6 @@ export function ChatSection({
     setNewMessage("")
   }
 
-  // Função para fazer scroll para baixo
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
@@ -85,7 +67,9 @@ export function ChatSection({
     socket.auth = { userId: user?.id }
     socket.connect()
 
-    socket.emit("chat:join", { requestId: selectedRequest?.id })
+    if (selectedRequest?.id) {  
+      socket.emit("chat:join", { requestId: selectedRequest?.id })
+    }
 
     socket.on("chat:new_message", (msg: Message) => {
       if (msg.request_id === selectedRequest?.id) {
@@ -112,7 +96,6 @@ export function ChatSection({
   const processedMessagesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    console.log('executou')
     const lastMessage = messages[messages.length - 1];
     
     if (lastMessage && 
