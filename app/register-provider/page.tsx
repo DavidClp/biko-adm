@@ -22,18 +22,22 @@ import {
   MapPin,
   Phone,
   FileText,
-  Instagram,
-  Facebook,
-  Linkedin,
 } from "lucide-react"
+import { ServicesMultiSelect } from "@/components/services-multi-select"
+import { CitiesSelector } from "@/components/cities-selector"
 
 export default function RegisterProviderPage() {
+
+  // refatorar um dia para usar react hook form nele também
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
+
+  console.log('selectedServisadsdsdsdsdsces', selectedServices)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    service: "",
+    services: selectedServices,
     city: "",
     description: "",
     phone: "",
@@ -45,7 +49,8 @@ export default function RegisterProviderPage() {
   const { registerProvider, loading } = useAuth()
   const router = useRouter()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    console.log(e.target.name, e.target.value)
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -71,12 +76,12 @@ export default function RegisterProviderPage() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        service: formData.service,
+        services: formData.services,
         city: formData.city,
         description: formData.description,
         phone: formData.phone,
       })
-      
+
       router.push("/dashboard")
     } catch (err) {
       setError("Erro ao criar conta. Verifique os dados e tente novamente.")
@@ -85,7 +90,7 @@ export default function RegisterProviderPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/20 to-accent/5">
-      <div className="p-6">
+      <div className="pl-6 pt-6">
         <Link href="/">
           <Button variant="ghost" className="hover:bg-accent/10 transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -94,15 +99,15 @@ export default function RegisterProviderPage() {
         </Link>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-2xl shadow-xl border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6 pt-8">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+      <div className="flex-1 flex items-center justify-center px-4 py-4">
+        <Card className="w-full max-w-2xl shadow-xl border-0 bg-card/80 backdrop-blur-sm gap-4">
+          <CardHeader className="text-center pb-3 pt-3">
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <Briefcase className="h-4 w-4 text-primary-foreground" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-primary mb-2">Cadastro de Prestador</CardTitle>
+            <CardTitle className="text-2xl font-bold text-primary">Cadastro de Prestador</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Crie seu perfil profissional e comece a receber clientes
             </CardDescription>
@@ -115,14 +120,14 @@ export default function RegisterProviderPage() {
                 </Alert>
               )}
 
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b border-border/30">
                   <User className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-semibold text-foreground">Dados pessoais</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     <Label htmlFor="name" className="text-sm font-medium text-foreground">
                       Nome completo
                     </Label>
@@ -142,7 +147,7 @@ export default function RegisterProviderPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     <Label htmlFor="email" className="text-sm font-medium text-foreground">
                       Email
                     </Label>
@@ -164,7 +169,7 @@ export default function RegisterProviderPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     <Label htmlFor="password" className="text-sm font-medium text-foreground">
                       Senha
                     </Label>
@@ -184,7 +189,7 @@ export default function RegisterProviderPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
                       Confirmar senha
                     </Label>
@@ -206,55 +211,40 @@ export default function RegisterProviderPage() {
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b border-border/30">
                   <Briefcase className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-semibold text-foreground">Dados profissionais</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     <Label htmlFor="service" className="text-sm font-medium text-foreground">
-                      Serviço oferecido
+                      Serviços oferecidos
                     </Label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="service"
-                        name="service"
-                        type="text"
-                        placeholder="Ex: Eletricista, Designer, Fotógrafo"
-                        value={formData.service}
-                        onChange={handleChange}
-                        required
-                        disabled={loading}
-                        className="pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+                      <ServicesMultiSelect
+                        selectedServices={selectedServices}
+                        onServicesChange={setSelectedServices}
+                        classNameInput="min-h-12 border-border/50"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     <Label htmlFor="city" className="text-sm font-medium text-foreground">
                       Cidade
                     </Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="city"
-                        name="city"
-                        type="text"
-                        placeholder="Sua cidade"
-                        value={formData.city}
-                        onChange={handleChange}
-                        required
-                        disabled={loading}
-                        className="pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+                    <div>
+                      <CitiesSelector
+                        classNameInput="min-h-12 border-border/50"
+                        onCitySelect={(cityId) => setFormData(prev => ({ ...prev, city: cityId }))}
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-1">
                   <Label htmlFor="phone" className="text-sm font-medium text-foreground">
                     WhatsApp
                   </Label>
@@ -274,7 +264,7 @@ export default function RegisterProviderPage() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-1">
                   <Label htmlFor="description" className="text-sm font-medium text-foreground">
                     Descrição dos serviços
                   </Label>
@@ -295,7 +285,7 @@ export default function RegisterProviderPage() {
                 </div>
               </div>
 
-            {/*   <div className="space-y-6">
+              {/*   <div className="space-y-6">
                 <div className="flex items-center gap-2 pb-2 border-b border-border/30">
                   <Instagram className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-semibold text-foreground">
@@ -365,7 +355,7 @@ export default function RegisterProviderPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200 shadow-lg hover:shadow-xl mt-8"
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                 disabled={loading}
               >
                 {loading ? (

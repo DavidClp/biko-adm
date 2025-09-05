@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Check, ChevronsUpDown, X } from 'lucide-react'
+import { Briefcase, Check, ChevronsUpDown, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Service {
@@ -21,14 +21,19 @@ interface ServicesMultiSelectProps {
   placeholder?: string
   maxSelections?: number
   className?: string
+  classNameInput?: string
+  onServiceSelect?: (serviceId: string) => void
+  height?: string
 }
 
-export function ServicesMultiSelect({ 
-  selectedServices = [], 
-  onServicesChange, 
-  placeholder = "Selecione serviços", 
-  maxSelections,
-  className 
+export function ServicesMultiSelect({
+  selectedServices = [],
+  onServicesChange,
+  placeholder = "Selecione serviços",
+  maxSelections = 10,
+  className,
+  classNameInput,
+  onServiceSelect,
 }: ServicesMultiSelectProps) {
   const [open, setOpen] = useState(false)
   const { servicesQuery } = useShared()
@@ -36,11 +41,10 @@ export function ServicesMultiSelect({
 
   const handleSelect = (serviceId: string) => {
     if (selectedServices.includes(serviceId)) {
-      // Remove o serviço se já estiver selecionado
       onServicesChange?.(selectedServices.filter(id => id !== serviceId))
     } else {
-      // Adiciona o serviço se não estiver selecionado e não exceder o limite
       if (!maxSelections || selectedServices.length < maxSelections) {
+        console.log('onServicesChange', [...selectedServices, serviceId])
         onServicesChange?.([...selectedServices, serviceId])
       }
     }
@@ -65,11 +69,14 @@ export function ServicesMultiSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between min-h-[40px] h-auto"
+            className={cn("w-full justify-between min-h-[40px] h-auto", classNameInput)}
           >
             <div className="flex flex-wrap gap-1 flex-1">
               {selectedServicesData.length === 0 ? (
-                <span className="text-muted-foreground">{placeholder}</span>
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 mt-0 text-muted-foreground" />
+                  <span className="text-muted-foreground">{placeholder}</span>
+                </div>
               ) : (
                 selectedServicesData.map((service) => (
                   <Badge
@@ -136,7 +143,7 @@ export function ServicesMultiSelect({
           </Command>
         </PopoverContent>
       </Popover>
-      
+
       {maxSelections && (
         <p className="text-xs text-muted-foreground">
           {selectedServices.length}/{maxSelections} selecionados

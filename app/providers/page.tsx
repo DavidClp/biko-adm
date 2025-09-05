@@ -64,8 +64,6 @@ export default function ProvidersPage() {
             <ServicesMultiSelect 
               selectedServices={selectedServices}
               onServicesChange={setSelectedServices}
-              placeholder="Selecione serviços"
-              maxSelections={5}
             />
           </div>
 

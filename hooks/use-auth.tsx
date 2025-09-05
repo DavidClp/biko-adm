@@ -21,7 +21,7 @@ interface AuthContextType {
     email: string
     password: string
     phone: string
-    service: string
+    services: string[]
     city: string
     description: string
   }) => Promise<void>
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string
     password: string
     phone: string
-    service: string
+    services: string[]
     description: string
     city: string
   }) => {
