@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { ApiResponse, City } from '@/lib/types'
+import { ApiResponse, City, Service } from '@/lib/types'
 
 export function useShared() {
   const citiesQuery = useQuery({
@@ -14,7 +14,17 @@ export function useShared() {
         return []
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  })
+
+  const servicesQuery = useQuery({
+    queryKey: ['services'],
+    queryFn: async (): Promise<Service[]> => {
+      const {data} = await api.get<Service[]>('/services')
+      return data || []
+    },
+    staleTime: 5 * 60 * 1000, 
     retry: 2,
   })
 
@@ -23,5 +33,6 @@ export function useShared() {
     isLoadingCities: citiesQuery.isLoading,
     errorCities: citiesQuery.error,
     refetchCities: citiesQuery.refetch,
+    servicesQuery: servicesQuery
   }
 }

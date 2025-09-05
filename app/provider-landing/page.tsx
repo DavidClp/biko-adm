@@ -139,20 +139,6 @@ export default function ProviderLandingPage() {
             <Card className="text-center border-2 hover:border-primary/20 transition-colors">
               <CardHeader>
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>IA de Marketing</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Gere conteúdo para redes sociais, descrições de serviços e campanhas automaticamente
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-primary/20 transition-colors">
-              <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <Users className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Mais Clientes</CardTitle>
@@ -167,38 +153,12 @@ export default function ProviderLandingPage() {
             <Card className="text-center border-2 hover:border-primary/20 transition-colors">
               <CardHeader>
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Crescimento Garantido</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Ferramentas de análise e otimização para aumentar suas vendas continuamente
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-primary/20 transition-colors">
-              <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <Star className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Destaque Premium</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription>Apareça em posições privilegiadas nos resultados de busca</CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-primary/20 transition-colors">
-              <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Megaphone className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Marketing Automático</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>Campanhas inteligentes que promovem seus serviços automaticamente</CardDescription>
               </CardContent>
             </Card>
 

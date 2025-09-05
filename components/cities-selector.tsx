@@ -11,7 +11,7 @@ interface CitiesSelectorProps {
 }
 
 export function CitiesSelector({ onCitySelect, placeholder = "Selecione uma cidade", defaultCityId }: CitiesSelectorProps) {
-  const { cities, isLoadingCities, errorCities } = useShared()
+  const { cities, isLoadingCities } = useShared()
 
   return (
     <Select onValueChange={onCitySelect} value={defaultCityId}>

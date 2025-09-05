@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
 import { Search } from "lucide-react"
@@ -12,11 +11,12 @@ import { useRouter } from "next/navigation"
 import { CitiesSelector } from "@/components/cities-selector"
 import { ProvidersList } from "@/app/providers/components/providers-list"
 import { useProvidersWithFilters } from "@/hooks/use-providers"
+import { ServicesMultiSelect } from "@/components/services-multi-select"
 
 export default function ProvidersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCity, setSelectedCity] = useState("all")
-  const [selectedService, setSelectedService] = useState("all")
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
   const { user } = useAuth();
   const router = useRouter()
 
@@ -24,11 +24,10 @@ export default function ProvidersPage() {
   const { data: providers = [], isLoading: loading, error } = useProvidersWithFilters(
     searchTerm,
     selectedCity,
-    selectedService
+    selectedServices.length > 0 ? selectedServices[0] : "all" // Por enquanto, usar apenas o primeiro serviço selecionado
   )
 
   console.log(providers)
-  const services = ["Eletricista", "Designer", "Fotógrafo", "Encanador", "Pintor", "Marceneiro"]
 
   const handleRequestContact = useCallback((providerId: string) => {
     if (!user) {
@@ -62,19 +61,12 @@ export default function ProvidersPage() {
 
            <CitiesSelector onCitySelect={setSelectedCity} />
 
-            <Select value={selectedService} onValueChange={setSelectedService}>
-              <SelectTrigger className="w-full border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200">
-                <SelectValue placeholder="Todos os serviços" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os serviços</SelectItem>
-                {services.map((service) => (
-                  <SelectItem key={service} value={service}>
-                    {service}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ServicesMultiSelect 
+              selectedServices={selectedServices}
+              onServicesChange={setSelectedServices}
+              placeholder="Selecione serviços"
+              maxSelections={5}
+            />
           </div>
 
           <div className="text-sm text-muted-foreground">
@@ -94,7 +86,7 @@ export default function ProvidersPage() {
           onClearFilters={() => {
             setSearchTerm("")
             setSelectedCity("all")
-            setSelectedService("all")
+            setSelectedServices([])
           }}
         />
 
