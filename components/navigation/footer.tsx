@@ -12,7 +12,7 @@ export function Footer() {
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm"><WorkerIcon /></span>
               </div>
-              <span className="text-xl font-bold text-primary">Listão</span>
+              <span className="text-xl font-bold text-primary">Biko</span>
             </div>
             <p className="text-muted-foreground text-sm">
               Conectando pessoas e transformando negócios através de serviços de qualidade.
@@ -92,7 +92,7 @@ export function Footer() {
         </div>
 
         <div className="border-t pt-8 mt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 Listão. Todos os direitos reservados.</p>
+          <p>&copy; 2025 Biko. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

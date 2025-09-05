@@ -19,6 +19,8 @@ import { useRequestService } from "@/hooks/use-requests-services"
 import { useAuth } from "@/hooks/use-auth"
 import { IRequestService, Message } from "@/lib/types"
 import { socket } from "@/lib/socket"
+import { RequestDetailsModal } from "@/app/my-requests/components/request-details-modal"
+import { formatCurrency, formatDate, formatDateWithTime } from "@/lib/utils"
 
 export function RequestsTab() {
   // Messaging state for internal chat system
@@ -70,7 +72,7 @@ export function RequestsTab() {
   const [messages, setMessages] = useState<Message[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
@@ -105,8 +107,8 @@ export function RequestsTab() {
 
     socket.on('chat:message_viewed', (message) => {
       setMessages((prev) => prev.map(msg => msg.id === message.id ? { ...msg, viewed: true } : msg))
-       console.log('Mensagem marcada como lida:', message);
-     });
+      console.log('Mensagem marcada como lida:', message);
+    });
 
     return () => {
       socket.disconnect()
@@ -152,30 +154,25 @@ export function RequestsTab() {
             {requestsList?.map((request) => (
               <Card
                 key={request.id}
-                className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedRequest?.id === request?.id ? "ring-2 ring-primary" : ""
-                  }`}
+                className={`cursor-pointer transition-colors shadow-md hover:bg-muted/50 ${selectedRequest?.id === request?.id ? "ring-2 ring-primary border-none" : ""}`}
                 onClick={() => setSelectedRequest(request)}
               >
-                <CardContent className="pt-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
+                <CardContent>
+                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
+                    <div className="flex justify-between w-full items-center">
                       <h3 className="font-semibold text-sm">{request?.client?.name}</h3>
-                      <p className="text-xs text-muted-foreground">{request?.service_type}</p>
-                    </div>
-                    <div className="text-right">
                       {getStatusBadge(request?.status)}
-                      <p className="text-xs text-muted-foreground mt-1">{request?.createdAt}</p>
+                    </div>
+                    <div className="text-right flex w-full justify-between items-center">
+                      <p className="text-xs text-muted-foreground mt-1">{request?.service_type}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{request?.createdAt ? formatDateWithTime(request?.createdAt) : ""}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{request?.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-primary">{request?.value}</span>
-                    {messages?.length > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {messages?.length} mensagens
-                      </Badge>
-                    )}
-                  </div>
+                  {(request?.status !== "PENDING" && request?.value) && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-primary">{formatCurrency(Number(request?.value))}</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -192,9 +189,12 @@ export function RequestsTab() {
               : "Selecione uma solicitação"}
           </CardTitle>
           {selectedRequest?.id && (
-            <CardDescription>
-              {requestsList?.find((o) => o.id === selectedRequest?.id)?.service_type}
-            </CardDescription>
+            <div className="p-3 bg-gray-50 border-b border-gray-200">
+              <RequestDetailsModal
+                selectedRequest={selectedRequest}
+                getStatusBadge={getStatusBadge}
+              />
+            </div>
           )}
         </CardHeader>
 

@@ -7,7 +7,7 @@ import { AuthProvider } from "@/hooks/use-auth"
 import { QueryProvider } from "@/components/query-provider"
 
 export const metadata: Metadata = {
-  title: "Listão - Plataforma de Serviços",
+  title: "Biko - Plataforma de Serviços",
   description: "Conecte-se com os melhores prestadores de serviços da sua região",
   generator: "v0.app",
 }

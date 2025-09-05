@@ -52,7 +52,7 @@ export function Header() {
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm"><WorkerIcon /></span>
             </div>
-            <span className="text-xl font-bold text-primary">Listão</span>
+            <span className="text-xl font-bold text-primary">Biko</span>
             {user?.role === UserRole.ADMIN && (
               <Badge variant="secondary" className="ml-2">
                 Admin

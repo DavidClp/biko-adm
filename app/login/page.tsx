@@ -66,7 +66,7 @@ export default function LoginPage() {
                 <span className="text-primary-foreground font-bold text-sm">L</span>
               </div>
             </div>
-            <CardTitle className="text-3xl font-bold text-primary mb-2">Listão</CardTitle>
+            <CardTitle className="text-3xl font-bold text-primary mb-2">Biko</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Entre na sua conta para acessar a plataforma
             </CardDescription>

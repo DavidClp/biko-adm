@@ -267,7 +267,7 @@ export default function ProviderProfilePage() {
 
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">
-                    Todas as conversas acontecem dentro da plataforma Listão
+                    Todas as conversas acontecem dentro da plataforma Biko
                   </p>
                 </div>
               </CardContent>
