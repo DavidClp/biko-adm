@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
 import { useAuth } from "@/hooks/use-auth"
+import { useRequireAuth } from "@/hooks/use-auth-redirect"
 import {
   User,
   Settings,
@@ -33,6 +34,9 @@ import { RequestsTab } from "./components/requests-tab"
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  
+  // Proteger a rota - redireciona para login se não autenticado
+  useRequireAuth("/login")
 
 
   // AI Tools state

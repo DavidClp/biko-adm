@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  logoutAndRedirect: () => void
   registerClient: (data: {
     name: string
     email: string
@@ -105,7 +106,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("userData")
+    localStorage.removeItem("routerBeforeLogin")
     setUser(null)
+  }
+
+  const logoutAndRedirect = () => {
+    logout()
+    // Redirecionar para a home
+    if (typeof window !== "undefined") {
+      window.location.href = "/"
+    }
   }
 
   const registerClient = async (params: {
@@ -172,6 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     login,
     logout,
+    logoutAndRedirect,
     registerClient,
     registerProvider,
     routerBeforeLogin,

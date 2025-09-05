@@ -51,11 +51,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
-                  Dashboard
-                </Link>
-              </li>
-              <li>
                 <Link href="/login" className="text-muted-foreground hover:text-primary transition-colors">
                   Fazer Login
                 </Link>

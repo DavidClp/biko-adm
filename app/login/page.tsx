@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/use-auth"
+import { useRedirectIfAuthenticated } from "@/hooks/use-auth-redirect"
 import { Loader2, ArrowLeft, Mail, Lock } from "lucide-react"
 import { UserRole } from "@/lib/types"
 import { WorkerIcon } from "@/lib/icons/worker"
@@ -21,6 +22,9 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const { login, loading, user, routerBeforeLogin, setRouterBeforeLogin } = useAuth()
   const router = useRouter()
+  
+  // Redirecionar se já estiver autenticado
+  useRedirectIfAuthenticated("/dashboard")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

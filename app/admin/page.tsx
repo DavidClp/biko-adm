@@ -21,11 +21,15 @@ import {
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
 import { useAuth } from "@/hooks/use-auth"
+import { useRequireRole } from "@/hooks/use-auth-redirect"
 import { Users, UserCheck, Search, CheckCircle, XCircle, Eye, BarChart3, Clock } from "lucide-react"
 
 export default function AdminPage() {
   const { user } = useAuth()
   const router = useRouter()
+  
+  // Proteger a rota - requer role de admin
+  useRequireRole("admin", "/")
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedProvider, setSelectedProvider] = useState<any>(null)
 
