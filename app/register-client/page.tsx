@@ -61,7 +61,7 @@ export default function RegisterClientPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/20 to-accent/5">
-      <div className="p-6">
+      <div className="p-0 sm:pt-6">
         <Link href="/">
           <Button variant="ghost" className="hover:bg-accent/10 transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -70,28 +70,29 @@ export default function RegisterClientPage() {
         </Link>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
+      <div className="flex-1 flex items-center justify-center px-4 py-0 sm:py-6">
         <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6 pt-8">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-primary-foreground" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-primary mb-2">Cadastro de Cliente</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-primary">Cadastro de Cliente</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Crie sua conta para encontrar prestadores de serviços
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-8 pb-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
+
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-3">
               {error && (
                 <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
                   <AlertDescription className="text-sm">{error}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <Label htmlFor="name" className="text-sm font-medium text-foreground">
                   Nome completo
                 </Label>
@@ -111,7 +112,7 @@ export default function RegisterClientPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <Label htmlFor="email" className="text-sm font-medium text-foreground">
                   Email
                 </Label>
@@ -131,7 +132,7 @@ export default function RegisterClientPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <Label htmlFor="phone" className="text-sm font-medium text-foreground">
                   Telefone <span className="text-muted-foreground text-xs">(opcional)</span>
                 </Label>
@@ -150,7 +151,7 @@ export default function RegisterClientPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <Label htmlFor="password" className="text-sm font-medium text-foreground">
                   Senha
                 </Label>
@@ -170,7 +171,7 @@ export default function RegisterClientPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
                   Confirmar senha
                 </Label>
@@ -192,7 +193,7 @@ export default function RegisterClientPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200 shadow-lg hover:shadow-xl mt-6"
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200 shadow-lg hover:shadow-xl mt-3"
                 disabled={loading}
               >
                 {loading ? (

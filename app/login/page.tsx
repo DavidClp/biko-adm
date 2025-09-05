@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/use-auth"
 import { Loader2, ArrowLeft, Mail, Lock } from "lucide-react"
 import { UserRole } from "@/lib/types"
+import { WorkerIcon } from "@/lib/icons/worker"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -49,7 +50,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/20 to-accent/5">
-      <div className="p-6">
+      <div className="p-0 sm:p-6">
         <Link href="/">
           <Button variant="ghost" className="hover:bg-accent/10 transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -60,26 +61,28 @@ export default function LoginPage() {
 
       <div className="flex-1 flex items-center justify-center px-4">
         <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-8 pt-8">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">L</span>
+          <CardHeader className="text-center pb-4 pt-4">
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm"><WorkerIcon /></span>
               </div>
             </div>
-            <CardTitle className="text-3xl font-bold text-primary mb-2">Biko</CardTitle>
+
+            <CardTitle className="text-3xl font-bold text-primary">Biko</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Entre na sua conta para acessar a plataforma
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-8 pb-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          
+          <CardContent className="pb-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
                   <AlertDescription className="text-sm">{error}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <Label htmlFor="email" className="text-sm font-medium text-foreground">
                   Email
                 </Label>
@@ -98,7 +101,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <Label htmlFor="password" className="text-sm font-medium text-foreground">
                   Senha
                 </Label>
@@ -133,8 +136,8 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-border/30">
-              <p className="text-sm text-muted-foreground text-center mb-4">Não tem uma conta?</p>
+            <div className="mt-6 pt-6 border-t border-border/30">
+              <p className="text-sm text-muted-foreground mt-[-10px] text-center mb-4">Não tem uma conta?</p>
               <div className="grid grid-cols-2 gap-3">
                 <Link href="/register-client" className="block">
                   <Button

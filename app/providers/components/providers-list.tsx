@@ -43,12 +43,9 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
           <CardHeader className="pb-4">
             <div className="flex items-start gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={provider.avatar || "/placeholder.svg"} alt={provider.name} />
+                <AvatarImage src={provider.avatar} alt={provider.name} />
                 <AvatarFallback>
-                  {provider?.name
-                    .split(" ")
-                    .map((n: string) => n[0])
-                    .join("")}
+                  {provider?.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
@@ -95,7 +92,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
                 </Button>
               </Link>
               <Button onClick={() => onRequestContact(provider.id)} className="flex-1">
-                <MessageCircle className="h-4 w-4 mr-2" />
+                <MessageCircle className="h-4 w-4" />
                 Solicitar Orçamento
               </Button>
             </div>

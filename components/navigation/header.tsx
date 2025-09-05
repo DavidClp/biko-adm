@@ -97,10 +97,7 @@ export function Header() {
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback>
-                        {user.name
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("") || "U"}
+                        {user.provider?.name?.charAt(0) || user.client?.name?.charAt(0) || user.name?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
