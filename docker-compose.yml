@@ -6,7 +6,7 @@ services:
     container_name: biko-frontend
     restart: always
     networks:
-      - npm_network
+      - proxy   
     expose:
       - "3000"
 
