@@ -19,6 +19,7 @@ import { MessageCircle, Send, Briefcase, FileText, Clock, MapPin } from "lucide-
 import { Provider } from "@/lib/types"
 import { useRequestService } from "@/hooks/use-requests-services"
 import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/navigation"
 
 interface ContactFormData {
   service_type: string
@@ -44,6 +45,8 @@ const urgencyOptions = [
 
 export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: ContactModalProps) {
   const [isContactSent, setIsContactSent] = useState(false);
+
+  const router = useRouter();
 
   const {
     register,
@@ -77,6 +80,7 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
     }
 
     sendContactRequest(requestData)
+    router.push(`/my-requests?providerId=${provider.id}`)
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -86,7 +90,6 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
     onOpenChange(open)
   }
 
-  // Watch form values for validation
   const watchedValues = watch()
   const isFormValid = watchedValues.service_type && watchedValues.description
 

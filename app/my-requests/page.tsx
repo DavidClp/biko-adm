@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -12,7 +12,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { IRequestService, UserRole } from "@/lib/types"
 import { useRequestService } from "@/hooks/use-requests-services"
 
@@ -55,10 +55,12 @@ export default function MyRequestsPage() {
   const { user } = useAuth()
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
   const [showChat, setShowChat] = useState(false)
+  const searchParams = useSearchParams()
+  const providerId = searchParams.get('providerId')
 
   const { getRequestsByClient } = useRequestService({ clientId: user?.client?.id })
 
-  const { data: requestsList, isLoading: isLoadingRequests } = getRequestsByClient;
+  const { data: requestsList, isLoading: isLoadingRequests, refetch: refetchRequests } = getRequestsByClient;
 
   const handleSelectRequest = (request: IRequestService) => {
     setSelectedRequest(request)
@@ -69,6 +71,33 @@ export default function MyRequestsPage() {
     setShowChat(false)
     setSelectedRequest(null)
   }
+
+  // Efeito para abrir automaticamente a última conversa do provider quando providerId estiver presente na URL
+  useEffect(() => {
+    if (providerId) {
+      // Forçar refetch dos dados para garantir que temos a versão mais atualizada
+      refetchRequests().then((result) => {
+        // Usar os dados retornados do refetch em vez dos dados em cache
+        const freshRequestsList = result.data || requestsList
+        
+        if (freshRequestsList && freshRequestsList.length > 0) {
+          // Filtrar requests pelo providerId
+          const providerRequests = freshRequestsList.filter(request => request.provider?.id === providerId)
+          
+          if (providerRequests.length > 0) {
+            // Ordenar por data de criação (mais recente primeiro) e pegar o primeiro
+            const latestRequest = providerRequests.sort((a, b) => 
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            )[0]
+            
+            // Abrir a conversa automaticamente
+            setSelectedRequest(latestRequest)
+            setShowChat(true)
+          }
+        }
+      })
+    }
+  }, [providerId, refetchRequests, requestsList])
 
   if (isLoadingRequests) {
     return (

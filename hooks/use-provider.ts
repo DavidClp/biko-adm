@@ -21,7 +21,6 @@ export function useProvider({ providerId }: { providerId?: string }) {
       try {
         const { data } = await api.get<Provider>(`/providers/${providerId}`)
 
-        console.log("data", data)
         if (!data) {
           throw new Error('Provider not found')
         }
