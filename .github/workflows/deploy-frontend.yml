@@ -23,6 +23,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
 
+            # Clona ou atualiza o repositório
             if [ ! -d "/root/biko-frontend/.git" ]; then
               rm -rf /root/biko-frontend
               git clone https://github.com/${{ github.repository }} /root/biko-frontend
@@ -34,8 +35,13 @@ jobs:
 
             cd /root/biko-frontend
 
+            # Cria o .env
             echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env
 
+            # Para containers antigos do projeto (evita conflito de nomes)
+            docker compose down --remove-orphans
+
+            # Build e sobe o container
             docker compose build --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-            docker compose up -d
+            docker compose up -d --force-recreate
           EOF
