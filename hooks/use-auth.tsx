@@ -25,6 +25,7 @@ interface AuthContextType {
     city: string
     description: string
   }) => Promise<void>
+  deleteAccount: () => Promise<void>
   routerBeforeLogin: string | null
   setRouterBeforeLogin: (router: string) => void
 }
@@ -177,6 +178,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const deleteAccount = async () => {
+    setLoading(true)
+    try {
+      await api.delete(`/providers/${user?.provider?.id}`)
+      
+      logout()
+      
+      if (typeof window !== "undefined") {
+        window.location.href = "/"
+      }
+    } catch (error) {
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -185,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logoutAndRedirect,
     registerClient,
     registerProvider,
+    deleteAccount,
     routerBeforeLogin,
     setRouterBeforeLogin: setRouterBeforeLoginWithPersistence,
   }

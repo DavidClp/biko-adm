@@ -78,6 +78,7 @@ export interface Provider extends User {
   rating?: number
   reviews?: number
   verified?: boolean
+  is_listed?: boolean
 }
 
 

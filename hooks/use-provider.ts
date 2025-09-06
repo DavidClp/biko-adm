@@ -71,6 +71,40 @@ export function useProvider({ providerId }: { providerId?: string }) {
     },
   })
 
+  const updateListedStatusMutation = useMutation({
+    mutationFn: async (isListed: boolean): Promise<Provider> => {
+      try {
+        const { data } = await api.put<Provider>(`/providers/${providerId}`, { is_listed: isListed })
+
+        if (!data) {
+          throw new Error('Provider not found')
+        }
+
+        return data
+      } catch (error) {
+        console.error('Erro ao atualizar status de listagem:', error)
+        throw error
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile', providerId], data)
+      queryClient.invalidateQueries({ queryKey: ['provider', providerId] })
+
+      toast({
+        title: "Status atualizado!",
+        description: data.is_listed ? "Seu perfil agora aparece nas buscas." : "Seu perfil foi removido das buscas.",
+        variant: "default",
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      })
+    },
+  })
+
   return {
     provider: profileQuery.data,
     isLoading: profileQuery.isLoading,
@@ -78,6 +112,9 @@ export function useProvider({ providerId }: { providerId?: string }) {
 
     updateProfile: updateProfileMutation.mutate,
     isUpdating: updateProfileMutation.isPending,
+
+    updateListedStatus: updateListedStatusMutation.mutate,
+    isUpdatingListedStatus: updateListedStatusMutation.isPending,
 
     refetch: profileQuery.refetch,
   }

@@ -12,10 +12,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
 import { useAuth } from "@/hooks/use-auth"
 import { useRequireAuth } from "@/hooks/use-auth-redirect"
+import { useProvider } from "@/hooks/use-provider"
+import { useToast } from "@/hooks/use-toast"
 import {
   User,
   Settings,
@@ -33,11 +46,37 @@ import { ProfileTab } from "./components/profile-tab"
 import { RequestsTab } from "./components/requests-tab"
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user, deleteAccount, loading } = useAuth()
+  const { toast } = useToast()
   
-  // Proteger a rota - redireciona para login se não autenticado
   useRequireAuth("/login")
 
+  const { provider, updateListedStatus, isUpdatingListedStatus } = useProvider({ 
+    providerId: user?.provider?.id 
+  })
+
+  const handleToggleListedStatus = () => {
+    if (provider) {
+      updateListedStatus(!provider.is_listed)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount()
+      toast({
+        title: "Conta excluída",
+        description: "Sua conta foi excluída com sucesso.",
+        variant: "default",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir conta",
+        description: "Ocorreu um erro ao excluir sua conta. Tente novamente.",
+        variant: "destructive",
+      })
+    }
+  }
 
   // AI Tools state
   const [aiPrompt, setAiPrompt] = useState("")
@@ -240,7 +279,7 @@ export default function DashboardPage() {
                 <CardDescription>Gerencie suas preferências e configurações</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-4">
+               {/*  <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Notificações</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -262,7 +301,7 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Privacidade</h3>
@@ -272,15 +311,60 @@ export default function DashboardPage() {
                         <p className="font-medium">Perfil público</p>
                         <p className="text-sm text-muted-foreground">Seu perfil aparece nas buscas</p>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Ativado
+                      <Button 
+                        variant={provider?.is_listed ? "default" : "outline"} 
+                        size="sm"
+                        onClick={handleToggleListedStatus}
+                        disabled={isUpdatingListedStatus}
+                      >
+                        {isUpdatingListedStatus ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Atualizando...
+                          </>
+                        ) : provider?.is_listed ? (
+                          "Ativado"
+                        ) : (
+                          "Desativado"
+                        )}
                       </Button>
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-6 border-t">
-                  <Button variant="destructive">Excluir conta</Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" disabled={loading}>
+                        {loading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Excluindo...
+                          </>
+                        ) : (
+                          "Excluir conta"
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir conta</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta
+                          e removerá todos os dados associados do nosso servidor.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Excluir conta
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>

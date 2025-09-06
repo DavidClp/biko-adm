@@ -69,6 +69,10 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
   const getRequestsByClient = useQuery({
     queryKey: ['requestsByClient', clientId],
     queryFn: async () => {
+      if (!clientId) {
+        return []
+      }
+
       const response = await api.get<IRequestService[]>(`/requests/client/${clientId}`)
       return response.data
     },
@@ -77,6 +81,10 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
   const getRequestsByProvider = useQuery({
     queryKey: ['requestsByProvider', providerId],
     queryFn: async () => {
+      if (!providerId) {
+        return []
+      }
+      
       const response = await api.get<IRequestService[]>(`/requests/provider/${providerId}`)
       return response.data
     },
