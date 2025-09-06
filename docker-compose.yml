@@ -1,7 +1,6 @@
-version: '3.8'
-
+# docker-compose.yml
 services:
-  frontend:
+  biko-frontend:
     build:
       context: .
       args:
@@ -10,10 +9,10 @@ services:
     restart: always
     networks:
       - proxy
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"  # torna acessível do host
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
 
 networks:
   proxy:
