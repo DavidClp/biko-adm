@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
 import { Search, Users, Shield, Star } from "lucide-react"
+import { ServicesLanding } from "@/components/services-landing"
 
 export default function HomePage() {
   return (
@@ -125,31 +126,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
-            {[
-              "Eletricista",
-              "Encanador",
-              "Pintor",
-              "Marceneiro",
-              "Jardineiro",
-              "Diarista",
-              "Personal Trainer",
-              "Professor Particular",
-              "Fotógrafo",
-              "Designer",
-              "Desenvolvedor",
-              "Consultor",
-            ].map((service) => (
-              <Link key={service} href={`/providers?service=${encodeURIComponent(service)}`}>
-                <Badge
-                  variant="secondary"
-                  className="text-sm py-2 px-4 hover:bg-secondary hover:text-secondary-foreground transition-colors cursor-pointer bg-secondary/10 text-secondary border-secondary/20"
-                >
-                  {service}
-                </Badge>
-              </Link>
-            ))}
-          </div>
+          <ServicesLanding />
         </div>
       </section>
 
