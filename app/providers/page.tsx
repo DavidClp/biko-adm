@@ -1,13 +1,12 @@
 "use client"
 
-import { useCallback, useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useCallback, useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
 import { Search } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { CitiesSelector } from "@/components/cities-selector"
 import { ProvidersList } from "@/app/providers/components/providers-list"
 import { useProvidersWithFilters } from "@/hooks/use-providers"
@@ -19,6 +18,14 @@ export default function ProvidersPage() {
   const [selectedServices, setSelectedServices] = useState<string[]>([])
   const { user } = useAuth();
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const serviceParam = searchParams.get('service')
+    if (serviceParam) {
+      setSelectedServices([serviceParam])
+    }
+  }, [searchParams])
 
   const { data: providers = [], isLoading: loading, error, refetch } = useProvidersWithFilters(
     searchTerm,
@@ -33,7 +40,18 @@ export default function ProvidersPage() {
     }
 
     router.push(`/providers/${providerId}?isContactModalOpen=true`)
-  }, [])
+  }, [user, router])
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("")
+    setSelectedCity("all")
+    setSelectedServices([])
+    refetch()
+    
+    const url = new URL(window.location.href)
+    url.searchParams.delete('service')
+    router.replace(url.pathname + url.search)
+  }, [refetch, router])
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -82,12 +100,7 @@ export default function ProvidersPage() {
           providers={providers}
           loading={loading}
           onRequestContact={handleRequestContact}
-          onClearFilters={() => {
-            setSearchTerm("")
-            setSelectedCity("all")
-            setSelectedServices([])
-            refetch()
-          }}
+          onClearFilters={handleClearFilters}
         />
 
       </div>
