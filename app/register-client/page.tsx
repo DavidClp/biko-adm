@@ -53,7 +53,7 @@ export default function RegisterClientPage() {
         password: formData.password,
         phone: formData.phone,
       })
-    /*   router.push("/providers") */
+      router.push("/providers")
     } catch (err) {
       setError("Erro ao criar conta. Verifique os dados e tente novamente.")
     }
