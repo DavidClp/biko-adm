@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  biko-frontend:
+    build: .
+    container_name: biko-frontend
+    restart: always
+    networks:
+      - npm_network
+    expose:
+      - "3000"
+
+networks:
+  proxy:
+    external: true

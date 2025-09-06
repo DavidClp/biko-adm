@@ -1,0 +1,40 @@
+name: Deploy Next.js Biko Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            set -e
+
+            if [ ! -d "/root/biko-frontend/.git" ]; then
+              rm -rf /root/biko-frontend
+              git clone https://github.com/${{ github.repository }} /root/biko-frontend
+            else
+              cd /root/biko-frontend
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            cd /root/biko-frontend
+
+            echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env
+
+            docker compose up -d --build
+          EOF
