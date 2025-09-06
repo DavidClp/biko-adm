@@ -16,7 +16,6 @@ interface CitiesSelectorProps {
 export function CitiesSelector({ onCitySelect, classNameInput, placeholder = "Selecione uma cidade", defaultCityId }: CitiesSelectorProps) {
   const { cities, isLoadingCities } = useShared()
 
-  console.log("defaultCityId", defaultCityId)
   return (
     <Select onValueChange={onCitySelect} value={defaultCityId}>
       <SelectTrigger className={cn("w-full border-border/80 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200", classNameInput)}>

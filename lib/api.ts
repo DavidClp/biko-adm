@@ -32,6 +32,7 @@ api.interceptors.response.use(
     console.error("API request failed:", error)
     
     // Se for erro 401 (não autorizado), limpar dados de autenticação e redirecionar
+    // Mas não redirecionar se estivermos na página de login
     if (error.response?.status === 401) {
       // Limpar dados de autenticação do localStorage
       if (typeof window !== "undefined") {
@@ -39,8 +40,11 @@ api.interceptors.response.use(
         localStorage.removeItem("userData")
         localStorage.removeItem("routerBeforeLogin")
         
-        // Redirecionar para a home
-        window.location.href = "/"
+        // Só redirecionar se não estivermos na página de login
+        const currentPath = window.location.pathname
+        if (currentPath !== "/login" && currentPath !== "/register-client" && currentPath !== "/register-provider") {
+          window.location.href = "/"
+        }
       }
     }
     
