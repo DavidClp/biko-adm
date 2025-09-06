@@ -10,7 +10,7 @@ services:
     networks:
       - proxy
     ports:
-      - "3000:3000"  # torna acessível do host
+      - "3000:3000" 
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
 
