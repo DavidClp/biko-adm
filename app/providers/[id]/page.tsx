@@ -19,6 +19,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { ContactModal } from "@/app/providers/components/contact-modal"
 import { LoginRequiredModal } from "@/app/providers/components/login-required-modal"
 import { useAuth } from "@/hooks/use-auth"
+import { UserRole } from "@/lib/types"
 
 export default function ProviderProfilePage() {
   const params = useParams()
@@ -170,9 +171,16 @@ export default function ProviderProfilePage() {
                   </Avatar>
                   <div className="flex-1 text-center sm:text-left">
                     <CardTitle className="text-xl sm:text-2xl mb-2">{provider?.name}</CardTitle>
-                    <Badge variant="secondary" className="mb-3 text-sm">
-                      {provider?.service || "Serviços"}
-                    </Badge>
+                    {provider?.services?.slice(0, 2)?.map((service, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs mb-3">
+                        {service}
+                      </Badge>
+                    ))}
+                    {provider?.services?.length > 2 && (
+                      <Badge variant="secondary" className="text-xs mb-3">
+                        +{provider?.services?.length - 2}
+                      </Badge>
+                    )}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
                       <div className="flex items-center justify-center sm:justify-start gap-1">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -242,36 +250,38 @@ export default function ProviderProfilePage() {
           </div>
 
           <div className="space-y-4 sm:space-y-6">
-            <Card className="space-y-0 gap-0">
-              <CardHeader className="pt-4 sm:pt-6">
-                <CardTitle className="text-lg sm:text-xl">Contato</CardTitle>
-              </CardHeader>
+            {user?.role === UserRole.CLIENT && (
+              <Card className="space-y-0 gap-0">
+                <CardHeader className="pt-4 sm:pt-6">
+                  <CardTitle className="text-lg sm:text-xl">Contato</CardTitle>
+                </CardHeader>
 
-              <CardContent className="pb-4 sm:pb-6 pt-[-100px] space-y-4">
-                <Button className="w-full" size="lg" onClick={() => handleOpenContactModal(true)}>
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Solicitar Orçamento
-                </Button>
+                <CardContent className="pb-4 sm:pb-6 pt-[-100px] space-y-4">
+                  <Button className="w-full" size="lg" onClick={() => handleOpenContactModal(true)}>
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Solicitar Orçamento
+                  </Button>
 
-                <ContactModal
-                  provider={provider}
-                  isOpen={isContactModalOpen}
-                  onOpenChange={setIsContactModalOpen}
-                />
+                  <ContactModal
+                    provider={provider}
+                    isOpen={isContactModalOpen}
+                    onOpenChange={setIsContactModalOpen}
+                  />
 
-                <LoginRequiredModal
-                  isOpen={isLoginRequiredModalOpen}
-                  onOpenChange={setIsLoginRequiredModalOpen}
-                  providerId={providerId}
-                />
+                  <LoginRequiredModal
+                    isOpen={isLoginRequiredModalOpen}
+                    onOpenChange={setIsLoginRequiredModalOpen}
+                    providerId={providerId}
+                  />
 
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Todas as conversas acontecem dentro da plataforma Biko
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Todas as conversas acontecem dentro da plataforma Biko
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Social Media */}
             {(provider.instagram || provider.facebook) && (

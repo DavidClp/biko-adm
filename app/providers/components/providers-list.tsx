@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { MapPin, Star, MessageCircle } from "lucide-react"
-import { Provider } from "@/lib/types"
+import { Provider, UserRole } from "@/lib/types"
+import { useAuth } from "@/hooks/use-auth"
 
 interface ProvidersListProps {
   providers: Provider[]
@@ -17,6 +18,8 @@ interface ProvidersListProps {
 }
 
 export function ProvidersList({ providers, loading, onRequestContact, onClearFilters }: ProvidersListProps) {
+  const { user } = useAuth()
+
   if (loading) {
     return <LoadingSpinner size="lg" />
   }
@@ -39,8 +42,8 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {providers.map((provider) => (
-        <Card key={provider.id} className="hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-4">
+        <Card key={provider?.id} className="hover:shadow-lg transition-shadow">
+          <CardHeader >
             <div className="flex items-start gap-4">
               <Avatar className="h-16 w-16">
                 <AvatarImage src={provider.avatar} alt={provider.name} />
@@ -51,14 +54,16 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
               <div className="flex-1">
                 <CardTitle className="text-lg">{provider?.name}</CardTitle>
                 <div className="flex flex-wrap gap-1 mb-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {provider?.service}
-                  </Badge>
-                  {/*  {provider.services.length > 2 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{provider.services.length - 2}
+                  {provider?.services?.slice(0, 2)?.map((service, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {service}
                     </Badge>
-                  )} */}
+                  ))}
+                  {provider?.services?.length > 2 && (
+                    <Badge variant="secondary" className="text-xs">
+                      +{provider?.services?.length - 2}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
@@ -70,7 +75,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
 
           <CardContent className="pt-0">
             <CardDescription className="mb-4 line-clamp-2">
-              {provider.description}
+              {provider?.description}
             </CardDescription>
 
             {provider?.rating && provider?.reviews && (
@@ -91,10 +96,12 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
                   Perfil
                 </Button>
               </Link>
+              {user?.role === UserRole.CLIENT && (
               <Button onClick={() => onRequestContact(provider.id)} className="flex-1">
                 <MessageCircle className="h-4 w-4" />
                 Solicitar Orçamento
               </Button>
+              )}
             </div>
           </CardContent>
         </Card>

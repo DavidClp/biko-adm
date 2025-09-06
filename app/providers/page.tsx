@@ -20,14 +20,11 @@ export default function ProvidersPage() {
   const { user } = useAuth();
   const router = useRouter()
 
-  // Usar React Query para buscar providers com filtros
-  const { data: providers = [], isLoading: loading, error } = useProvidersWithFilters(
+  const { data: providers = [], isLoading: loading, error, refetch } = useProvidersWithFilters(
     searchTerm,
     selectedCity,
-    selectedServices.length > 0 ? selectedServices[0] : "all" // Por enquanto, usar apenas o primeiro serviço selecionado
+    selectedServices
   )
-
-  console.log(providers)
 
   const handleRequestContact = useCallback((providerId: string) => {
     if (!user) {
@@ -54,14 +51,18 @@ export default function ProvidersPage() {
                   placeholder="Buscar por nome ou serviço..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 pl-10"
+                  className="w-full border-border/80 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 pl-10 min-h-[40px]"
                 />
               </div>
             </div>
 
-           <CitiesSelector onCitySelect={setSelectedCity} />
+            <CitiesSelector
+              onCitySelect={setSelectedCity}
+              defaultCityId={selectedCity}
+              classNameInput={"min-h-[40px]"}
+            />
 
-            <ServicesMultiSelect 
+            <ServicesMultiSelect
               selectedServices={selectedServices}
               onServicesChange={setSelectedServices}
             />
@@ -77,14 +78,15 @@ export default function ProvidersPage() {
           </div>
         </div>
 
-        <ProvidersList 
-          providers={providers} 
-          loading={loading} 
+        <ProvidersList
+          providers={providers}
+          loading={loading}
           onRequestContact={handleRequestContact}
           onClearFilters={() => {
             setSearchTerm("")
             setSelectedCity("all")
             setSelectedServices([])
+            refetch()
           }}
         />
 

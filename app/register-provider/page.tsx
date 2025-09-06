@@ -2,9 +2,12 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -26,60 +29,64 @@ import {
 import { ServicesMultiSelect } from "@/components/services-multi-select"
 import { CitiesSelector } from "@/components/cities-selector"
 
+const registerProviderSchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string(),
+  services: z.array(z.string()).min(1, "Selecione pelo menos um serviço"),
+  city: z.string().min(1, "Selecione uma cidade"),
+  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
+  phone: z.string().min(10, "Telefone deve ter pelo menos 10 caracteres"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
+})
+
+type RegisterProviderFormData = z.infer<typeof registerProviderSchema>
+
 export default function RegisterProviderPage() {
-
-  // refatorar um dia para usar react hook form nele também
   const [selectedServices, setSelectedServices] = useState<string[]>([])
-
-  console.log('selectedServisadsdsdsdsdsces', selectedServices)
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    services: selectedServices,
-    city: "",
-    description: "",
-    phone: "",
-    instagram: "",
-    facebook: "",
-    linkedin: "",
-  })
   const [error, setError] = useState("")
   const { registerProvider, loading } = useAuth()
   const router = useRouter()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    console.log(e.target.name, e.target.value)
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }))
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<RegisterProviderFormData>({
+    resolver: zodResolver(registerProviderSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      services: [],
+      city: "",
+      description: "",
+      phone: "",
+    },
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  useEffect(() => {
+    setValue("services", selectedServices)
+  }, [selectedServices, setValue])
+
+  const onSubmit = async (data: RegisterProviderFormData) => {
     setError("")
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("As senhas não coincidem.")
-      return
-    }
-
-    if (formData.password.length < 6) {
-      setError("A senha deve ter pelo menos 6 caracteres.")
-      return
-    }
 
     try {
       await registerProvider({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        services: formData.services,
-        city: formData.city,
-        description: formData.description,
-        phone: formData.phone,
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        services: data.services,
+        city: data.city,
+        description: data.description,
+        phone: data.phone,
       })
 
       router.push("/dashboard")
@@ -113,7 +120,7 @@ export default function RegisterProviderPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {error && (
                 <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
                   <AlertDescription className="text-sm">{error}</AlertDescription>
@@ -135,16 +142,18 @@ export default function RegisterProviderPage() {
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="name"
-                        name="name"
                         type="text"
                         placeholder="Seu nome completo"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
                         disabled={loading}
-                        className="pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
+                          errors.name ? "border-destructive" : ""
+                        }`}
+                        {...register("name")}
                       />
                     </div>
+                    {errors.name && (
+                      <p className="text-sm text-destructive">{errors.name.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1">
@@ -155,16 +164,18 @@ export default function RegisterProviderPage() {
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="email"
-                        name="email"
                         type="email"
                         placeholder="seu@email.com"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
                         disabled={loading}
-                        className="pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
+                          errors.email ? "border-destructive" : ""
+                        }`}
+                        {...register("email")}
                       />
                     </div>
+                    {errors.email && (
+                      <p className="text-sm text-destructive">{errors.email.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -177,16 +188,18 @@ export default function RegisterProviderPage() {
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="password"
-                        name="password"
                         type="password"
                         placeholder="Mínimo 6 caracteres"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
                         disabled={loading}
-                        className="pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
+                          errors.password ? "border-destructive" : ""
+                        }`}
+                        {...register("password")}
                       />
                     </div>
+                    {errors.password && (
+                      <p className="text-sm text-destructive">{errors.password.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1">
@@ -197,16 +210,18 @@ export default function RegisterProviderPage() {
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="confirmPassword"
-                        name="confirmPassword"
                         type="password"
                         placeholder="Digite a senha novamente"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        required
                         disabled={loading}
-                        className="pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
+                          errors.confirmPassword ? "border-destructive" : ""
+                        }`}
+                        {...register("confirmPassword")}
                       />
                     </div>
+                    {errors.confirmPassword && (
+                      <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -226,9 +241,14 @@ export default function RegisterProviderPage() {
                       <ServicesMultiSelect
                         selectedServices={selectedServices}
                         onServicesChange={setSelectedServices}
-                        classNameInput="min-h-12 border-border/50"
+                        classNameInput={`min-h-12 border-border/50 ${
+                          errors.services ? "border-destructive" : ""
+                        }`}
                       />
                     </div>
+                    {errors.services && (
+                      <p className="text-sm text-destructive">{errors.services.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1">
@@ -237,10 +257,15 @@ export default function RegisterProviderPage() {
                     </Label>
                     <div>
                       <CitiesSelector
-                        classNameInput="min-h-12 border-border/50"
-                        onCitySelect={(cityId) => setFormData(prev => ({ ...prev, city: cityId }))}
+                        classNameInput={`min-h-12 border-border/50 ${
+                          errors.city ? "border-destructive" : ""
+                        }`}
+                        onCitySelect={(cityId) => setValue("city", cityId)}
                       />
                     </div>
+                    {errors.city && (
+                      <p className="text-sm text-destructive">{errors.city.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -252,16 +277,18 @@ export default function RegisterProviderPage() {
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="phone"
-                      name="phone"
                       type="tel"
                       placeholder="(11) 99999-9999"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
                       disabled={loading}
-                      className="pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+                      className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
+                        errors.phone ? "border-destructive" : ""
+                      }`}
+                      {...register("phone")}
                     />
                   </div>
+                  {errors.phone && (
+                    <p className="text-sm text-destructive">{errors.phone.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-1">
@@ -272,16 +299,18 @@ export default function RegisterProviderPage() {
                     <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Textarea
                       id="description"
-                      name="description"
                       placeholder="Descreva seus serviços, experiência e diferenciais..."
-                      value={formData.description}
-                      onChange={handleChange}
-                      required
                       disabled={loading}
                       rows={4}
-                      className="pl-10 pt-3 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 resize-none"
+                      className={`pl-10 pt-3 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 resize-none ${
+                        errors.description ? "border-destructive" : ""
+                      }`}
+                      {...register("description")}
                     />
                   </div>
+                  {errors.description && (
+                    <p className="text-sm text-destructive">{errors.description.message}</p>
+                  )}
                 </div>
               </div>
 

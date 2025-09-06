@@ -7,7 +7,7 @@ import { ApiSuccess, PaginatedResponse, Provider } from "@/lib/types"
 
 interface ProvidersFilters {
   query?: string
-  service?: string
+  services?: string[]
   cityId?: string
   minRating?: number
 }
@@ -16,7 +16,7 @@ const fetchProviders = async (filters?: ProvidersFilters): Promise<Provider[]> =
   const params = new URLSearchParams()
 
   if (filters?.query) params.append("q", filters.query)
-  if (filters?.service) params.append("service", filters.service)
+  if (filters?.services) params.append("services", filters.services.join(","))
   if (filters?.cityId) params.append("cityId", filters.cityId)
   if (filters?.minRating) params.append("minRating", filters.minRating.toString())
 
@@ -44,7 +44,7 @@ export function useProviders(filters?: ProvidersFilters) {
 export function useProvidersWithFilters(
   searchTerm?: string,
   selectedCity?: string,
-  selectedService?: string
+  selectedServices?: string[]
 ) {
   const filters = useMemo(() => {
     const queryFilters: ProvidersFilters = {}
@@ -57,12 +57,12 @@ export function useProvidersWithFilters(
       queryFilters.cityId = selectedCity
     }
 
-    if (selectedService && selectedService !== "all") {
-      queryFilters.service = selectedService
+    if (selectedServices && selectedServices.length > 0) {
+      queryFilters.services = selectedServices
     }
 
     return queryFilters
-  }, [searchTerm, selectedCity, selectedService])
+  }, [searchTerm, selectedCity, selectedServices])
 
   return useProviders(filters) // sem async/await
 }
