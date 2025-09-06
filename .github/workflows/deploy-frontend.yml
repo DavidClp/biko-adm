@@ -36,5 +36,6 @@ jobs:
 
             echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env
 
-            docker compose up -d --build
+            docker compose build --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            docker compose up -d
           EOF
