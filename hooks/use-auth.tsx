@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { api } from "@/lib/api"
 import { User, LoginResponse, RegisterResponse, ApiResponse } from "@/lib/types"
+import { socket } from "@/lib/socket"
 
 interface AuthContextType {
   user: User | null
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
  */
         const token = localStorage.getItem("token")
-       
+
         if (token) {
           const userData = localStorage.getItem("userData")
           if (userData) {
@@ -182,9 +183,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     try {
       await api.delete(`/providers/${user?.provider?.id}`)
-      
+
       logout()
-      
+
       if (typeof window !== "undefined") {
         window.location.href = "/"
       }
@@ -194,6 +195,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (!user?.id || !user?.provider?.id) return
+
+    socket.auth = { userId: user?.id }
+    socket.connect()
+
+    // INSCREVER NO SOCKET - FICAR ONLINE
+    socket.emit("request:subscribe-provider", { providerId: user.provider.id })
+
+    return () => {
+      socket.emit("request:unsubscribe-provider", { providerId: user?.provider?.id })
+    }
+  }, [user?.id, user?.provider?.id])
 
   const value = {
     user,

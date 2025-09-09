@@ -97,6 +97,7 @@ export interface IRequestService {
   createdAt: string;
   client: Client;
   provider: Provider;
+  unreadMessages?: number;
 }
 
 

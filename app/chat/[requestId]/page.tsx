@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,8 +15,8 @@ import {
 } from "lucide-react"
 import { useRequestService } from "@/hooks/use-requests-services"
 import { useAuth } from "@/hooks/use-auth"
+import { useChat } from "@/hooks/use-chat"
 import { IRequestService, Message } from "@/lib/types"
-import { socket } from "@/lib/socket"
 import { RequestDetailsModal } from "@/app/my-requests/components/request-details-modal"
 import { formatCurrency, formatDateWithTime } from "@/lib/utils"
 import { Header } from "@/components/navigation/header"
@@ -29,34 +29,23 @@ export default function ChatPage() {
   const requestId = params.requestId as string
 
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [newMessage, setNewMessage] = useState("")
-  const inputRef = useRef<HTMLInputElement>(null)
-  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   const { user, loading: authLoading } = useAuth()
   const { getRequestsByProvider } = useRequestService({ providerId: user?.provider?.id })
   const { data: requestsList } = getRequestsByProvider
 
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
-    }
-  }
-
-  const send = () => {
-    const content = inputRef.current!.value.trim()
-    if (!content) return
-
-    socket.emit("chat:send", {
-      requestId: selectedRequest?.id,
-      toUserId: selectedRequest?.provider?.userId,
-      content
-    })
-
-    inputRef.current!.value = ""
-    setNewMessage("")
-  }
+  // Hook de chat centralizado
+  const {
+    messages,
+    newMessage,
+    setNewMessage,
+    inputRef,
+    messagesContainerRef,
+    send
+  } = useChat({
+    selectedRequestId: selectedRequest?.id,
+    userId: user?.id
+  })
 
   useEffect(() => {
     if (requestsList && requestId) {
@@ -70,60 +59,6 @@ export default function ChatPage() {
     }
   }, [requestsList, requestId, router])
 
-  useEffect(() => {
-    if (!user?.id || !selectedRequest?.id) return
-
-    socket.auth = { userId: user.id }
-    socket.connect()
-
-    socket.emit("chat:join", { requestId: selectedRequest.id })
-
-    socket.on("chat:new_message", (msg: Message) => {
-      if (msg.request_id === selectedRequest.id) {
-        setMessages((prev) => [...prev, msg])
-      }
-    })
-
-    socket.on('chat:load_messages', (data) => {
-      setMessages(data?.messages || [])
-    })
-
-    socket.on('chat:message_viewed', (message) => {
-      setMessages((prev) =>
-        prev.map(msg =>
-          msg.id === message.id ? { ...msg, viewed: true } : msg
-        )
-      )
-    })
-
-    return () => {
-      socket.disconnect()
-      setMessages([])
-    }
-  }, [selectedRequest?.id, user?.id])
-
-  const processedMessagesRef = useRef<Set<string>>(new Set())
-
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1]
-
-    if (lastMessage &&
-      lastMessage.sender_id !== user?.id &&
-      !lastMessage.viewed) {
-
-      const timeoutId = setTimeout(() => {
-        socket.emit('chat:viewed', {
-          messageId: lastMessage.id,
-        })
-      }, 1000)
-
-      return () => clearTimeout(timeoutId)
-    }
-  }, [messages, user?.id])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
 
   if (authLoading) {
     return (
@@ -166,7 +101,6 @@ export default function ChatPage() {
           />
         </div>
 
-      {/* Messages */}
       <CardContent
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4"
@@ -210,7 +144,6 @@ export default function ChatPage() {
         </div>
       </CardContent>
 
-      {/* Input */}
       <div className="p-4 bg-white border-t border-primary">
         <div className="flex items-center gap-2 justify-center">
           <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">

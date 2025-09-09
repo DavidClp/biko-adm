@@ -49,7 +49,7 @@ export function ChatSection({
     const content = inputRef.current!.value.trim()
     if (!content) return;
 
-    socket.emit("chat:send", { requestId: selectedRequest?.id, toUserId: selectedRequest?.provider?.userId, content })
+    socket.emit("chat:send", { requestId: selectedRequest?.id, providerId: selectedRequest?.provider?.id, toUserId: selectedRequest?.provider?.userId, content })
 
     inputRef.current!.value = ""
     setNewMessage("")
