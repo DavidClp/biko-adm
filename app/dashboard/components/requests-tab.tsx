@@ -103,23 +103,44 @@ export function RequestsTab() {
     setSelectedRequest(null)
   }
 
-  // Hook de chat centralizado
+  // Hook de chat centralizado com funcionalidades completas
   const {
     messages,
     newMessage,
     setNewMessage,
+    isLoading,
+    hasMoreMessages,
+    onlineUsers,
+    typingUsers,
+    isTyping,
+    unreadCount,
     inputRef,
     messagesContainerRef,
-    send
+    send,
+    loadMoreMessages,
+    handleTyping,
+    stopTyping,
+    scrollToBottom,
+    isUserOnline,
+    getTypingUsersInRoom
   } = useChat({
     selectedRequestId: selectedRequest?.id,
     userId: user?.id,
+    userName: user?.name,
+    toUserId: selectedRequest?.client?.userId,
+    providerId: selectedRequest?.provider?.id,
     onNewMessage: (msg: Message) => {
       // Incrementar contador de mensagens não lidas para outras solicitações
       setUnreadMessages(prev => ({
         ...prev,
         [msg.request_id]: (prev[msg.request_id] || 0) + 1
       }))
+    },
+    onUserOnline: (userId: string, userName: string) => {
+      console.log(`${userName} está online`);
+    },
+    onUserOffline: (userId: string) => {
+      console.log(`Usuário ${userId} está offline`);
     }
   })
 
@@ -275,23 +296,45 @@ export function RequestsTab() {
             <>
               <CardContent ref={messagesContainerRef} className="flex-1 max-h-96 overflow-y-auto">
                 <div className="space-y-4">
+                  {/* Indicador de carregamento para mais mensagens */}
+                  {isLoading && (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  )}
+
+                  {/* Botão para carregar mais mensagens */}
+                  {hasMoreMessages && !isLoading && (
+                    <div className="flex items-center justify-center py-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={loadMoreMessages}
+                        className="text-xs"
+                      >
+                        Carregar mais mensagens
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Mensagens */}
                   {messages?.map((message) => {
-                    const isProviderMessage = message.sender_id === selectedRequest?.provider?.userId;
+                    const isOwnMessage = message.sender_id === user?.id;
 
                     return (
                       <div
                         key={message.id}
-                        className={`mb-3 flex ${isProviderMessage ? "justify-end" : "justify-start"}`}
+                        className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[85%] md:max-w-[70%] p-3 rounded-2xl shadow-sm ${isProviderMessage
+                          className={`max-w-[85%] md:max-w-[70%] p-3 rounded-2xl shadow-sm ${isOwnMessage
                             ? "bg-primary font-medium rounded-br-md"
                             : "bg-white font-medium text-gray-900 rounded-bl-md border border-gray-200"
                             }`}
                         >
                           <p className="text-sm leading-relaxed">{message.content}</p>
                           <div
-                            className={`flex items-center justify-end gap-1 mt-1 ${isProviderMessage ? "text-accent-foreground" : "text-accent-foreground"
+                            className={`flex items-center justify-end gap-1 mt-1 ${isOwnMessage ? "text-accent-foreground" : "text-accent-foreground"
                               }`}
                           >
                             <span className="text-xs">
@@ -300,12 +343,29 @@ export function RequestsTab() {
                                 minute: "2-digit",
                               })}
                             </span>
-                            {message?.viewed && isProviderMessage && <CheckCircle className="w-3 h-3" />}
+                            {message?.viewed && isOwnMessage && <CheckCircle className="w-3 h-3 text-green-500" />}
                           </div>
                         </div>
                       </div>
                     );
                   })}
+
+                  {/* Indicador de digitação */}
+                  {getTypingUsersInRoom().length > 0 && (
+                    <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-500">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                      <span>
+                        {getTypingUsersInRoom().length === 1 
+                          ? `${getTypingUsersInRoom()[0].userName} está digitando...`
+                          : `${getTypingUsersInRoom().length} pessoas estão digitando...`
+                        }
+                      </span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
 
@@ -334,8 +394,16 @@ export function RequestsTab() {
                         placeholder="Digite uma mensagem..."
                         value={newMessage}
                         ref={inputRef}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && send()}
+                        onChange={(e) => {
+                          setNewMessage(e.target.value);
+                          handleTyping();
+                        }}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            send();
+                          }
+                        }}
                         className="border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       />
                     </div>
@@ -348,6 +416,13 @@ export function RequestsTab() {
                       <Send className="w-4 h-4" color="#000" />
                     </Button>
                   </div>
+                  
+                  {/* Contador de caracteres */}
+                  {newMessage.length > 0 && (
+                    <div className="text-xs text-gray-500 mt-2 text-right">
+                      {newMessage.length}/1000
+                    </div>
+                  )}
                 </div>
               </div>
             </>

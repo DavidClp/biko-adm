@@ -5,104 +5,456 @@ import { socket } from "@/lib/socket"
 interface UseChatProps {
   selectedRequestId?: string
   userId?: string
+  userName?: string
+  toUserId?: string
+  providerId?: string
   onNewMessage?: (msg: Message) => void
+  onUserOnline?: (userId: string, userName: string) => void
+  onUserOffline?: (userId: string) => void
 }
 
-export function useChat({ selectedRequestId, userId, onNewMessage }: UseChatProps) {
+interface OnlineUser {
+  userId: string
+  userName: string
+  isOnline: boolean
+  lastSeen: Date
+  currentRoom?: string
+}
+
+interface TypingUser {
+  userId: string
+  userName: string
+  requestId: string
+}
+
+export function useChat({ 
+  selectedRequestId, 
+  userId, 
+  userName,
+  toUserId,
+  providerId,
+  onNewMessage, 
+  onUserOnline,
+  onUserOffline 
+}: UseChatProps) {
+  // Estados principais
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [hasMoreMessages, setHasMoreMessages] = useState(false)
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
+  const [isTyping, setIsTyping] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  // Refs
   const inputRef = useRef<HTMLInputElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const lastMessageIdRef = useRef<string | undefined>(undefined)
+  const isConnectedRef = useRef(false)
+  const currentRequestIdRef = useRef<string | undefined>(undefined)
+  const markAsViewedTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
-  const scrollToBottom = useCallback(() => {
+  // Scroll para o final
+  const scrollToBottom = useCallback((smooth = true) => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto'
+      })
     }
   }, [])
 
+  // Scroll para o topo (para carregar mais mensagens)
+  const scrollToTop = useCallback(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = 0
+    }
+  }, [])
+
+  // Enviar mensagem
   const send = useCallback(() => {
-    const content = inputRef.current!.value.trim()
-    if (!content || !selectedRequestId) return
+    const content = inputRef.current?.value.trim()
+    if (!content || !selectedRequestId || !userId || !toUserId || !providerId) return
 
     socket.emit("chat:send", { 
       requestId: selectedRequestId, 
-      content 
+      content,
+      toUserId,
+      providerId
     })
 
     inputRef.current!.value = ""
     setNewMessage("")
+    setIsTyping(false)
+  }, [selectedRequestId, userId, toUserId, providerId])
+
+  // Carregar mais mensagens
+  const loadMoreMessages = useCallback(() => {
+    if (!selectedRequestId || !hasMoreMessages || isLoading) return
+
+    setIsLoading(true)
+    socket.emit("chat:load_more", {
+      requestId: selectedRequestId,
+      lastMessageId: lastMessageIdRef.current
+    })
+  }, [selectedRequestId, hasMoreMessages, isLoading])
+
+  // Indicador de digitação
+  const handleTyping = useCallback(() => {
+    if (!selectedRequestId || !userName) return
+
+    setIsTyping(true)
+    socket.emit("chat:typing_start", {
+      requestId: selectedRequestId,
+      userName
+    })
+
+    // Limpar timeout anterior
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+
+    // Parar indicador após 3 segundos de inatividade
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false)
+      socket.emit("chat:typing_stop", {
+        requestId: selectedRequestId
+      })
+    }, 3000)
+  }, [selectedRequestId, userName])
+
+  // Parar indicador de digitação
+  const stopTyping = useCallback(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+    setIsTyping(false)
+    socket.emit("chat:typing_stop", {
+      requestId: selectedRequestId
+    })
   }, [selectedRequestId])
 
-  // Effect para conectar ao socket e gerenciar mensagens
+  // Marcar mensagens como visualizadas
+  const markAsViewed = useCallback((messageIds: string[]) => {
+    if (!messageIds.length || !selectedRequestId) return
+
+    console.log(`📤 Enviando ${messageIds.length} mensagens para marcar como visualizadas`)
+    socket.emit("chat:viewed", {
+      messageIds,
+      requestId: selectedRequestId
+    })
+  }, [selectedRequestId])
+
+  // Conectar ao socket (apenas uma vez)
   useEffect(() => {
-    if (!userId || !selectedRequestId) return
+    if (!userId || isConnectedRef.current) return
+
+    // Verificar se já está conectado
+    if (socket.connected) {
+      isConnectedRef.current = true
+      return
+    }
 
     socket.auth = { userId }
     socket.connect()
+    
+    // Aguardar conexão antes de emitir
+    socket.on('connect', () => {
+      socket.emit("user:online")
+      isConnectedRef.current = true
+      console.log("✅ Usuário conectado ao socket")
+    })
 
+    // NÃO desconectar aqui - manter conexão ativa
+    // A desconexão só deve acontecer quando o componente for desmontado
+  }, [userId])
+
+  // Desconectar apenas quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      if (socket.connected) {
+        socket.emit("user:offline")
+        socket.disconnect()
+      }
+      isConnectedRef.current = false
+      console.log("✅ Usuário desconectado do socket")
+    }
+  }, []) // Array vazio = apenas no unmount
+
+  // Gerenciar mudança de sala
+  useEffect(() => {
+    if (!userId) return
+
+    // Se não há sala selecionada, apenas sair da sala atual
+    if (!selectedRequestId) {
+      if (currentRequestIdRef.current) {
+        socket.emit("chat:leave", { requestId: currentRequestIdRef.current })
+        console.log(`✅ Saiu da sala: ${currentRequestIdRef.current}`)
+        currentRequestIdRef.current = undefined
+      }
+      return
+    }
+
+    // Se já está na mesma sala, não fazer nada
+    if (currentRequestIdRef.current === selectedRequestId) return
+
+    // Sair da sala anterior se existir
+    if (currentRequestIdRef.current) {
+      socket.emit("chat:leave", { requestId: currentRequestIdRef.current })
+      console.log(`✅ Saiu da sala: ${currentRequestIdRef.current}`)
+    }
+
+    // Entrar na nova sala
+    console.log(`📤 Enviando chat:join para sala: ${selectedRequestId}`)
     socket.emit("chat:join", { requestId: selectedRequestId })
+    currentRequestIdRef.current = selectedRequestId
 
-    socket.on("chat:new_message", (msg: Message) => {
+    // Limpar estados da sala anterior
+    setMessages([])
+    setTypingUsers([])
+    setUnreadCount(0)
+
+    console.log(`✅ Entrou na sala: ${selectedRequestId}`)
+  }, [selectedRequestId, userId])
+
+  // Event listeners (apenas uma vez)
+  useEffect(() => {
+    if (!userId) return
+
+    const handleNewMessage = (msg: Message) => {
       if (msg.request_id === selectedRequestId) {
-        setMessages((prev) => [...prev, msg])
+        setMessages((prev) => {
+          // Verificar se a mensagem já existe para evitar duplicatas
+          const exists = prev.some(m => m.id === msg.id)
+          if (exists) {
+            console.log("⚠️ Mensagem duplicada ignorada:", msg.id)
+            return prev
+          }
+          console.log("✅ Nova mensagem adicionada:", msg.id)
+          return [...prev, msg]
+        })
+        lastMessageIdRef.current = msg.id
+        
+        // Marcar como visualizada se for do usuário atual
+        if (msg.sender_id === userId) {
+          setUnreadCount(0)
+        } else {
+          setUnreadCount(prev => prev + 1)
+        }
       } else {
         // Notificar componente pai sobre mensagem de outra conversa
         onNewMessage?.(msg)
       }
-    })
+    }
 
-    socket.on('chat:load_messages', (data) => {
-      setMessages(data?.messages || [])
-    })
+    const handleLoadMessages = (data: { messages: Message[], hasMore: boolean }) => {
+      console.log("📥 Mensagens carregadas:", data.messages?.length || 0, "para sala:", selectedRequestId)
+      setMessages(data.messages || [])
+      setHasMoreMessages(data.hasMore || false)
+      if (data.messages?.length) {
+        lastMessageIdRef.current = data.messages[data.messages.length - 1].id
+      }
+    }
 
-    socket.on('chat:message_viewed', (message) => {
-      setMessages((prev) => 
-        prev.map(msg => msg.id === message.id ? { ...msg, viewed: true } : msg)
-      )
-    })
+    const handleMoreMessages = (data: { messages: Message[], hasMore: boolean }) => {
+      setMessages(prev => [...data.messages, ...prev])
+      setHasMoreMessages(data.hasMore || false)
+      setIsLoading(false)
+      if (data.messages?.length) {
+        lastMessageIdRef.current = data.messages[data.messages.length - 1].id
+      }
+    }
+
+    const handleMessagesViewed = (data: { messageIds: string[], requestId: string }) => {
+      if (data.requestId === selectedRequestId) {
+        console.log(`📖 Atualizando ${data.messageIds.length} mensagens como visualizadas`)
+        setMessages(prev => 
+          prev.map(msg => 
+            data.messageIds.includes(msg.id) 
+              ? { ...msg, viewed: true } 
+              : msg
+          )
+        )
+      }
+    }
+
+    const handleUserOnline = (data: { userId: string, userName: string, isOnline: boolean }) => {
+      setOnlineUsers(prev => {
+        const existing = prev.find(u => u.userId === data.userId)
+        if (existing) {
+          return prev.map(u => u.userId === data.userId ? { ...u, ...data, lastSeen: new Date() } : u)
+        }
+        return [...prev, { ...data, lastSeen: new Date() }]
+      })
+      onUserOnline?.(data.userId, data.userName)
+    }
+
+    const handleUserOffline = (data: { userId: string, isOnline: boolean }) => {
+      setOnlineUsers(prev => {
+        const existing = prev.find(u => u.userId === data.userId)
+        if (existing) {
+          return prev.map(u => u.userId === data.userId ? { ...u, ...data, lastSeen: new Date() } : u)
+        }
+        return prev
+      })
+      onUserOffline?.(data.userId)
+    }
+
+    const handleTypingStart = (data: { userId: string, userName: string, requestId: string }) => {
+      if (data.requestId === selectedRequestId && data.userId !== userId) {
+        setTypingUsers(prev => {
+          const existing = prev.find(u => u.userId === data.userId)
+          if (!existing) {
+            return [...prev, data]
+          }
+          return prev
+        })
+      }
+    }
+
+    const handleTypingStop = (data: { userId: string, requestId: string }) => {
+      if (data.requestId === selectedRequestId) {
+        setTypingUsers(prev => prev.filter(u => u.userId !== data.userId))
+      }
+    }
+
+    const handleNotification = (data: { message: Message, requestId: string, senderId: string }) => {
+      console.log("🔔 Notificação recebida:", data.message.id, "para sala:", data.requestId)
+      
+      // Se não estamos na sala da notificação, incrementar contador
+      if (data.requestId !== selectedRequestId) {
+        setUnreadCount(prev => prev + 1)
+        // Notificar componente pai sobre nova mensagem
+        onNewMessage?.(data.message)
+      }
+    }
+
+    const handleError = (error: { message: string }) => {
+      console.error("Erro no chat:", error.message)
+    }
+
+    // Registrar listeners
+    socket.on("chat:new_message", handleNewMessage)
+    socket.on("chat:notification", handleNotification)
+    socket.on("chat:load_messages", handleLoadMessages)
+    socket.on("chat:more_messages", handleMoreMessages)
+    socket.on("chat:messages_viewed", handleMessagesViewed)
+    socket.on("user:online", handleUserOnline)
+    socket.on("user:offline", handleUserOffline)
+    socket.on("chat:typing_start", handleTypingStart)
+    socket.on("chat:typing_stop", handleTypingStop)
+    socket.on("chat:error", handleError)
 
     return () => {
-      socket.off("chat:new_message")
-      socket.off("chat:load_messages")
-      socket.off("chat:message_viewed")
-      socket.disconnect()
-      setMessages([])
+      // Limpar listeners
+      socket.off("chat:new_message", handleNewMessage)
+      socket.off("chat:notification", handleNotification)
+      socket.off("chat:load_messages", handleLoadMessages)
+      socket.off("chat:more_messages", handleMoreMessages)
+      socket.off("chat:messages_viewed", handleMessagesViewed)
+      socket.off("user:online", handleUserOnline)
+      socket.off("user:offline", handleUserOffline)
+      socket.off("chat:typing_start", handleTypingStart)
+      socket.off("chat:typing_stop", handleTypingStop)
+      socket.off("chat:error", handleError)
     }
-  }, [selectedRequestId, userId, onNewMessage])
+  }, [userId, selectedRequestId, onNewMessage, onUserOnline, onUserOffline])
 
-  // Effect para marcar mensagem como visualizada
+  // Effect para marcar mensagens como visualizadas quando o usuário está no chat
   useEffect(() => {
-    if (!messages.length) return
+    if (!messages.length || !userId || !selectedRequestId) return
 
-    const lastMessage = messages[messages.length - 1]
-
-    if (lastMessage &&
-      lastMessage.sender_id !== userId &&
-      !lastMessage.viewed) {
-
-      const timeoutId = setTimeout(() => {
-        socket.emit('chat:viewed', {
-          receiverId: lastMessage.receiver_id,
-          requestId: lastMessage.request_id,
-        })
-      }, 1000)
-      
-      return () => clearTimeout(timeoutId)
+    // Limpar timeout anterior
+    if (markAsViewedTimeoutRef.current) {
+      clearTimeout(markAsViewedTimeoutRef.current)
     }
-  }, [selectedRequestId, messages, userId])
+
+    // Marcar todas as mensagens não lidas como visualizadas com debounce
+    const unreadMessages = messages.filter(
+      msg => msg.sender_id !== userId && !msg.viewed
+    )
+
+    if (unreadMessages.length > 0) {
+      markAsViewedTimeoutRef.current = setTimeout(() => {
+        console.log(`📖 [${selectedRequestId}] Marcando ${unreadMessages.length} mensagens como visualizadas`)
+        markAsViewed(unreadMessages.map(msg => msg.id))
+      }, 1000) // 1 segundo de delay para evitar muitas chamadas
+    }
+  }, [messages, userId, selectedRequestId, markAsViewed])
+
+  // Effect para marcar mensagens como visualizadas quando o usuário entra na sala
+  useEffect(() => {
+    if (!selectedRequestId || !userId) return
+
+    // Pequeno delay para garantir que as mensagens foram carregadas
+    const timeoutId = setTimeout(() => {
+      const unreadMessages = messages.filter(
+        msg => msg.sender_id !== userId && !msg.viewed
+      )
+
+      if (unreadMessages.length > 0) {
+        console.log(`📖 [${selectedRequestId}] Marcando ${unreadMessages.length} mensagens como visualizadas ao entrar na sala`)
+        markAsViewed(unreadMessages.map(msg => msg.id))
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [selectedRequestId, userId, messages, markAsViewed])
 
   // Effect para scroll automático
   useEffect(() => {
     scrollToBottom()
   }, [messages, scrollToBottom])
 
+  // Effect para limpar indicador de digitação ao enviar mensagem
+  useEffect(() => {
+    if (isTyping) {
+      stopTyping()
+    }
+  }, [newMessage, isTyping, stopTyping])
+
+  // Cleanup ao desmontar
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      if (markAsViewedTimeoutRef.current) {
+        clearTimeout(markAsViewedTimeoutRef.current)
+      }
+    }
+  }, [])
+
   return {
+    // Estados
     messages,
     newMessage,
     setNewMessage,
+    isLoading,
+    hasMoreMessages,
+    onlineUsers,
+    typingUsers,
+    isTyping,
+    unreadCount,
+    
+    // Refs
     inputRef,
     messagesContainerRef,
+    
+    // Funções
     send,
-    scrollToBottom
+    loadMoreMessages,
+    handleTyping,
+    stopTyping,
+    markAsViewed,
+    scrollToBottom,
+    scrollToTop,
+    
+    // Utilitários
+    isUserOnline: (userId: string) => onlineUsers.some(u => u.userId === userId && u.isOnline),
+    getTypingUsersInRoom: () => typingUsers,
+    getUnreadCount: () => unreadCount
   }
 }
