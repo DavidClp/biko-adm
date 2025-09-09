@@ -39,6 +39,7 @@ export function ChatSection({
   const { user } = useAuth();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
+  console.log("showEmojiPicker", showEmojiPicker);
   // Hook de chat com todas as funcionalidades
   const {
     messages,
@@ -257,27 +258,6 @@ export function ChatSection({
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 >
                   <Smile className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-8 h-8 p-0"
-                >
-                  <Paperclip className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-8 h-8 p-0"
-                >
-                  <Phone className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-8 h-8 p-0"
-                >
-                  <Video className="w-4 h-4" />
                 </Button>
               </div>
 

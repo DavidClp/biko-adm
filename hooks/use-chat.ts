@@ -55,6 +55,7 @@ export function useChat({
   const isConnectedRef = useRef(false)
   const currentRequestIdRef = useRef<string | undefined>(undefined)
   const markAsViewedTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const lastMarkedMessagesRef = useRef<Set<string>>(new Set())
 
   // Scroll para o final
   const scrollToBottom = useCallback((smooth = true) => {
@@ -140,11 +141,26 @@ export function useChat({
   const markAsViewed = useCallback((messageIds: string[]) => {
     if (!messageIds.length || !selectedRequestId) return
 
+    // Verificar se já marcamos essas mensagens recentemente
+    const alreadyMarked = messageIds.every(id => lastMarkedMessagesRef.current.has(id))
+    if (alreadyMarked) {
+      console.log("⚠️ Mensagens já marcadas recentemente, ignorando")
+      return
+    }
+
+    // Adicionar ao conjunto de mensagens marcadas
+    messageIds.forEach(id => lastMarkedMessagesRef.current.add(id))
+
     console.log(`📤 Enviando ${messageIds.length} mensagens para marcar como visualizadas`)
     socket.emit("chat:viewed", {
       messageIds,
       requestId: selectedRequestId
     })
+
+    // Limpar o conjunto após 5 segundos para permitir nova marcação se necessário
+    setTimeout(() => {
+      messageIds.forEach(id => lastMarkedMessagesRef.current.delete(id))
+    }, 5000)
   }, [selectedRequestId])
 
   // Conectar ao socket (apenas uma vez)
@@ -182,6 +198,16 @@ export function useChat({
       console.log("✅ Usuário desconectado do socket")
     }
   }, []) // Array vazio = apenas no unmount
+
+  // Emitir user:offline quando userId muda (usuário troca de conta)
+  useEffect(() => {
+    return () => {
+      if (socket.connected && userId) {
+        socket.emit("user:offline")
+        console.log("✅ Usuário offline emitido para troca de conta")
+      }
+    }
+  }, [userId])
 
   // Gerenciar mudança de sala
   useEffect(() => {
@@ -281,6 +307,7 @@ export function useChat({
     }
 
     const handleUserOnline = (data: { userId: string, userName: string, isOnline: boolean }) => {
+      console.log("👤 Usuário online:", data.userId, data.userName)
       setOnlineUsers(prev => {
         const existing = prev.find(u => u.userId === data.userId)
         if (existing) {
@@ -292,10 +319,11 @@ export function useChat({
     }
 
     const handleUserOffline = (data: { userId: string, isOnline: boolean }) => {
+      console.log("👤 Usuário offline:", data.userId)
       setOnlineUsers(prev => {
         const existing = prev.find(u => u.userId === data.userId)
         if (existing) {
-          return prev.map(u => u.userId === data.userId ? { ...u, ...data, lastSeen: new Date() } : u)
+          return prev.map(u => u.userId === data.userId ? { ...u, isOnline: false, lastSeen: new Date() } : u)
         }
         return prev
       })
@@ -380,9 +408,9 @@ export function useChat({
       markAsViewedTimeoutRef.current = setTimeout(() => {
         console.log(`📖 [${selectedRequestId}] Marcando ${unreadMessages.length} mensagens como visualizadas`)
         markAsViewed(unreadMessages.map(msg => msg.id))
-      }, 1000) // 1 segundo de delay para evitar muitas chamadas
+      }, 3000) // Aumentado para 3 segundos para evitar loops
     }
-  }, [messages, userId, selectedRequestId, markAsViewed])
+  }, [messages.length, userId, selectedRequestId, markAsViewed]) // Removido 'messages' das dependências
 
   // Effect para marcar mensagens como visualizadas quando o usuário entra na sala
   useEffect(() => {
@@ -398,10 +426,10 @@ export function useChat({
         console.log(`📖 [${selectedRequestId}] Marcando ${unreadMessages.length} mensagens como visualizadas ao entrar na sala`)
         markAsViewed(unreadMessages.map(msg => msg.id))
       }
-    }, 500)
+    }, 2000) // Aumentado para 2 segundos
 
     return () => clearTimeout(timeoutId)
-  }, [selectedRequestId, userId, messages, markAsViewed])
+  }, [selectedRequestId, userId, markAsViewed]) // Removido 'messages.length' das dependências
 
   // Effect para scroll automático
   useEffect(() => {
