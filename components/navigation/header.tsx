@@ -16,7 +16,8 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { User, Settings, LogOut, Shield, Search, Home, Menu, X, MessageCircle } from "lucide-react"
 import { UserRole } from "@/lib/types"
-import { WorkerIcon } from "@/lib/icons/worker"
+import Image from "next/image"
+import logo from './logo.png'
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -49,8 +50,8 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm"><WorkerIcon /></span>
+            <div className="h-8 w-8  rounded-lg flex items-center justify-center">
+             <Image src={logo} alt="Biko" style={{  }} />
             </div>
             <span className="text-xl font-bold text-primary">Biko</span>
             {user?.role === UserRole.ADMIN && (
