@@ -11,6 +11,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  MessageCircle,
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { IRequestService, UserRole } from "@/lib/types"
@@ -55,6 +56,7 @@ export default function MyRequestsPage() {
   const { user } = useAuth()
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
   const [showChat, setShowChat] = useState(false)
+  const [unreadMessages, setUnreadMessages] = useState<Record<string, number>>({})
   const searchParams = useSearchParams()
   const providerId = searchParams.get('providerId')
 
@@ -63,6 +65,12 @@ export default function MyRequestsPage() {
   const { data: requestsList, isLoading: isLoadingRequests, refetch: refetchRequests } = getRequestsByClient;
 
   const handleSelectRequest = (request: IRequestService) => {
+    // Limpar mensagens não lidas da solicitação selecionada
+    setUnreadMessages(prev => ({
+      ...prev,
+      [request.id]: 0
+    }))
+
     setSelectedRequest(request)
     setShowChat(true)
   }
@@ -129,46 +137,71 @@ export default function MyRequestsPage() {
         >
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">Conversas ({requestsList?.length})</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold text-gray-900">Conversas ({requestsList?.length})</h2>
+                {Object.values(unreadMessages).reduce((total, count) => total + count, 0) > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {Object.values(unreadMessages).reduce((total, count) => total + count, 0)}
+                  </Badge>
+                )}
+              </div>
               {/*  <MoreVertical className="w-5 h-5 text-gray-500" /> */}
             </div>
           </div>
 
           <ScrollArea className="flex-1">
-            {requestsList?.map((request) => (
-              <div
-                key={request.id}
-                className={`p-4 rounded-2xl border-b border-gray-100 cursor-pointer hover:bg-primary/15 transition-colors active:bg-gray-100 ${selectedRequest?.id === request.id ? "bg-primary/15" : ""}`}
-                onClick={() => handleSelectRequest(request)}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={request?.provider?.avatar} />
-                      <AvatarFallback className="bg-green-100 text-green-700">
-                        {request?.provider?.name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    {/*    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div> */}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-gray-900 truncate">{request?.provider?.name}</h3>
-                      <div className="flex items-center gap-2 ml-2">
-                        {getStatusBadge(request?.status)}
-                        {request.status === "APPROVED" && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
-                      </div>
+            {requestsList?.map((request) => {
+              const unreadCount = unreadMessages[request.id] || 0
+              const isUnreadRequest = unreadCount > 0
+
+              return (
+                <div
+                  key={request.id}
+                  className={`p-4 rounded-2xl border-b border-gray-100 cursor-pointer hover:bg-primary/15 transition-colors active:bg-gray-100 ${selectedRequest?.id === request.id ? "bg-primary/15" : ""} ${isUnreadRequest ? "ring-yellow-500 border-yellow-200 bg-yellow-50/50" : ""}`}
+                  onClick={() => handleSelectRequest(request)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="relative">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={request?.provider?.avatar} />
+                        <AvatarFallback className="bg-green-100 text-green-700">
+                          {request?.provider?.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {/*    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div> */}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-gray-500 mt-1">{request?.service_type}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(request.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                      </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-gray-900 truncate">{request?.provider?.name}</h3>
+                          {unreadCount > 0 && (
+                            <div className="relative">
+                              <MessageCircle className="h-5 w-5 text-primary" />
+                              <Badge
+                                variant="destructive"
+                                className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
+                              >
+                                {unreadCount > 9 ? "9+" : unreadCount}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 ml-2">
+                          {getStatusBadge(request?.status)}
+                          {request.status === "APPROVED" && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-500 mt-1">{request?.service_type}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(request.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </ScrollArea>
         </div>
 
@@ -177,6 +210,13 @@ export default function MyRequestsPage() {
           showChat={showChat}
           onBackToRequests={handleBackToRequests}
           getStatusBadge={getStatusBadge}
+          onNewMessage={(msg) => {
+            // Incrementar contador de mensagens não lidas para outras solicitações
+            setUnreadMessages(prev => ({
+              ...prev,
+              [msg.request_id]: (prev[msg.request_id] || 0) + 1
+            }))
+          }}
         />
       </div>
     </div>

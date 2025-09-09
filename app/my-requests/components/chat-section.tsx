@@ -29,6 +29,7 @@ interface ChatSectionProps {
   showChat: boolean;
   onBackToRequests: () => void;
   getStatusBadge: (status: string) => React.ReactNode;
+  onNewMessage?: (msg: Message) => void;
 }
 
 export function ChatSection({
@@ -36,6 +37,7 @@ export function ChatSection({
   showChat,
   onBackToRequests,
   getStatusBadge,
+  onNewMessage,
 }: ChatSectionProps) {
   const { user } = useAuth();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -70,6 +72,7 @@ export function ChatSection({
     onNewMessage: (msg: Message) => {
       // Notificar sobre nova mensagem de outra conversa
       console.log("Nova mensagem recebida:", msg);
+      onNewMessage?.(msg);
     },
     onUserOnline: (userId: string, userName: string) => {
       console.log(`${userName} está online`);

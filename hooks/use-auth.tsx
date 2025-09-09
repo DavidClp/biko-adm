@@ -197,16 +197,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    if (!user?.id || !user?.provider?.id) return
+    if (!user?.id) return
 
     socket.auth = { userId: user?.id }
     socket.connect()
 
-    // INSCREVER NO SOCKET - FICAR ONLINE
-    socket.emit("request:subscribe-provider", { providerId: user.provider.id })
+    socket.on('connect', () => {
+      socket.emit("user:online")
+      
+      if (user?.provider?.id) {
+        socket.emit("request:subscribe-provider", { providerId: user.provider.id })
+      }
+
+      if (user?.client?.id) {
+        socket.emit("request:subscribe-client", { clientId: user.client.id })
+      }
+    })
 
     return () => {
-      socket.emit("request:unsubscribe-provider", { providerId: user?.provider?.id })
+      if (socket.connected) {
+        socket.emit("user:offline")
+        if (user?.provider?.id) {
+          socket.emit("request:unsubscribe-provider", { providerId: user?.provider?.id })
+        }
+        socket.disconnect()
+      }
+      console.log("✅ Usuário desconectado do socket")
     }
   }, [user?.id, user?.provider?.id])
 

@@ -177,11 +177,9 @@ export function useChat({
     socket.auth = { userId }
     socket.connect()
     
-    // Aguardar conexão antes de emitir
+    // Aguardar conexão
     socket.on('connect', () => {
-      socket.emit("user:online")
       isConnectedRef.current = true
-      console.log("✅ Usuário conectado ao socket")
     })
 
     // NÃO desconectar aqui - manter conexão ativa
@@ -191,24 +189,12 @@ export function useChat({
   // Desconectar apenas quando o componente for desmontado
   useEffect(() => {
     return () => {
-      if (socket.connected) {
-        socket.emit("user:offline")
-        socket.disconnect()
-      }
+      // Não desconectar aqui - o use-auth gerencia a conexão principal
+      // Apenas limpar a referência local
       isConnectedRef.current = false
-      console.log("✅ Usuário desconectado do socket")
+      console.log("✅ Chat hook desmontado (conexão gerenciada pelo use-auth)")
     }
   }, []) // Array vazio = apenas no unmount
-
-  // Emitir user:offline quando userId muda (usuário troca de conta)
-  useEffect(() => {
-    return () => {
-      if (socket.connected && userId) {
-        socket.emit("user:offline")
-        console.log("✅ Usuário offline emitido para troca de conta")
-      }
-    }
-  }, [userId])
 
   // Gerenciar mudança de sala
   useEffect(() => {
