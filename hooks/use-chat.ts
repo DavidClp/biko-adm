@@ -77,6 +77,7 @@ export function useChat({
   // Enviar mensagem
   const send = useCallback(() => {
     const content = inputRef.current?.value.trim()
+    console.log("send", content, selectedRequestId, userId, toUserId, providerId)
     if (!content || !selectedRequestId || !userId || !toUserId || !providerId) return
 
     socket.emit("chat:send", { 

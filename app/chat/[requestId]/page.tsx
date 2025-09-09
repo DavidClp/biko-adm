@@ -12,6 +12,7 @@ import {
   CheckCircle,
   Clock,
   Star,
+  Smile,
 } from "lucide-react"
 import { useRequestService } from "@/hooks/use-requests-services"
 import { useAuth } from "@/hooks/use-auth"
@@ -22,6 +23,7 @@ import { formatCurrency, formatDateWithTime } from "@/lib/utils"
 import { Header } from "@/components/navigation/header"
 import { ChatHeader } from "@/app/my-requests/components/chat-header"
 import { getStatusBadge } from "@/app/my-requests/page"
+import { EmojiPicker } from "@/components/emoji-picker"
 
 export default function ChatPage() {
   const router = useRouter()
@@ -34,6 +36,8 @@ export default function ChatPage() {
   const { getRequestsByProvider } = useRequestService({ providerId: user?.provider?.id })
   const { data: requestsList } = getRequestsByProvider
 
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
   // Hook de chat centralizado
   const {
     messages,
@@ -44,7 +48,10 @@ export default function ChatPage() {
     send
   } = useChat({
     selectedRequestId: selectedRequest?.id,
-    userId: user?.id
+    userId: user?.id,
+    userName: user?.name,
+    toUserId: selectedRequest?.client?.userId,
+    providerId: selectedRequest?.provider?.id,
   })
 
   useEffect(() => {
@@ -88,18 +95,18 @@ export default function ChatPage() {
     <div className="h-screen flex flex-col bg-white">
       <Header />
 
-        <ChatHeader
+      <ChatHeader
+        selectedRequest={selectedRequest}
+        onBackToRequests={() => router.push('/dashboard')}
+        getStatusBadge={getStatusBadge}
+        type="chat-client"
+      />
+      <div className="p-3 bg-gray-50 border-b border-gray-200">
+        <RequestDetailsModal
           selectedRequest={selectedRequest}
-          onBackToRequests={() => router.push('/dashboard')}
           getStatusBadge={getStatusBadge}
-          type="chat-client"
         />
-        <div className="p-3 bg-gray-50 border-b border-gray-200">
-          <RequestDetailsModal
-            selectedRequest={selectedRequest}
-            getStatusBadge={getStatusBadge}
-          />
-        </div>
+      </div>
 
       <CardContent
         ref={messagesContainerRef}
@@ -120,8 +127,8 @@ export default function ChatPage() {
               >
                 <div
                   className={`max-w-[85%] p-3 rounded-2xl shadow-sm ${isProviderMessage
-                      ? "bg-primary font-medium rounded-br-md"
-                      : "bg-white font-medium text-gray-900 rounded-bl-md border border-gray-200"
+                    ? "bg-primary font-medium rounded-br-md"
+                    : "bg-white font-medium text-gray-900 rounded-bl-md border border-gray-200"
                     }`}
                 >
                   <p className="text-sm leading-relaxed">{message.content}</p>
@@ -146,6 +153,17 @@ export default function ChatPage() {
 
       <div className="p-4 bg-white border-t border-primary">
         <div className="flex items-center gap-2 justify-center">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-8 h-8 p-0"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            >
+              <Smile className="w-4 h-4" />
+            </Button>
+          </div>
+
           <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
             <Input
               placeholder="Digite uma mensagem..."
@@ -165,6 +183,18 @@ export default function ChatPage() {
             <Send className="w-4 h-4" color="#000" />
           </Button>
         </div>
+
+        {showEmojiPicker && (
+          <div className={`absolute bottom-23 md:bottom-16 left-4 z-50 w-full md:w-auto`}>
+            <EmojiPicker
+              isOpen={showEmojiPicker}
+              onEmojiSelect={(emoji) => {
+                setNewMessage(prev => prev + emoji);
+              }}
+              onClose={() => setShowEmojiPicker(false)}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
