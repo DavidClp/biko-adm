@@ -35,9 +35,9 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onClose }: EmojiPickerProps
   if (!isOpen) return null;
 
   return (
-    <div className="absolute bottom-full left-0 mb-2 w-80 h-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+    <div className="absolute bottom-full left-0 mb-2 w-80 h-[260px] bg-white border border-gray-200 rounded-lg shadow-lg z-50">
       <div className="p-3 border-b border-gray-200">
-        <div className="flex items-center gap-2 mb-2">
+      {/*   <div className="flex items-center gap-2 mb-2">
           <Search className="w-4 h-4 text-gray-500" />
           <Input
             placeholder="Buscar emoji..."
@@ -45,8 +45,8 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onClose }: EmojiPickerProps
             onChange={(e) => setSearchTerm(e.target.value)}
             className="h-8 text-sm"
           />
-        </div>
-        <div className="flex gap-1">
+        </div> */}
+        <div className="flex gap-1 overflow-x-auto pb-1">
           {Object.keys(EMOJI_CATEGORIES).map((category) => (
             <Button
               key={category}
@@ -60,7 +60,7 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onClose }: EmojiPickerProps
           ))}
         </div>
       </div>
-      <div className="p-3 h-48 overflow-y-auto">
+      <div className="p-3 h-[188px] overflow-y-auto">
         <div className="grid grid-cols-8 gap-1">
           {filteredEmojis.map((emoji, index) => (
             <Button

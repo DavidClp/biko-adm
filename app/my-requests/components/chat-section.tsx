@@ -22,6 +22,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useChat } from "@/hooks/use-chat";
 import { RequestDetailsModal } from "./request-details-modal";
 import { ChatHeader } from "./chat-header";
+import { EmojiPicker } from "@/components/emoji-picker";
 
 interface ChatSectionProps {
   selectedRequest: IRequestService | null;
@@ -39,7 +40,6 @@ export function ChatSection({
   const { user } = useAuth();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  console.log("showEmojiPicker", showEmojiPicker);
   // Hook de chat com todas as funcionalidades
   const {
     messages,
@@ -246,10 +246,8 @@ export function ChatSection({
             </div>
           </div>
 
-          {/* Área de input com funcionalidades modernas */}
           <div className="p-4 bg-white border-t border-primary">
             <div className="flex items-center gap-2">
-              {/* Botões de ação */}
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
@@ -261,7 +259,6 @@ export function ChatSection({
                 </Button>
               </div>
 
-              {/* Input de mensagem */}
               <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
                 <Input
                   placeholder="Digite uma mensagem..."
@@ -273,7 +270,6 @@ export function ChatSection({
                 />
               </div>
 
-              {/* Botão de enviar */}
               <Button
                 onClick={handleSend}
                 size="sm"
@@ -282,21 +278,17 @@ export function ChatSection({
               >
                 <Send className="w-4 h-4" color="#000" />
               </Button>
-
-              {/* Menu de opções */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-8 h-8 p-0"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
             </div>
 
-            {/* Contador de caracteres */}
-            {newMessage.length > 0 && (
-              <div className="text-xs text-gray-500 mt-2 text-right">
-                {newMessage.length}/1000
+            {showEmojiPicker && (
+              <div className={`absolute bottom-23 md:bottom-16 left-4 z-50 w-full md:w-auto`}>
+                <EmojiPicker
+                  isOpen={showEmojiPicker}
+                  onEmojiSelect={(emoji) => {
+                    setNewMessage(prev => prev + emoji);
+                  }}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
               </div>
             )}
           </div>

@@ -15,6 +15,7 @@ import {
   Send,
   ArrowLeft,
   Users,
+  Smile,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -28,6 +29,7 @@ import { RequestDetailsModal } from "@/app/my-requests/components/request-detail
 import { formatCurrency, formatDate, formatDateWithTime } from "@/lib/utils"
 import { useQueryClient } from "@tanstack/react-query"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { EmojiPicker } from "@/components/emoji-picker"
 
 export function RequestsTab() {
   // Messaging state for internal chat system
@@ -44,6 +46,8 @@ export function RequestsTab() {
 
   const { getRequestsByProvider } = useRequestService({ providerId: user?.provider?.id })
   const { data: requestsList, isLoading: isLoadingRequests } = getRequestsByProvider;
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -359,7 +363,7 @@ export function RequestsTab() {
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                       <span>
-                        {getTypingUsersInRoom().length === 1 
+                        {getTypingUsersInRoom().length === 1
                           ? `${getTypingUsersInRoom()[0].userName} está digitando...`
                           : `${getTypingUsersInRoom().length} pessoas estão digitando...`
                         }
@@ -389,6 +393,17 @@ export function RequestsTab() {
  */}
                 <div className="p-4 bg-white border-t border-primary">
                   <div className="flex items-center gap-2 justify-center">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      >
+                        <Smile className="w-4 h-4" />
+                      </Button>
+                    </div>
+
                     <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
                       <Input
                         placeholder="Digite uma mensagem..."
@@ -407,6 +422,7 @@ export function RequestsTab() {
                         className="border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       />
                     </div>
+                 
                     <Button
                       onClick={send}
                       size="sm"
@@ -416,13 +432,19 @@ export function RequestsTab() {
                       <Send className="w-4 h-4" color="#000" />
                     </Button>
                   </div>
-                  
-                  {/* Contador de caracteres */}
-                  {newMessage.length > 0 && (
-                    <div className="text-xs text-gray-500 mt-2 text-right">
-                      {newMessage.length}/1000
+
+                  {showEmojiPicker && (
+                    <div className={`absolute bottom-23 md:bottom-16 left-4 z-50 w-full md:w-auto`}>
+                      <EmojiPicker
+                        isOpen={showEmojiPicker}
+                        onEmojiSelect={(emoji) => {
+                          setNewMessage(prev => prev + emoji);
+                        }}
+                        onClose={() => setShowEmojiPicker(false)}
+                      />
                     </div>
                   )}
+
                 </div>
               </div>
             </>
