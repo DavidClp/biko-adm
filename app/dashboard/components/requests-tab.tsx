@@ -45,7 +45,7 @@ export function RequestsTab() {
   const queryClient = useQueryClient()
 
   const { getRequestsByProvider } = useRequestService({ providerId: user?.provider?.id })
-  const { data: requestsList, isLoading: isLoadingRequests } = getRequestsByProvider;
+  const { data: requestsList, refetch: refetchRequests } = getRequestsByProvider;
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -84,13 +84,17 @@ export function RequestsTab() {
   }
 
   const handleSelectRequest = (request: IRequestService) => {
-    // Limpar mensagens não lidas da solicitação selecionada
+    // Zerar contador de mensagens não lidas para esta solicitação
     setUnreadMessages(prev => ({
       ...prev,
       [request.id]: 0
     }))
 
+    // Remover da lista de novas solicitações
     setNewRequests(prev => prev.filter(req => req.id !== request.id))
+
+    // Refetch para atualizar dados do servidor
+    refetchRequests()
 
     if (isMobile) {
       // No mobile, redirecionar para página de chat dedicada
@@ -134,11 +138,9 @@ export function RequestsTab() {
     toUserId: selectedRequest?.client?.userId,
     providerId: selectedRequest?.provider?.id,
     onNewMessage: (msg: Message) => {
-      // Incrementar contador de mensagens não lidas para outras solicitações
-      setUnreadMessages(prev => ({
-        ...prev,
-        [msg.request_id]: (prev[msg.request_id] || 0) + 1
-      }))
+      // Este callback é chamado apenas para mensagens de outras conversas
+      // O contador já é incrementado pelo evento chat:notification
+      console.log("📨 Nova mensagem de outra conversa:", msg.id, "para solicitação:", msg.request_id)
     },
     onUserOnline: (userId: string, userName: string) => {
       console.log(`${userName} está online`);
@@ -151,9 +153,6 @@ export function RequestsTab() {
   useEffect(() => {
     if (!user?.id || !user?.provider?.id) return
 
-    socket.auth = { userId: user?.id }
-    socket.connect()
-
     // Evento para nova solicitação
     socket.on("request:new", (newRequest: IRequestService) => {
       if (newRequest?.providerId === user?.provider?.id) {
@@ -165,20 +164,47 @@ export function RequestsTab() {
       }
     })
 
+    // Evento para notificação de nova mensagem
+    socket.on("chat:notification", (data: { message: Message, requestId: string, senderId: string }) => {
+      console.log("🔔 Notificação de mensagem recebida:", data.message.id, "para solicitação:", data.requestId)
+      
+      // Incrementar contador de mensagens não lidas
+      setUnreadMessages(prev => ({
+        ...prev,
+        [data.requestId]: (prev[data.requestId] || 0) + 1
+      }))
+
+      // Invalidar query para atualizar dados
+      queryClient.invalidateQueries({ queryKey: ['requestsByProvider', user?.provider?.id] })
+    })
+
     return () => {
       socket.off("request:new")
-      socket.disconnect()
+      socket.off("chat:notification")
     }
   }, [user?.id, user?.provider?.id, queryClient])
 
   useEffect(() => {
-    const unreadMessagesMap = requestsList?.reduce((acc, request) => {
+    if (!requestsList) return
+
+    const unreadMessagesMap = requestsList.reduce((acc, request) => {
       if (request?.id && request?.unreadMessages !== undefined) {
         acc[request.id] = request.unreadMessages
       }
       return acc
-    }, {} as Record<string, number>) || {}
-    setUnreadMessages(unreadMessagesMap)
+    }, {} as Record<string, number>)
+    
+    setUnreadMessages(prev => {
+      // Manter contadores locais que podem ter sido incrementados por notificações
+      const merged = { ...prev }
+      Object.keys(unreadMessagesMap).forEach(requestId => {
+        // Só atualizar se o valor do servidor for maior que o local
+        if (unreadMessagesMap[requestId] > (merged[requestId] || 0)) {
+          merged[requestId] = unreadMessagesMap[requestId]
+        }
+      })
+      return merged
+    })
   }, [requestsList])
 
   return (

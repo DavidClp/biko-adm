@@ -164,37 +164,21 @@ export function useChat({
     }, 5000)
   }, [selectedRequestId])
 
-  // Conectar ao socket (apenas uma vez)
+  // Não conectar aqui - o use-auth gerencia a conexão principal
+  // Apenas verificar se está conectado
   useEffect(() => {
-    if (!userId || isConnectedRef.current) return
-
-    // Verificar se já está conectado
-    if (socket.connected) {
+    if (userId && socket.connected) {
       isConnectedRef.current = true
-      return
     }
-
-    socket.auth = { userId }
-    socket.connect()
-    
-    // Aguardar conexão
-    socket.on('connect', () => {
-      isConnectedRef.current = true
-    })
-
-    // NÃO desconectar aqui - manter conexão ativa
-    // A desconexão só deve acontecer quando o componente for desmontado
   }, [userId])
 
-  // Desconectar apenas quando o componente for desmontado
+  // Cleanup ao desmontar
   useEffect(() => {
     return () => {
-      // Não desconectar aqui - o use-auth gerencia a conexão principal
-      // Apenas limpar a referência local
       isConnectedRef.current = false
       console.log("✅ Chat hook desmontado (conexão gerenciada pelo use-auth)")
     }
-  }, []) // Array vazio = apenas no unmount
+  }, [])
 
   // Gerenciar mudança de sala
   useEffect(() => {
