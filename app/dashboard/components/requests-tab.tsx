@@ -93,9 +93,6 @@ export function RequestsTab() {
     // Remover da lista de novas solicitações
     setNewRequests(prev => prev.filter(req => req.id !== request.id))
 
-    // Refetch para atualizar dados do servidor
-    refetchRequests()
-
     if (isMobile) {
       // No mobile, redirecionar para página de chat dedicada
       router.push(`/chat/${request.id}`)
@@ -109,7 +106,33 @@ export function RequestsTab() {
   const handleBackToRequests = () => {
     setShowChat(false)
     setSelectedRequest(null)
+    
+    // Forçar refetch para sincronizar com o servidor
+    refetchRequests()
   }
+
+  // Efeito para zerar contador quando entrar no chat
+  useEffect(() => {
+    if (showChat && selectedRequest?.id) {
+      // Zerar contador imediatamente quando entrar no chat
+      setUnreadMessages(prev => ({
+        ...prev,
+        [selectedRequest.id]: 0
+      }))
+    }
+  }, [showChat, selectedRequest?.id])
+
+  // Efeito para sincronizar contador quando sair do chat
+  useEffect(() => {
+    if (!showChat && selectedRequest?.id) {
+      // Aguardar um pouco para garantir que as mensagens foram marcadas como visualizadas
+      const timeoutId = setTimeout(() => {
+        refetchRequests()
+      }, 1000)
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [showChat, selectedRequest?.id, refetchRequests])
 
   // Hook de chat centralizado com funcionalidades completas
   const {
@@ -195,14 +218,26 @@ export function RequestsTab() {
     }, {} as Record<string, number>)
     
     setUnreadMessages(prev => {
-      // Manter contadores locais que podem ter sido incrementados por notificações
       const merged = { ...prev }
+      
       Object.keys(unreadMessagesMap).forEach(requestId => {
-        // Só atualizar se o valor do servidor for maior que o local
-        if (unreadMessagesMap[requestId] > (merged[requestId] || 0)) {
-          merged[requestId] = unreadMessagesMap[requestId]
+        const serverCount = unreadMessagesMap[requestId]
+        const localCount = merged[requestId] || 0
+        
+        // Se o contador local for 0 (mensagens visualizadas), manter 0
+        if (localCount === 0) {
+          merged[requestId] = 0
+        }
+        // Se o servidor tiver um valor maior (nova mensagem), usar o valor do servidor
+        else if (serverCount > localCount) {
+          merged[requestId] = serverCount
+        }
+        // Caso contrário, manter o valor local
+        else {
+          merged[requestId] = localCount
         }
       })
+      
       return merged
     })
   }, [requestsList])
