@@ -144,19 +144,6 @@ export function ChatSection({
     );
   };
 
-  // Função para renderizar status online/offline
-  const renderOnlineStatus = () => {
-    if (!selectedRequest?.provider?.userId) return null;
-    
-    const isOnline = isUserOnline(selectedRequest.provider.userId);
-    return (
-      <div className="flex items-center gap-2 text-xs text-gray-500">
-        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-        <span>{isOnline ? 'Online' : 'Offline'}</span>
-      </div>
-    );
-  };
-
   return (
     <div className={`${!showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-2/3 h-full bg-white`}>
       {selectedRequest ? (
@@ -166,6 +153,7 @@ export function ChatSection({
             onBackToRequests={onBackToRequests}
             getStatusBadge={getStatusBadge}
             type="chat-provider"
+            isUserOnline={isUserOnline}
           />
 
           <div className="p-3 bg-gray-50 border-b border-gray-200">
@@ -173,7 +161,6 @@ export function ChatSection({
               selectedRequest={selectedRequest}
               getStatusBadge={getStatusBadge}
             />
-            {renderOnlineStatus()}
           </div>
 
           <div
@@ -217,7 +204,7 @@ export function ChatSection({
                     className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[85%] md:max-w-[70%] p-3 rounded-2xl shadow-sm ${
+                      className={`max-w-[85%] md:max-w-[70%] p-3 rounded-3xl shadow-sm break-words  ${
                         isOwnMessage
                           ? "bg-primary font-medium rounded-br-md"
                           : "bg-white font-medium text-gray-900 rounded-bl-md border border-gray-200"

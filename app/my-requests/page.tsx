@@ -16,41 +16,8 @@ import {
 import { useRouter, useSearchParams } from "next/navigation"
 import { IRequestService, UserRole } from "@/lib/types"
 import { useRequestService } from "@/hooks/use-requests-services"
+import { getStatusBadge } from "@/components/getStatusRequestBadge"
 
-export const getStatusBadge = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case "pending":
-      return (
-        <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-          <Clock className="w-3 h-3 mr-1" />
-          Pendente
-        </Badge>
-      )
-    case "accepted":
-      return (
-        <Badge variant="outline" className="text-green-600 border-green-600">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          Aceito
-        </Badge>
-      )
-    case "rejected":
-      return (
-        <Badge variant="outline" className="text-red-600 border-red-600">
-          <XCircle className="w-3 h-3 mr-1" />
-          Rejeitado
-        </Badge>
-      )
-    case "completed":
-      return (
-        <Badge variant="outline" className="text-blue-600 border-blue-600">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          Concluído
-        </Badge>
-      )
-    default:
-      return <Badge variant="outline">Desconhecido</Badge>
-  }
-}
 
 export default function MyRequestsPage() {
   const { user } = useAuth()
@@ -65,7 +32,6 @@ export default function MyRequestsPage() {
   const { data: requestsList, isLoading: isLoadingRequests, refetch: refetchRequests } = getRequestsByClient;
 
   const handleSelectRequest = (request: IRequestService) => {
-    // Limpar mensagens não lidas da solicitação selecionada
     setUnreadMessages(prev => ({
       ...prev,
       [request.id]: 0
@@ -80,7 +46,6 @@ export default function MyRequestsPage() {
     setSelectedRequest(null)
   }
 
-  // Efeito para abrir automaticamente a última conversa do provider quando providerId estiver presente na URL
   useEffect(() => {
     if (providerId) {
       // Forçar refetch dos dados para garantir que temos a versão mais atualizada
@@ -121,7 +86,7 @@ export default function MyRequestsPage() {
   }
 
   return (
-    <div className="h-[100vh]">
+    <div className="">
       <Header />
 
       {/*   <div className="hidden md:block container mx-auto px-4 py-6">
@@ -131,7 +96,7 @@ export default function MyRequestsPage() {
         </div>
       </div> */}
 
-      <div className="flex h-[calc(100vh-64px)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4 md:border md:border-primary/20  rounded-md">
+      <div className="flex h-[calc(80vh)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4 md:border md:border-primary/20  rounded-md overflow-y-hidden">
         <div
           className={`${showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-1/3 bg-white border-r border-gray-200`}
         >
