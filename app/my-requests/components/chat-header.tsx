@@ -11,6 +11,7 @@ interface ChatHeaderProps {
   onBackToRequests: () => void;
   type: "chat-client" | "chat-provider";
   isUserOnline: (userId: string) => boolean;
+  onSendProposal?: () => void;
 }
 
 export function ChatHeader({
@@ -18,6 +19,7 @@ export function ChatHeader({
   onBackToRequests,
   type,
   isUserOnline,
+  onSendProposal,
 }: ChatHeaderProps) {
   if (!selectedRequest) return null;
 
@@ -51,17 +53,16 @@ export function ChatHeader({
         <h3 className="font-semibold text-gray-900">{type === "chat-client" ? selectedRequest?.client?.name : selectedRequest?.provider?.name}</h3>
         <p className="text-sm text-gray-600">{selectedRequest?.service_type}</p>
       </div>
-      {/*  <div className="md:hidden flex-1">
+      <div className="md:hidden flex-1">
         <h3 className="font-semibold break-words text-nowrap text-sm text-gray-900">{type === "chat-client" ? selectedRequest?.client?.name : selectedRequest?.provider?.name}</h3>
-            {renderOnlineStatus()}
+        {/*   {renderOnlineStatus()} */}
       </div>
- */}
-      <div className="md:hidden flex-1 items-center justify-end flex">
-        {getStatusBadge(selectedRequest?.status)}
-      </div>
-      <div className="hidden md:flex items-end">
-        {getStatusBadge(selectedRequest?.status)}
-      </div>
+
+     {type === "chat-client" && (
+      <Button variant="secondary" size="sm" onClick={onSendProposal}>
+        Enviar Proposta
+      </Button>
+     )}
       {/* <MoreVertical className="w-5 h-5 text-gray-500" /> */}
     </div>
   );

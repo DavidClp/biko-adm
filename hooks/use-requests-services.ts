@@ -21,6 +21,12 @@ interface ContactRequestResponse {
   success: boolean
 }
 
+interface BudgetRequestData {
+  requestId: string
+  budget: number
+  observation?: string
+}
+
 export function useRequestService({ clientId, providerId }: { clientId?: string, providerId?: string } = {}) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -38,7 +44,6 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
       } catch (error: any) {
         console.error('Erro ao enviar solicitação de contato:', error)
 
-        // Extrair mensagem de erro mais específica
         const errorMessage = error?.response?.data?.message ||
           error?.response?.data?.error ||
           error?.message ||
@@ -48,7 +53,6 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
       }
     },
     onSuccess: (data) => {
-      // Invalidar queries relacionadas se necessário
       queryClient.invalidateQueries({ queryKey: ['providers'] })
 
       toast({
@@ -90,6 +94,30 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
     },
   })
 
+  const sendBudgetRequestMutation = useMutation({
+    mutationFn: async (data: BudgetRequestData): Promise<void> => {
+      try {
+        await api.post<void>('/requests/send-budget', data)
+      } catch (error: any) {
+        console.error('Erro ao enviar solicitação de contato:', error)
+
+        const errorMessage = error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          'Erro ao enviar orçamento para a solicitação. Tente novamente.'
+
+        throw new Error(errorMessage)
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao enviar orçamento para a solicitação",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      })
+    },
+  })
+
   return {
     sendContactRequest: contactRequestMutation.mutate,
     isSending: contactRequestMutation.isPending,
@@ -99,5 +127,6 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
     reset: contactRequestMutation.reset,
     getRequestsByClient,
     getRequestsByProvider,
+    sendBudgetRequestMutation,
   }
 }

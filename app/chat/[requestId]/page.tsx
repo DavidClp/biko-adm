@@ -19,12 +19,11 @@ import { useAuth } from "@/hooks/use-auth"
 import { useChat } from "@/hooks/use-chat"
 import { IRequestService, Message } from "@/lib/types"
 import { RequestDetailsModal } from "@/app/my-requests/components/request-details-modal"
-import { formatCurrency, formatDateWithTime } from "@/lib/utils"
 import { Header } from "@/components/navigation/header"
 import { ChatHeader } from "@/app/my-requests/components/chat-header"
-import { getStatusBadge } from "@/app/my-requests/page"
 import { EmojiPicker } from "@/components/emoji-picker"
 import { Textarea } from "@/components/ui/textarea"
+import { MessageComponent } from "@/app/my-requests/components/message-component"
 
 export default function ChatPage() {
   const router = useRouter()
@@ -38,6 +37,7 @@ export default function ChatPage() {
   const { data: requestsList } = getRequestsByProvider
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showSendProposal, setShowSendProposal] = useState(false);
 
   // Hook de chat centralizado
   const {
@@ -107,8 +107,9 @@ export default function ChatPage() {
         onBackToRequests={() => router.push('/dashboard')}
         type="chat-client"
         isUserOnline={() => false}
+        onSendProposal={() => setShowSendProposal(true)}
       />
-      <div className="p-3 bg-gray-50 border-b border-gray-200">
+      <div className="p-3 bg-gray-50 border-b border-gray-200 ">
         <RequestDetailsModal
           selectedRequest={selectedRequest}
         />
@@ -124,35 +125,9 @@ export default function ChatPage() {
       >
         <div className="space-y-4">
           {messages?.map((message) => {
-            const isProviderMessage = message.sender_id === selectedRequest?.provider?.userId
+            const isOwnMessage = message.sender_id === selectedRequest?.provider?.userId
 
-            return (
-              <div
-                key={message.id}
-                className={`mb-3 flex ${isProviderMessage ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[85%] p-3 rounded-2xl shadow-sm ${isProviderMessage
-                    ? "bg-primary font-medium rounded-br-md"
-                    : "bg-white font-medium text-gray-900 rounded-bl-md border border-gray-200"
-                    }`}
-                >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                  <div
-                    className={`flex items-center justify-end gap-1 mt-1 ${isProviderMessage ? "text-accent-foreground" : "text-accent-foreground"
-                      }`}
-                  >
-                    <span className="text-xs">
-                      {new Date(message?.createdAt).toLocaleTimeString("pt-BR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                    {message?.viewed && isProviderMessage && <CheckCircle className="w-3 h-3" />}
-                  </div>
-                </div>
-              </div>
-            )
+            return <MessageComponent message={message} isOwnMessage={isOwnMessage} />
           })}
         </div>
       </CardContent>
