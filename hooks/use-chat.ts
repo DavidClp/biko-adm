@@ -48,7 +48,7 @@ export function useChat({
   const [unreadCount, setUnreadCount] = useState(0)
 
   // Refs
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const lastMessageIdRef = useRef<string | undefined>(undefined)

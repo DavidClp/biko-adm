@@ -24,6 +24,7 @@ import { Header } from "@/components/navigation/header"
 import { ChatHeader } from "@/app/my-requests/components/chat-header"
 import { getStatusBadge } from "@/app/my-requests/page"
 import { EmojiPicker } from "@/components/emoji-picker"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function ChatPage() {
   const router = useRouter()
@@ -66,6 +67,12 @@ export default function ChatPage() {
     }
   }, [requestsList, requestId, router])
 
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [newMessage]);
 
   if (authLoading) {
     return (
@@ -98,13 +105,12 @@ export default function ChatPage() {
       <ChatHeader
         selectedRequest={selectedRequest}
         onBackToRequests={() => router.push('/dashboard')}
-        getStatusBadge={getStatusBadge}
         type="chat-client"
+        isUserOnline={() => false}
       />
       <div className="p-3 bg-gray-50 border-b border-gray-200">
         <RequestDetailsModal
           selectedRequest={selectedRequest}
-          getStatusBadge={getStatusBadge}
         />
       </div>
 
@@ -165,13 +171,14 @@ export default function ChatPage() {
           </div>
 
           <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
-            <Input
+            <Textarea
               placeholder="Digite uma mensagem..."
               value={newMessage}
               ref={inputRef}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && send()}
-              className="border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              rows={1}
+              className="min-h-[1.5rem] max-h-[10rem] overflow-y-auto whitespace-pre-wrap break-all resize-none border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
           <Button

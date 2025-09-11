@@ -30,6 +30,7 @@ import { formatCurrency, formatDate, formatDateWithTime } from "@/lib/utils"
 import { useQueryClient } from "@tanstack/react-query"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { EmojiPicker } from "@/components/emoji-picker"
+import { Textarea } from "@/components/ui/textarea"
 
 export function RequestsTab() {
   // Messaging state for internal chat system
@@ -106,7 +107,7 @@ export function RequestsTab() {
   const handleBackToRequests = () => {
     setShowChat(false)
     setSelectedRequest(null)
-    
+
     // Forçar refetch para sincronizar com o servidor
     refetchRequests()
   }
@@ -129,7 +130,7 @@ export function RequestsTab() {
       const timeoutId = setTimeout(() => {
         refetchRequests()
       }, 1000)
-      
+
       return () => clearTimeout(timeoutId)
     }
   }, [showChat, selectedRequest?.id, refetchRequests])
@@ -190,7 +191,7 @@ export function RequestsTab() {
     // Evento para notificação de nova mensagem
     socket.on("chat:notification", (data: { message: Message, requestId: string, senderId: string }) => {
       console.log("🔔 Notificação de mensagem recebida:", data.message.id, "para solicitação:", data.requestId)
-      
+
       // Incrementar contador de mensagens não lidas
       setUnreadMessages(prev => ({
         ...prev,
@@ -216,14 +217,14 @@ export function RequestsTab() {
       }
       return acc
     }, {} as Record<string, number>)
-    
+
     setUnreadMessages(prev => {
       const merged = { ...prev }
-      
+
       Object.keys(unreadMessagesMap).forEach(requestId => {
         const serverCount = unreadMessagesMap[requestId]
         const localCount = merged[requestId] || 0
-        
+
         // Se o contador local for 0 (mensagens visualizadas), manter 0
         if (localCount === 0) {
           merged[requestId] = 0
@@ -237,10 +238,17 @@ export function RequestsTab() {
           merged[requestId] = localCount
         }
       })
-      
+
       return merged
     })
   }, [requestsList])
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto"; // reseta
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [newMessage]);
 
   return (
     <div className="flex h-[calc(100vh-200px)] lg:h-auto lg:grid lg:grid-cols-2 lg:gap-6">
@@ -351,7 +359,6 @@ export function RequestsTab() {
               <div className="p-3 bg-gray-50 border-b border-gray-200 mt-2">
                 <RequestDetailsModal
                   selectedRequest={selectedRequest}
-                  getStatusBadge={getStatusBadge}
                 />
               </div>
             )}
@@ -416,7 +423,7 @@ export function RequestsTab() {
                   })}
 
                   {/* Indicador de digitação */}
-                  {getTypingUsersInRoom().length > 0 && (
+                  {/*     {getTypingUsersInRoom().length > 0 && (
                     <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-500">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -430,7 +437,7 @@ export function RequestsTab() {
                         }
                       </span>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </CardContent>
 
@@ -466,7 +473,7 @@ export function RequestsTab() {
                     </div>
 
                     <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
-                      <Input
+                      <Textarea
                         placeholder="Digite uma mensagem..."
                         value={newMessage}
                         ref={inputRef}
@@ -480,10 +487,10 @@ export function RequestsTab() {
                             send();
                           }
                         }}
-                        className="border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        rows={1}
+                        className="min-h-[1.5rem] max-h-[10rem] overflow-y-auto whitespace-pre-wrap break-all resize-none border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       />
                     </div>
-                 
                     <Button
                       onClick={send}
                       size="sm"

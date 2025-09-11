@@ -23,6 +23,7 @@ import { useChat } from "@/hooks/use-chat";
 import { RequestDetailsModal } from "./request-details-modal";
 import { ChatHeader } from "./chat-header";
 import { EmojiPicker } from "@/components/emoji-picker";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ChatSectionProps {
   selectedRequest: IRequestService | null;
@@ -97,7 +98,7 @@ export function ChatSection({
   }, [handleSend]);
 
   // Função para lidar com mudanças no input
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewMessage(e.target.value);
     handleTyping();
   }, [handleTyping]);
@@ -121,6 +122,14 @@ export function ChatSection({
       stopTyping();
     }
   }, [newMessage, stopTyping]);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [newMessage]);
+
 
   // Função para renderizar indicador de digitação
   const renderTypingIndicator = () => {
@@ -151,7 +160,6 @@ export function ChatSection({
           <ChatHeader
             selectedRequest={selectedRequest}
             onBackToRequests={onBackToRequests}
-            getStatusBadge={getStatusBadge}
             type="chat-provider"
             isUserOnline={isUserOnline}
           />
@@ -159,7 +167,6 @@ export function ChatSection({
           <div className="p-3 bg-gray-50 border-b border-gray-200">
             <RequestDetailsModal
               selectedRequest={selectedRequest}
-              getStatusBadge={getStatusBadge}
             />
           </div>
 
@@ -250,14 +257,15 @@ export function ChatSection({
               </div>
 
               <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
-                <Input
+s                <Textarea
                   placeholder="Digite uma mensagem..."
                   value={newMessage}
                   ref={inputRef}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  className="border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
+                  rows={1}
+                  className="min-h-[1.5rem] max-h-[10rem] overflow-y-auto whitespace-pre-wrap break-all resize-none border-0 shadow-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
               </div>
 
               <Button

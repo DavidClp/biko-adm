@@ -16,15 +16,14 @@ import {
     Info
 } from "lucide-react";
 import { IRequestService } from "@/lib/types";
+import { getStatusBadge } from "@/components/getStatusRequestBadge";
 
 interface RequestDetailsModalProps {
     selectedRequest: IRequestService | null;
-    getStatusBadge: (status: string) => React.ReactNode;
 }
 
 export function RequestDetailsModal({
     selectedRequest,
-    getStatusBadge
 }: RequestDetailsModalProps) {
     const [isOpen, setIsOpen] = useState(false);
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { api } from "@/lib/api"
+import { api, setClearAuthCallback } from "@/lib/api"
 import { User, LoginResponse, RegisterResponse, ApiResponse } from "@/lib/types"
 import { socket } from "@/lib/socket"
 
@@ -78,6 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     checkAuth()
+
+    // Registrar callback para ser chamado quando token expira
+    setClearAuthCallback(() => {
+      setUser(null)
+      setLoading(false)
+    })
   }, [])
 
   const login = async (email: string, password: string) => {
