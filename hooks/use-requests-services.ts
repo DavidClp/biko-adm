@@ -97,21 +97,21 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
   const sendBudgetRequestMutation = useMutation({
     mutationFn: async (data: BudgetRequestData): Promise<void> => {
       try {
-        await api.post<void>('/requests/send-budget', data)
+        await api.post<void>(`/requests/send-budget/${data?.requestId}`, data)
       } catch (error: any) {
-        console.error('Erro ao enviar solicitação de contato:', error)
+        console.error('Erro ao enviar solicitação de orçamento:', error)
 
         const errorMessage = error?.response?.data?.message ||
           error?.response?.data?.error ||
           error?.message ||
-          'Erro ao enviar orçamento para a solicitação. Tente novamente.'
+          'Erro ao enviar orçamento. Tente novamente.'
 
         throw new Error(errorMessage)
       }
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao enviar orçamento para a solicitação",
+        title: "Erro ao enviar orçamento",
         description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       })

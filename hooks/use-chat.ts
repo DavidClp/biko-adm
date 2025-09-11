@@ -83,6 +83,7 @@ export function useChat({
     socket.emit("chat:send", { 
       requestId: selectedRequestId, 
       content,
+      type: "TEXT",
       toUserId,
       providerId
     })
@@ -92,7 +93,18 @@ export function useChat({
     setIsTyping(false)
   }, [selectedRequestId, userId, toUserId, providerId])
 
-  // Carregar mais mensagens
+  const sendMessageProposal = useCallback(( { budget }: { budget: number }) => {
+    if (!selectedRequestId || !userId || !toUserId || !providerId) return;
+
+    socket.emit("chat:send", {
+      requestId: selectedRequestId,
+      content: `${budget}`,
+      type: "PROPOSAL",
+      toUserId,
+      providerId
+    })
+  }, [selectedRequestId, userId, toUserId, providerId])
+
   const loadMoreMessages = useCallback(() => {
     if (!selectedRequestId || !hasMoreMessages || isLoading) return
 
@@ -450,6 +462,7 @@ export function useChat({
     markAsViewed,
     scrollToBottom,
     scrollToTop,
+    sendMessageProposal,
     
     // Utilitários
     isUserOnline: (userId: string) => onlineUsers.some(u => u.userId === userId && u.isOnline),

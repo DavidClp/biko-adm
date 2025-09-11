@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,7 @@ import { ChatHeader } from "@/app/my-requests/components/chat-header"
 import { EmojiPicker } from "@/components/emoji-picker"
 import { Textarea } from "@/components/ui/textarea"
 import { MessageComponent } from "@/app/my-requests/components/message-component"
+import { SendProposalModal } from "@/components/send-proposal-modal"
 
 export default function ChatPage() {
   const router = useRouter()
@@ -37,16 +38,16 @@ export default function ChatPage() {
   const { data: requestsList } = getRequestsByProvider
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showSendProposal, setShowSendProposal] = useState(false);
+  const [showSendModalProposal, setShowSendModalProposal] = useState(false);
 
-  // Hook de chat centralizado
   const {
     messages,
     newMessage,
     setNewMessage,
     inputRef,
     messagesContainerRef,
-    send
+    send,
+    sendMessageProposal,
   } = useChat({
     selectedRequestId: selectedRequest?.id,
     userId: user?.id,
@@ -54,6 +55,22 @@ export default function ChatPage() {
     toUserId: selectedRequest?.client?.userId,
     providerId: selectedRequest?.provider?.id,
   })
+
+  const { sendBudgetRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });
+
+  const handleSendProposal = useCallback(({ budget, observation }: { budget: number, observation: string }) => {
+    sendBudgetRequestMutation.mutate({
+      requestId: selectedRequest?.id as string,
+      budget: budget,
+      observation: observation,
+    }, {
+      onSuccess: () => {
+        sendMessageProposal({ budget })
+      }
+    })
+
+    setShowSendModalProposal(false)
+  }, [selectedRequest?.id, sendBudgetRequestMutation, sendMessageProposal])
 
   useEffect(() => {
     if (requestsList && requestId) {
@@ -107,7 +124,7 @@ export default function ChatPage() {
         onBackToRequests={() => router.push('/dashboard')}
         type="chat-client"
         isUserOnline={() => false}
-        onSendProposal={() => setShowSendProposal(true)}
+        onSendProposal={() => setShowSendModalProposal(true)}
       />
       <div className="p-3 bg-gray-50 border-b border-gray-200 ">
         <RequestDetailsModal
@@ -127,7 +144,7 @@ export default function ChatPage() {
           {messages?.map((message) => {
             const isOwnMessage = message.sender_id === selectedRequest?.provider?.userId
 
-            return <MessageComponent message={message} isOwnMessage={isOwnMessage} />
+            return <MessageComponent message={message} request={selectedRequest} isOwnMessage={isOwnMessage} />
           })}
         </div>
       </CardContent>
@@ -178,6 +195,12 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      <SendProposalModal
+        isOpen={showSendModalProposal}
+        onClose={() => setShowSendModalProposal(false)}
+        onSendProposal={handleSendProposal}
+      />
     </div>
   )
 }

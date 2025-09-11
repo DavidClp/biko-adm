@@ -394,7 +394,7 @@ export function RequestsTab() {
                   {messages?.map((message) => {
                     const isOwnMessage = message.sender_id === user?.id;
 
-                    return <MessageComponent message={message} isOwnMessage={isOwnMessage} />
+                    return <MessageComponent message={message} request={selectedRequest} isOwnMessage={isOwnMessage} />
                   })}
 
                   {/* Indicador de digitação */}

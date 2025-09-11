@@ -138,7 +138,8 @@ export interface Appointment {
   service?: Service
 }
 
-// Tipos para mensagens
+type MessageType = "TEXT" | "PROPOSAL" | "IMAGE" | "VIDEO"
+
 export interface Message {
   id: string
   content: string
@@ -149,6 +150,7 @@ export interface Message {
   createdAt: string
   sender?: User
   receiver?: User
+  type: MessageType
 }
 
 // Tipos para notificações
