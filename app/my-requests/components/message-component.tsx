@@ -66,7 +66,8 @@ function MessageProposal({ message, isOwnMessage, request }: { message: Message,
     const { editRequestMutation } = useRequestService();
 
     const {
-        setMessages
+        setMessages,
+        updateProposalStatus
       } = useChat({
         selectedRequestId: request?.id,
         userId: user?.id,
@@ -77,17 +78,29 @@ function MessageProposal({ message, isOwnMessage, request }: { message: Message,
 
     const handleAccept = () => {
         editRequestMutation.mutate({ id: request?.id, status: "ACCEPTED", budgetStatus: "ACCEPTED" })
-        setMessages(prev => prev?.map(m => ({ ...m, type: "PROPOSAL_ACCEPTED" })))
+        // Atualizar localmente e notificar via socket
+        setMessages(prev => prev?.map(m => 
+            m.id === message.id ? { ...m, type: "PROPOSAL_ACCEPTED" } : m
+        ))
+        updateProposalStatus(message.id, "PROPOSAL_ACCEPTED")
     }
 
     const handleRejectByClient = () => {
         editRequestMutation.mutate({ id: request?.id, budgetStatus: "REJECTED", status: "PENDING" });
-        setMessages(prev => prev?.map(m => ({ ...m, type: "PROPOSAL_REJECTED" })))
+        // Atualizar localmente e notificar via socket
+        setMessages(prev => prev?.map(m => 
+            m.id === message.id ? { ...m, type: "PROPOSAL_REJECTED" } : m
+        ))
+        updateProposalStatus(message.id, "PROPOSAL_REJECTED")
     }
     
     const handleCancelByProvider = () => {
         editRequestMutation.mutate({ id: request?.id, status: "PENDING", budgetStatus: "CANCELLED" })
-        setMessages(prev => prev?.map(m => ({ ...m, type: "PROPOSAL_CANCELLED" })))
+        // Atualizar localmente e notificar via socket
+        setMessages(prev => prev?.map(m => 
+            m.id === message.id ? { ...m, type: "PROPOSAL_CANCELLED" } : m
+        ))
+        updateProposalStatus(message.id, "PROPOSAL_CANCELLED")
     }
 
     return (
@@ -181,7 +194,10 @@ function MessageProposalRejected({ message, isOwnMessage, request }: { message: 
                 <p className="text-sm leading-relaxed">{observation}</p>
 
                 <Separator className="my-1" />
-REJEITADO
+                <div className="flex items-center gap-2 text-red-600 font-medium text-sm">
+                    <span>❌</span>
+                    <span>REJEITADO</span>
+                </div>
                     <div className="flex gap-2 justify-between">
                         <div className={`flex items-center justify-end gap-1 mt-1 ${isOwnMessage ? "text-accent-foreground" : "text-accent-foreground"}`} >
                             <span className="text-xs">
@@ -224,7 +240,10 @@ function MessageProposalAccepted({ message, isOwnMessage, request }: { message: 
                 <p className="text-sm leading-relaxed">{observation}</p>
 
                 <Separator className="my-1" />
-ACEITADO
+                <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
+                    <span>✅</span>
+                    <span>ACEITO</span>
+                </div>
                     <div className="flex gap-2 justify-between">
                         <div className={`flex items-center justify-end gap-1 mt-1 ${isOwnMessage ? "text-accent-foreground" : "text-accent-foreground"}`} >
                             <span className="text-xs">
@@ -267,7 +286,10 @@ function MessageProposalCancelled({ message, isOwnMessage, request }: { message:
                 <p className="text-sm leading-relaxed">{observation}</p>
 
                 <Separator className="my-1" />
-CANCELADO
+                <div className="flex items-center gap-2 text-orange-600 font-medium text-sm">
+                    <span>🚫</span>
+                    <span>CANCELADO</span>
+                </div>
                     <div className="flex gap-2 justify-between">
                         <div className={`flex items-center justify-end gap-1 mt-1 ${isOwnMessage ? "text-accent-foreground" : "text-accent-foreground"}`} >
                             <span className="text-xs">

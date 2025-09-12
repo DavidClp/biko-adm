@@ -105,6 +105,16 @@ export function useChat({
     })
   }, [selectedRequestId, userId, toUserId, providerId])
 
+  const updateProposalStatus = useCallback((messageId: string, newType: "PROPOSAL_ACCEPTED" | "PROPOSAL_REJECTED" | "PROPOSAL_CANCELLED") => {
+    if (!selectedRequestId) return;
+
+    socket.emit("chat:proposal_status_update", {
+      messageId,
+      requestId: selectedRequestId,
+      newType
+    })
+  }, [selectedRequestId])
+
   const loadMoreMessages = useCallback(() => {
     if (!selectedRequestId || !hasMoreMessages || isLoading) return
 
@@ -349,6 +359,20 @@ export function useChat({
       }
     }
 
+    const handleProposalStatusUpdate = (data: { 
+      messageId: string, 
+      requestId: string, 
+      newType: "PROPOSAL_ACCEPTED" | "PROPOSAL_REJECTED" | "PROPOSAL_CANCELLED" 
+    }) => {
+      
+      if (data.requestId === selectedRequestId) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === data.messageId ? { ...msg, type: data.newType } : msg
+        ))
+      } else {
+      }
+    }
+
     const handleError = (error: { message: string }) => {
       console.error("Erro no chat:", error.message)
     }
@@ -363,6 +387,7 @@ export function useChat({
     socket.on("user:offline", handleUserOffline)
     socket.on("chat:typing_start", handleTypingStart)
     socket.on("chat:typing_stop", handleTypingStop)
+    socket.on("chat:proposal_status_update", handleProposalStatusUpdate)
     socket.on("chat:error", handleError)
 
     return () => {
@@ -376,6 +401,7 @@ export function useChat({
       socket.off("user:offline", handleUserOffline)
       socket.off("chat:typing_start", handleTypingStart)
       socket.off("chat:typing_stop", handleTypingStop)
+      socket.off("chat:proposal_status_update", handleProposalStatusUpdate)
       socket.off("chat:error", handleError)
     }
   }, [userId, selectedRequestId, onNewMessage, onUserOnline, onUserOffline])
@@ -471,6 +497,7 @@ export function useChat({
     scrollToBottom,
     scrollToTop,
     sendMessageProposal,
+    updateProposalStatus,
 
     // Utilitários
     isUserOnline: (userId: string) => onlineUsers.some(u => u.userId === userId && u.isOnline),
