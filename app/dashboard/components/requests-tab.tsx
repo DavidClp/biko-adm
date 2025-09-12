@@ -32,6 +32,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { EmojiPicker } from "@/components/emoji-picker"
 import { Textarea } from "@/components/ui/textarea"
 import { MessageComponent } from "@/app/my-requests/components/message-component"
+import { getStatusBadge } from "@/components/getStatusRequestBadge"
 
 export function RequestsTab() {
   // Messaging state for internal chat system
@@ -50,34 +51,6 @@ export function RequestsTab() {
   const { data: requestsList, refetch: refetchRequests } = getRequestsByProvider;
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return (
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-            <Clock className="h-3 w-3 mr-1" />
-            Pendente
-          </Badge>
-        )
-      case "accepted":
-        return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Aceito
-          </Badge>
-        )
-      case "completed":
-        return (
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
-            <Star className="h-3 w-3 mr-1" />
-            Concluído
-          </Badge>
-        )
-      default:
-        return <Badge variant="secondary">{status}</Badge>
-    }
-  }
 
   // Function to handle order status changes
   const handleOrderAction = (orderId: string, action: "accept" | "reject") => {

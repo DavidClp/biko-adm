@@ -65,7 +65,8 @@ export default function ChatPage() {
       observation: observation,
     }, {
       onSuccess: () => {
-        sendMessageProposal({ budget })
+        sendMessageProposal({ budget, observation })
+        setSelectedRequest(prev => ({ ...prev, status: "ON_BUDGET" } as IRequestService))
       }
     })
 
@@ -126,7 +127,7 @@ export default function ChatPage() {
         isUserOnline={() => false}
         onSendProposal={() => setShowSendModalProposal(true)}
       />
-      <div className="p-3 bg-gray-50 border-b border-gray-200 ">
+      <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 ">
         <RequestDetailsModal
           selectedRequest={selectedRequest}
         />

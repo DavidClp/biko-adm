@@ -86,7 +86,7 @@ export default function MyRequestsPage() {
   }
 
   return (
-    <div className="">
+    <div className="h-[100vh]">
       <Header />
 
       {/*   <div className="hidden md:block container mx-auto px-4 py-6">
@@ -96,7 +96,7 @@ export default function MyRequestsPage() {
         </div>
       </div> */}
 
-      <div className="flex h-[calc(80vh)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4 md:border md:border-primary/20  rounded-md overflow-y-hidden">
+      <div className="flex h-[calc(93vh)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4 md:border md:border-primary/20  rounded-md overflow-y-hidden">
         <div
           className={`${showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-1/3 bg-white border-r border-gray-200`}
         >
@@ -187,7 +187,6 @@ export default function MyRequestsPage() {
     </div>
   )
 }
-
 
 
 /*    const mockRequests: ServiceRequest[] = [

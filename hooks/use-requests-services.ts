@@ -3,8 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useToast } from '@/hooks/use-toast'
-import { Message } from 'react-hook-form'
-import { IRequestService } from '@/lib/types'
+import { IRequestService, requestBudgetStatus, requestStatus } from '@/lib/types'
 
 interface ContactRequestData {
   service_type: string
@@ -13,6 +12,21 @@ interface ContactRequestData {
   address: string
   providerId: string
   clientId: string
+}
+
+interface EditRequestData {
+  service_type?: string
+  description?: string
+  urgency?: string
+  address?: string
+  providerId?: string
+  clientId?: string
+  status?: requestStatus
+  budget?: number
+  id: string
+  observation?: string
+  value?: number
+  budgetStatus?: requestBudgetStatus
 }
 
 interface ContactRequestResponse {
@@ -118,6 +132,30 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
     },
   })
 
+  const editRequestMutation = useMutation({
+    mutationFn: async (data: EditRequestData): Promise<void> => {
+      try {
+        await api.put<void>(`/requests/${data?.id}`, data)
+      } catch (error: any) {
+        console.error('Erro ao editar solicitação:', error)
+
+        const errorMessage = error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          'Erro ao editar solicitação. Tente novamente.'
+
+        throw new Error(errorMessage)
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao editar solicitação",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      })
+    },
+  })
+
   return {
     sendContactRequest: contactRequestMutation.mutate,
     isSending: contactRequestMutation.isPending,
@@ -128,5 +166,6 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
     getRequestsByClient,
     getRequestsByProvider,
     sendBudgetRequestMutation,
+    editRequestMutation,
   }
 }

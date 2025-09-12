@@ -27,15 +27,15 @@ interface TypingUser {
   requestId: string
 }
 
-export function useChat({ 
-  selectedRequestId, 
-  userId, 
+export function useChat({
+  selectedRequestId,
+  userId,
   userName,
   toUserId,
   providerId,
-  onNewMessage, 
+  onNewMessage,
   onUserOnline,
-  onUserOffline 
+  onUserOffline
 }: UseChatProps) {
   // Estados principais
   const [messages, setMessages] = useState<Message[]>([])
@@ -80,8 +80,8 @@ export function useChat({
     console.log("send", content, selectedRequestId, userId, toUserId, providerId)
     if (!content || !selectedRequestId || !userId || !toUserId || !providerId) return
 
-    socket.emit("chat:send", { 
-      requestId: selectedRequestId, 
+    socket.emit("chat:send", {
+      requestId: selectedRequestId,
       content,
       type: "TEXT",
       toUserId,
@@ -93,12 +93,12 @@ export function useChat({
     setIsTyping(false)
   }, [selectedRequestId, userId, toUserId, providerId])
 
-  const sendMessageProposal = useCallback(( { budget }: { budget: number }) => {
+  const sendMessageProposal = useCallback(({ budget, observation }: { budget: number, observation: string }) => {
     if (!selectedRequestId || !userId || !toUserId || !providerId) return;
 
     socket.emit("chat:send", {
       requestId: selectedRequestId,
-      content: `${budget}`,
+      content: JSON.stringify({ budget, observation }),
       type: "PROPOSAL",
       toUserId,
       providerId
@@ -235,18 +235,25 @@ export function useChat({
     const handleNewMessage = (msg: Message) => {
       if (msg.request_id === selectedRequestId) {
         setMessages((prev) => {
-          // Verificar se a mensagem já existe para evitar duplicatas
           const exists = prev.some(m => m.id === msg.id)
           if (exists) {
-            console.log("⚠️ Mensagem duplicada ignorada:", msg.id)
             return prev
           }
-          console.log("✅ Nova mensagem adicionada:", msg.id)
-          return [...prev, msg]
+
+          let newPrev = prev;
+
+          // temos que marcas as propostas antigas com reject
+          if (msg.type === "PROPOSAL") {
+            newPrev = prev?.map((m) => ({
+              ...m, budgetStatus: "REJECTED"
+            }))
+          }
+
+          return [...newPrev, msg]
         })
+
         lastMessageIdRef.current = msg.id
-        
-        // Marcar como visualizada se for do usuário atual
+
         if (msg.sender_id === userId) {
           setUnreadCount(0)
         } else {
@@ -279,10 +286,10 @@ export function useChat({
     const handleMessagesViewed = (data: { messageIds: string[], requestId: string }) => {
       if (data.requestId === selectedRequestId) {
         console.log(`📖 Atualizando ${data.messageIds.length} mensagens como visualizadas`)
-        setMessages(prev => 
-          prev.map(msg => 
-            data.messageIds.includes(msg.id) 
-              ? { ...msg, viewed: true } 
+        setMessages(prev =>
+          prev.map(msg =>
+            data.messageIds.includes(msg.id)
+              ? { ...msg, viewed: true }
               : msg
           )
         )
@@ -333,7 +340,7 @@ export function useChat({
 
     const handleNotification = (data: { message: Message, requestId: string, senderId: string }) => {
       console.log("🔔 Notificação recebida:", data.message.id, "para sala:", data.requestId)
-      
+
       // Se não estamos na sala da notificação, incrementar contador
       if (data.requestId !== selectedRequestId) {
         setUnreadCount(prev => prev + 1)
@@ -448,12 +455,13 @@ export function useChat({
     onlineUsers,
     typingUsers,
     isTyping,
+    setMessages,
     unreadCount,
-    
+
     // Refs
     inputRef,
     messagesContainerRef,
-    
+
     // Funções
     send,
     loadMoreMessages,
@@ -463,7 +471,7 @@ export function useChat({
     scrollToBottom,
     scrollToTop,
     sendMessageProposal,
-    
+
     // Utilitários
     isUserOnline: (userId: string) => onlineUsers.some(u => u.userId === userId && u.isOnline),
     getTypingUsersInRoom: () => typingUsers,

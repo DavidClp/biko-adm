@@ -44,17 +44,12 @@ export function ChatSection({
   const { user } = useAuth();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  // Hook de chat com todas as funcionalidades
   const {
     messages,
     newMessage,
     setNewMessage,
     isLoading,
     hasMoreMessages,
-    onlineUsers,
-    typingUsers,
-    isTyping,
-    unreadCount,
     inputRef,
     messagesContainerRef,
     send,
@@ -62,7 +57,6 @@ export function ChatSection({
     handleTyping,
     stopTyping,
     scrollToBottom,
-    scrollToTop,
     isUserOnline,
     getTypingUsersInRoom
   } = useChat({
@@ -72,19 +66,10 @@ export function ChatSection({
     toUserId: selectedRequest?.provider?.userId,
     providerId: selectedRequest?.provider?.id,
     onNewMessage: (msg: Message) => {
-      // Notificar sobre nova mensagem de outra conversa
-      console.log("Nova mensagem recebida:", msg);
       onNewMessage?.(msg);
     },
-    onUserOnline: (userId: string, userName: string) => {
-      console.log(`${userName} está online`);
-    },
-    onUserOffline: (userId: string) => {
-      console.log(`Usuário ${userId} está offline`);
-    }
   });
 
-  // Função para enviar mensagem
   const handleSend = useCallback(() => {
     if (!newMessage.trim()) return;
     send();
@@ -165,7 +150,7 @@ export function ChatSection({
             isUserOnline={isUserOnline}
           />
 
-          <div className="p-3 bg-gray-50 border-b border-gray-200">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
             <RequestDetailsModal
               selectedRequest={selectedRequest}
             />
@@ -210,7 +195,7 @@ export function ChatSection({
               })}
 
               {/* Indicador de digitação */}
-              {renderTypingIndicator()}
+            {/*   {renderTypingIndicator()} */}
             </div>
           </div>
 

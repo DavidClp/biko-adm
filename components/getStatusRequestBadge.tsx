@@ -30,6 +30,13 @@ export const getStatusBadge = (status: string) => {
             <CheckCircle className="w-3 h-3 mr-1" />
             Concluído
           </Badge>
+        ) 
+      case "on_budget":
+        return (
+          <Badge variant="outline" className="text-orange-600 border-orange-600">
+            <CheckCircle className="w-3 h-3" />
+            Orçamento
+          </Badge>
         )
       default:
         return <Badge variant="outline">Desconhecido</Badge>

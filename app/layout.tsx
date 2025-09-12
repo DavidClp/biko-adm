@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   title: "Biko - Plataforma de Serviços",
   description: "Conecte-se com os melhores prestadores de serviços da sua região",
   generator: "v0.app",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 }
 
 export default function RootLayout({
