@@ -153,7 +153,7 @@ export default function MyRequestsPage() {
                         </div>
                         <div className="flex items-center gap-2 ml-2">
                           {getStatusBadge(request?.status)}
-                          {request.status === "APPROVED" && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                          {/* {request.status === "ACCEPTED" && <div className="w-2 h-2 bg-green-500 rounded-full"></div>} */}
                         </div>
                       </div>
                       <div className="flex items-center justify-between">

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useToast } from '@/hooks/use-toast'
 import { IRequestService, requestBudgetStatus, requestStatus } from '@/lib/types'
+import { socket } from '@/lib/socket'
 
 interface ContactRequestData {
   service_type: string
@@ -145,6 +146,31 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
           'Erro ao editar solicitação. Tente novamente.'
 
         throw new Error(errorMessage)
+      }
+    },
+    onSuccess: (_, variables) => {
+      console.log("✅ Request atualizado com sucesso:", variables)
+      
+      // Invalidar queries para atualizar a interface
+      queryClient.invalidateQueries({ queryKey: ['requestsByClient'] })
+      queryClient.invalidateQueries({ queryKey: ['requestsByProvider'] })
+      
+      // Forçar atualização da interface
+      window.dispatchEvent(new CustomEvent('requestStatusUpdated', {
+        detail: { 
+          requestId: variables.id, 
+          status: variables.status || "PENDING", 
+          budgetStatus: variables.budgetStatus || "PENDING" 
+        }
+      }))
+      
+      if (variables.status || variables.budgetStatus) {
+        console.log("📤 Emitindo evento de atualização de status via socket")
+        socket.emit("chat:request_status_update", {
+          requestId: variables.id,
+          status: variables.status || "PENDING",
+          budgetStatus: variables.budgetStatus || "PENDING"
+        })
       }
     },
     onError: (error: Error) => {

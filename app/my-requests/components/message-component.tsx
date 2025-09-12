@@ -67,13 +67,18 @@ function MessageProposal({ message, isOwnMessage, request }: { message: Message,
 
     const {
         setMessages,
-        updateProposalStatus
+        updateProposalStatus,
+        updateRequestStatus
       } = useChat({
         selectedRequestId: request?.id,
         userId: user?.id,
         userName: user?.name,
         toUserId: request?.client?.userId,
         providerId: request?.provider?.id,
+        onRequestStatusUpdate: (data) => {
+          console.log("🔄 Status do request atualizado:", data)
+          // Aqui você pode atualizar o estado local do request se necessário
+        }
       })
 
     const handleAccept = () => {
@@ -83,6 +88,7 @@ function MessageProposal({ message, isOwnMessage, request }: { message: Message,
             m.id === message.id ? { ...m, type: "PROPOSAL_ACCEPTED" } : m
         ))
         updateProposalStatus(message.id, "PROPOSAL_ACCEPTED")
+        // O evento de request status será emitido automaticamente pela mutação
     }
 
     const handleRejectByClient = () => {
@@ -92,6 +98,7 @@ function MessageProposal({ message, isOwnMessage, request }: { message: Message,
             m.id === message.id ? { ...m, type: "PROPOSAL_REJECTED" } : m
         ))
         updateProposalStatus(message.id, "PROPOSAL_REJECTED")
+        // O evento de request status será emitido automaticamente pela mutação
     }
     
     const handleCancelByProvider = () => {
@@ -101,6 +108,7 @@ function MessageProposal({ message, isOwnMessage, request }: { message: Message,
             m.id === message.id ? { ...m, type: "PROPOSAL_CANCELLED" } : m
         ))
         updateProposalStatus(message.id, "PROPOSAL_CANCELLED")
+        // O evento de request status será emitido automaticamente pela mutação
     }
 
     return (

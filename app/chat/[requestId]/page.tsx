@@ -54,6 +54,15 @@ export default function ChatPage() {
     userName: user?.name,
     toUserId: selectedRequest?.client?.userId,
     providerId: selectedRequest?.provider?.id,
+    onRequestStatusUpdate: (data) => {
+      console.log("🔄 Status do request atualizado na página do chat:", data)
+      // Atualizar o estado local do request
+      setSelectedRequest(prev => prev ? {
+        ...prev,
+        status: data.status as any,
+        budgetStatus: data.budgetStatus as any
+      } : null)
+    }
   })
 
   const { sendBudgetRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });

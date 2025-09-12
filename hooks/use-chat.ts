@@ -11,6 +11,7 @@ interface UseChatProps {
   onNewMessage?: (msg: Message) => void
   onUserOnline?: (userId: string, userName: string) => void
   onUserOffline?: (userId: string) => void
+  onRequestStatusUpdate?: (data: { requestId: string, status: string, budgetStatus: string }) => void
 }
 
 interface OnlineUser {
@@ -35,7 +36,8 @@ export function useChat({
   providerId,
   onNewMessage,
   onUserOnline,
-  onUserOffline
+  onUserOffline,
+  onRequestStatusUpdate
 }: UseChatProps) {
   // Estados principais
   const [messages, setMessages] = useState<Message[]>([])
@@ -77,7 +79,6 @@ export function useChat({
   // Enviar mensagem
   const send = useCallback(() => {
     const content = inputRef.current?.value.trim()
-    console.log("send", content, selectedRequestId, userId, toUserId, providerId)
     if (!content || !selectedRequestId || !userId || !toUserId || !providerId) return
 
     socket.emit("chat:send", {
@@ -112,6 +113,16 @@ export function useChat({
       messageId,
       requestId: selectedRequestId,
       newType
+    })
+  }, [selectedRequestId])
+
+  const updateRequestStatus = useCallback((status: string, budgetStatus: string) => {
+    if (!selectedRequestId) return;
+
+    socket.emit("chat:request_status_update", {
+      requestId: selectedRequestId,
+      status,
+      budgetStatus
     })
   }, [selectedRequestId])
 
@@ -167,14 +178,12 @@ export function useChat({
     // Verificar se já marcamos essas mensagens recentemente
     const alreadyMarked = messageIds.every(id => lastMarkedMessagesRef.current.has(id))
     if (alreadyMarked) {
-      console.log("⚠️ Mensagens já marcadas recentemente, ignorando")
       return
     }
 
     // Adicionar ao conjunto de mensagens marcadas
     messageIds.forEach(id => lastMarkedMessagesRef.current.add(id))
 
-    console.log(`📤 Enviando ${messageIds.length} mensagens para marcar como visualizadas`)
     socket.emit("chat:viewed", {
       messageIds,
       requestId: selectedRequestId
@@ -198,7 +207,6 @@ export function useChat({
   useEffect(() => {
     return () => {
       isConnectedRef.current = false
-      console.log("✅ Chat hook desmontado (conexão gerenciada pelo use-auth)")
     }
   }, [])
 
@@ -210,7 +218,6 @@ export function useChat({
     if (!selectedRequestId) {
       if (currentRequestIdRef.current) {
         socket.emit("chat:leave", { requestId: currentRequestIdRef.current })
-        console.log(`✅ Saiu da sala: ${currentRequestIdRef.current}`)
         currentRequestIdRef.current = undefined
       }
       return
@@ -222,11 +229,9 @@ export function useChat({
     // Sair da sala anterior se existir
     if (currentRequestIdRef.current) {
       socket.emit("chat:leave", { requestId: currentRequestIdRef.current })
-      console.log(`✅ Saiu da sala: ${currentRequestIdRef.current}`)
     }
 
     // Entrar na nova sala
-    console.log(`📤 Enviando chat:join para sala: ${selectedRequestId}`)
     socket.emit("chat:join", { requestId: selectedRequestId })
     currentRequestIdRef.current = selectedRequestId
 
@@ -235,7 +240,6 @@ export function useChat({
     setTypingUsers([])
     setUnreadCount(0)
 
-    console.log(`✅ Entrou na sala: ${selectedRequestId}`)
   }, [selectedRequestId, userId])
 
   // Event listeners (apenas uma vez)
@@ -276,7 +280,6 @@ export function useChat({
     }
 
     const handleLoadMessages = (data: { messages: Message[], hasMore: boolean }) => {
-      console.log("📥 Mensagens carregadas:", data.messages?.length || 0, "para sala:", selectedRequestId)
       setMessages(data.messages || [])
       setHasMoreMessages(data.hasMore || false)
       if (data.messages?.length) {
@@ -295,7 +298,6 @@ export function useChat({
 
     const handleMessagesViewed = (data: { messageIds: string[], requestId: string }) => {
       if (data.requestId === selectedRequestId) {
-        console.log(`📖 Atualizando ${data.messageIds.length} mensagens como visualizadas`)
         setMessages(prev =>
           prev.map(msg =>
             data.messageIds.includes(msg.id)
@@ -349,8 +351,6 @@ export function useChat({
     }
 
     const handleNotification = (data: { message: Message, requestId: string, senderId: string }) => {
-      console.log("🔔 Notificação recebida:", data.message.id, "para sala:", data.requestId)
-
       // Se não estamos na sala da notificação, incrementar contador
       if (data.requestId !== selectedRequestId) {
         setUnreadCount(prev => prev + 1)
@@ -373,6 +373,43 @@ export function useChat({
       }
     }
 
+    const handleRequestStatusUpdate = (data: { 
+      requestId: string, 
+      status: string, 
+      budgetStatus: string 
+    }) => {
+      console.log("📊 Recebendo atualização de status de request:", {
+        requestId: data.requestId,
+        status: data.status,
+        budgetStatus: data.budgetStatus,
+        currentRequestId: selectedRequestId
+      })
+      
+      if (data.requestId === selectedRequestId) {
+        console.log("✅ Atualizando status de request localmente")
+        
+        // Notificar componente pai sobre mudança de status
+        onRequestStatusUpdate?.(data)
+        
+        // Notificar componente pai sobre mudança de status como mensagem
+        onNewMessage?.({
+          id: `status-${Date.now()}`,
+          content: `Status atualizado: ${data.status} - ${data.budgetStatus}`,
+          sender_id: userId || '',
+          receiver_id: '',
+          request_id: data.requestId,
+          type: 'TEXT',
+          viewed: false,
+          createdAt: new Date().toISOString()
+        } as Message)
+        
+        // Forçar atualização da interface
+        window.dispatchEvent(new CustomEvent('requestStatusUpdated', {
+          detail: { requestId: data.requestId, status: data.status, budgetStatus: data.budgetStatus }
+        }))
+      }
+    }
+
     const handleError = (error: { message: string }) => {
       console.error("Erro no chat:", error.message)
     }
@@ -388,6 +425,7 @@ export function useChat({
     socket.on("chat:typing_start", handleTypingStart)
     socket.on("chat:typing_stop", handleTypingStop)
     socket.on("chat:proposal_status_update", handleProposalStatusUpdate)
+    socket.on("chat:request_status_update", handleRequestStatusUpdate)
     socket.on("chat:error", handleError)
 
     return () => {
@@ -402,6 +440,7 @@ export function useChat({
       socket.off("chat:typing_start", handleTypingStart)
       socket.off("chat:typing_stop", handleTypingStop)
       socket.off("chat:proposal_status_update", handleProposalStatusUpdate)
+      socket.off("chat:request_status_update", handleRequestStatusUpdate)
       socket.off("chat:error", handleError)
     }
   }, [userId, selectedRequestId, onNewMessage, onUserOnline, onUserOffline])
@@ -422,7 +461,6 @@ export function useChat({
 
     if (unreadMessages.length > 0) {
       markAsViewedTimeoutRef.current = setTimeout(() => {
-        console.log(`📖 [${selectedRequestId}] Marcando ${unreadMessages.length} mensagens como visualizadas`)
         markAsViewed(unreadMessages.map(msg => msg.id))
       }, 3000) // Aumentado para 3 segundos para evitar loops
     }
@@ -439,7 +477,6 @@ export function useChat({
       )
 
       if (unreadMessages.length > 0) {
-        console.log(`📖 [${selectedRequestId}] Marcando ${unreadMessages.length} mensagens como visualizadas ao entrar na sala`)
         markAsViewed(unreadMessages.map(msg => msg.id))
       }
     }, 2000) // Aumentado para 2 segundos
@@ -498,6 +535,7 @@ export function useChat({
     scrollToTop,
     sendMessageProposal,
     updateProposalStatus,
+    updateRequestStatus,
 
     // Utilitários
     isUserOnline: (userId: string) => onlineUsers.some(u => u.userId === userId && u.isOnline),
