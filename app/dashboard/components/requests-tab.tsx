@@ -33,6 +33,8 @@ import { EmojiPicker } from "@/components/emoji-picker"
 import { Textarea } from "@/components/ui/textarea"
 import { MessageComponent } from "@/app/my-requests/components/message-component"
 import { getStatusBadge } from "@/components/getStatusRequestBadge"
+import { SendProposalModal } from "@/components/send-proposal-modal"
+import { ChatHeader } from "@/app/my-requests/components/chat-header"
 
 export function RequestsTab() {
   // Messaging state for internal chat system
@@ -51,28 +53,20 @@ export function RequestsTab() {
   const { data: requestsList, refetch: refetchRequests } = getRequestsByProvider;
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showSendModalProposal, setShowSendModalProposal] = useState(false);
 
-  // Function to handle order status changes
-  const handleOrderAction = (orderId: string, action: "accept" | "reject") => {
-    // Simulate API call to update order status
-    console.log(`Order ${orderId} ${action}ed`)
-  }
 
   const handleSelectRequest = (request: IRequestService) => {
-    // Zerar contador de mensagens não lidas para esta solicitação
     setUnreadMessages(prev => ({
       ...prev,
       [request.id]: 0
     }))
 
-    // Remover da lista de novas solicitações
     setNewRequests(prev => prev.filter(req => req.id !== request.id))
 
     if (isMobile) {
-      // No mobile, redirecionar para página de chat dedicada
       router.push(`/chat/${request.id}`)
     } else {
-      // No desktop, usar o chat inline
       setSelectedRequest(request)
       setShowChat(true)
     }
@@ -82,14 +76,11 @@ export function RequestsTab() {
     setShowChat(false)
     setSelectedRequest(null)
 
-    // Forçar refetch para sincronizar com o servidor
     refetchRequests()
   }
 
-  // Efeito para zerar contador quando entrar no chat
   useEffect(() => {
     if (showChat && selectedRequest?.id) {
-      // Zerar contador imediatamente quando entrar no chat
       setUnreadMessages(prev => ({
         ...prev,
         [selectedRequest.id]: 0
@@ -97,10 +88,8 @@ export function RequestsTab() {
     }
   }, [showChat, selectedRequest?.id])
 
-  // Efeito para sincronizar contador quando sair do chat
   useEffect(() => {
     if (!showChat && selectedRequest?.id) {
-      // Aguardar um pouco para garantir que as mensagens foram marcadas como visualizadas
       const timeoutId = setTimeout(() => {
         refetchRequests()
       }, 1000)
@@ -109,26 +98,18 @@ export function RequestsTab() {
     }
   }, [showChat, selectedRequest?.id, refetchRequests])
 
-  // Hook de chat centralizado com funcionalidades completas
   const {
     messages,
     newMessage,
     setNewMessage,
     isLoading,
     hasMoreMessages,
-    onlineUsers,
-    typingUsers,
-    isTyping,
-    unreadCount,
     inputRef,
     messagesContainerRef,
     send,
     loadMoreMessages,
     handleTyping,
-    stopTyping,
-    scrollToBottom,
-    isUserOnline,
-    getTypingUsersInRoom
+    sendMessageProposal,
   } = useChat({
     selectedRequestId: selectedRequest?.id,
     userId: user?.id,
@@ -145,19 +126,41 @@ export function RequestsTab() {
     },
     onUserOffline: (userId: string) => {
       console.log(`Usuário ${userId} está offline`);
+    },
+    onRequestStatusUpdate: (data) => {
+      setSelectedRequest(prev => prev ? {
+        ...prev,
+        status: data.status as any,
+        budgetStatus: data.budgetStatus as any
+      } : null)
     }
-  })
+  });
+
+
+  const { sendBudgetRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });
+
+  const handleSendProposal = useCallback(({ budget, observation }: { budget: number, observation: string }) => {
+    sendBudgetRequestMutation.mutate({
+      requestId: selectedRequest?.id as string,
+      budget: budget,
+      observation: observation,
+    }, {
+      onSuccess: () => {
+        sendMessageProposal({ budget, observation })
+        setSelectedRequest(prev => ({ ...prev, status: "ON_BUDGET" } as IRequestService))
+      }
+    })
+
+    setShowSendModalProposal(false)
+  }, [selectedRequest?.id, sendBudgetRequestMutation, sendMessageProposal])
 
   useEffect(() => {
     if (!user?.id || !user?.provider?.id) return
 
-    // Evento para nova solicitação
     socket.on("request:new", (newRequest: IRequestService) => {
       if (newRequest?.providerId === user?.provider?.id) {
-        // Invalidar query para recarregar a lista
         queryClient.invalidateQueries({ queryKey: ['requestsByProvider', user?.provider?.id] })
 
-        // Adicionar à lista de novas solicitações para animação
         setNewRequests(prev => [newRequest, ...prev])
       }
     })
@@ -316,7 +319,7 @@ export function RequestsTab() {
       {/* Chat Interface - Only show on desktop */}
       <div className={`${!showChat || isMobile ? "hidden" : "flex"} lg:flex flex-col w-full lg:w-auto`}>
         <Card className="flex flex-col h-full border-0 shadow-none md:shadow-md">
-          <CardHeader className="pb-2">
+          {/*  <CardHeader className="pb-2">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" className="lg:hidden" onClick={handleBackToRequests}>
                 <ArrowLeft className="w-5 h-5" />
@@ -329,14 +332,27 @@ export function RequestsTab() {
                 </CardTitle>
               </div>
             </div>
+          </CardHeader> */}
+
+          <div>
+            <ChatHeader
+              selectedRequest={selectedRequest}
+              onBackToRequests={handleBackToRequests}
+              type="chat-client"
+              isUserOnline={() => false}
+              onSendProposal={() => setShowSendModalProposal(true)}
+            />
+
             {selectedRequest?.id && (
-              <div className="p-3 bg-gray-50 border-b border-gray-200 mt-2">
+              <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
                 <RequestDetailsModal
                   selectedRequest={selectedRequest}
                 />
               </div>
             )}
-          </CardHeader>
+          </div>
+
+
 
           {selectedRequest?.id ? (
             <>
@@ -474,6 +490,12 @@ export function RequestsTab() {
           )}
         </Card>
       </div>
+
+      <SendProposalModal
+        isOpen={showSendModalProposal}
+        onClose={() => setShowSendModalProposal(false)}
+        onSendProposal={handleSendProposal}
+      />
     </div>
   )
 }

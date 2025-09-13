@@ -58,11 +58,23 @@ export function ChatHeader({
         {/*   {renderOnlineStatus()} */}
       </div>
 
-     {type === "chat-client" && (
-      <Button variant="secondary" size="sm" onClick={onSendProposal}>
-        Enviar Proposta
-      </Button>
-     )}
+      {type === "chat-client" && (
+        <Button variant="secondary" size="sm" onClick={onSendProposal}>
+          Enviar Proposta
+        </Button>
+      )}
+
+      {type === "chat-client" && (
+        <Button variant="secondary" size="sm" onClick={onCancelProposalByProvider}>
+          Cancelar Proposta
+        </Button>
+      )}
+
+      {type === "chat-provider" && (
+        <Button variant="secondary" size="sm" onClick={onCancelProposalByClient}>
+          Cancelar Proposta
+        </Button>
+      )}
       {/* <MoreVertical className="w-5 h-5 text-gray-500" /> */}
     </div>
   );

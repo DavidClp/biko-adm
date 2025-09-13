@@ -55,8 +55,6 @@ export default function ChatPage() {
     toUserId: selectedRequest?.client?.userId,
     providerId: selectedRequest?.provider?.id,
     onRequestStatusUpdate: (data) => {
-      console.log("🔄 Status do request atualizado na página do chat:", data)
-      // Atualizar o estado local do request
       setSelectedRequest(prev => prev ? {
         ...prev,
         status: data.status as any,
@@ -136,7 +134,7 @@ export default function ChatPage() {
         isUserOnline={() => false}
         onSendProposal={() => setShowSendModalProposal(true)}
       />
-      <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 ">
+      <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
         <RequestDetailsModal
           selectedRequest={selectedRequest}
         />

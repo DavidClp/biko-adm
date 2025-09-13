@@ -378,20 +378,9 @@ export function useChat({
       status: string, 
       budgetStatus: string 
     }) => {
-      console.log("📊 Recebendo atualização de status de request:", {
-        requestId: data.requestId,
-        status: data.status,
-        budgetStatus: data.budgetStatus,
-        currentRequestId: selectedRequestId
-      })
-      
       if (data.requestId === selectedRequestId) {
-        console.log("✅ Atualizando status de request localmente")
-        
-        // Notificar componente pai sobre mudança de status
         onRequestStatusUpdate?.(data)
         
-        // Notificar componente pai sobre mudança de status como mensagem
         onNewMessage?.({
           id: `status-${Date.now()}`,
           content: `Status atualizado: ${data.status} - ${data.budgetStatus}`,
@@ -403,7 +392,6 @@ export function useChat({
           createdAt: new Date().toISOString()
         } as Message)
         
-        // Forçar atualização da interface
         window.dispatchEvent(new CustomEvent('requestStatusUpdated', {
           detail: { requestId: data.requestId, status: data.status, budgetStatus: data.budgetStatus }
         }))
