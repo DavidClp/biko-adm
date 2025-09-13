@@ -42,6 +42,14 @@ interface BudgetRequestData {
   observation?: string
 }
 
+interface CancelRequestData {
+  requestId: string
+  cancelledBy: 'client' | 'provider'
+  userName?: string
+  providerId?: string
+  clientId?: string
+}
+
 export function useRequestService({ clientId, providerId }: { clientId?: string, providerId?: string } = {}) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -182,6 +190,59 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
     },
   })
 
+  const cancelRequestMutation = useMutation({
+    mutationFn: async (data: CancelRequestData): Promise<void> => {
+      try {
+        const status = data.cancelledBy === 'client' ? 'CANCELLED_BY_CLIENT' : 'CANCELLED_BY_PROVIDER'
+        
+        await api.put<void>(`/requests/${data.requestId}`, { status })
+      } catch (error: any) {
+        const errorMessage = error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          'Erro ao cancelar solicitação. Tente novamente.'
+
+        throw new Error(errorMessage)
+      }
+    },
+    onSuccess: (_, variables) => {
+      console.log("✅ Solicitação cancelada com sucesso:", variables)
+      
+      queryClient.invalidateQueries({ queryKey: ['requestsByClient'] })
+      queryClient.invalidateQueries({ queryKey: ['requestsByProvider'] })
+      
+      const status = variables.cancelledBy === 'client' ? 'CANCELLED_BY_CLIENT' : 'CANCELLED_BY_PROVIDER'
+      socket.emit("chat:request_status_update", {
+        requestId: variables.requestId,
+        status: status,
+        budgetStatus: "CANCELLED"
+      })
+      
+      const userName = variables.userName || (variables.cancelledBy === 'client' ? 'Cliente' : 'Prestador')
+      const cancelMessage = `${userName} cancelou a ${variables.cancelledBy === 'client' ? 'solicitação' : 'proposta'}`
+      
+      socket.emit("chat:send", {
+        requestId: variables.requestId,
+        content: cancelMessage,
+        type: "TEXT",
+        toUserId: variables.cancelledBy === 'client' ? variables?.providerId : variables?.clientId,
+      })
+      
+      toast({
+        title: "Solicitação cancelada",
+        description: "A solicitação foi cancelada com sucesso.",
+        variant: "default",
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao cancelar solicitação",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      })
+    },
+  })
+
   return {
     sendContactRequest: contactRequestMutation.mutate,
     isSending: contactRequestMutation.isPending,
@@ -193,5 +254,6 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
     getRequestsByProvider,
     sendBudgetRequestMutation,
     editRequestMutation,
+    cancelRequestMutation,
   }
 }

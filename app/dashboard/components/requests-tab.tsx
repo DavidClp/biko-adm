@@ -34,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { MessageComponent } from "@/app/my-requests/components/message-component"
 import { getStatusBadge } from "@/components/getStatusRequestBadge"
 import { SendProposalModal } from "@/components/send-proposal-modal"
+import { CancelRequestModal } from "@/components/cancel-request-modal"
 import { ChatHeader } from "@/app/my-requests/components/chat-header"
 
 export function RequestsTab() {
@@ -54,6 +55,7 @@ export function RequestsTab() {
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showSendModalProposal, setShowSendModalProposal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
 
   const handleSelectRequest = (request: IRequestService) => {
@@ -137,7 +139,7 @@ export function RequestsTab() {
   });
 
 
-  const { sendBudgetRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });
+  const { sendBudgetRequestMutation, cancelRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });
 
   const handleSendProposal = useCallback(({ budget, observation }: { budget: number, observation: string }) => {
     sendBudgetRequestMutation.mutate({
@@ -153,6 +155,25 @@ export function RequestsTab() {
 
     setShowSendModalProposal(false)
   }, [selectedRequest?.id, sendBudgetRequestMutation, sendMessageProposal])
+
+  const handleCancelRequest = useCallback(() => {
+    if (!selectedRequest?.id) return;
+    
+    cancelRequestMutation.mutate({
+      requestId: selectedRequest.id,
+      cancelledBy: 'provider',
+      userName: user?.name,
+      providerId: selectedRequest.provider?.userId,
+      clientId: selectedRequest.client?.userId,
+    }, {
+      onSuccess: () => {
+        setShowCancelModal(false);
+        setShowChat(false);
+        setSelectedRequest(null);
+        refetchRequests();
+      }
+    });
+  }, [selectedRequest?.id, cancelRequestMutation, refetchRequests, user?.name]);
 
   useEffect(() => {
     if (!user?.id || !user?.provider?.id) return
@@ -341,6 +362,7 @@ export function RequestsTab() {
               type="chat-client"
               isUserOnline={() => false}
               onSendProposal={() => setShowSendModalProposal(true)}
+              onCancelByProvider={() => setShowCancelModal(true)}
             />
 
             {selectedRequest?.id && (
@@ -495,6 +517,14 @@ export function RequestsTab() {
         isOpen={showSendModalProposal}
         onClose={() => setShowSendModalProposal(false)}
         onSendProposal={handleSendProposal}
+      />
+
+      <CancelRequestModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelRequest}
+        isLoading={cancelRequestMutation.isPending}
+        requestType="provider"
       />
     </div>
   )

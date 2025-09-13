@@ -25,6 +25,8 @@ import { ChatHeader } from "./chat-header";
 import { EmojiPicker } from "@/components/emoji-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageComponent } from "./message-component";
+import { CancelRequestModal } from "@/components/cancel-request-modal";
+import { useRequestService } from "@/hooks/use-requests-services";
 
 interface ChatSectionProps {
   selectedRequest: IRequestService | null;
@@ -32,6 +34,7 @@ interface ChatSectionProps {
   onBackToRequests: () => void;
   getStatusBadge: (status: string) => React.ReactNode;
   onNewMessage?: (msg: Message) => void;
+  onRequestCancelled?: () => void;
 }
 
 export function ChatSection({
@@ -40,9 +43,13 @@ export function ChatSection({
   onBackToRequests,
   getStatusBadge,
   onNewMessage,
+  onRequestCancelled,
 }: ChatSectionProps) {
   const { user } = useAuth();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const { cancelRequestMutation } = useRequestService({ clientId: user?.id });
 
   const {
     messages,
@@ -109,6 +116,23 @@ export function ChatSection({
     }
   }, [newMessage, stopTyping]);
 
+  const handleCancelRequest = useCallback(() => {
+    if (!selectedRequest?.id) return;
+    
+    cancelRequestMutation.mutate({
+      requestId: selectedRequest.id,
+      cancelledBy: 'client',
+      userName: user?.name,
+      providerId: selectedRequest.provider?.userId,
+      clientId: selectedRequest.client?.userId,
+    }, {
+      onSuccess: () => {
+        setShowCancelModal(false);
+        onRequestCancelled?.();
+      }
+    });
+  }, [selectedRequest?.id, cancelRequestMutation, onRequestCancelled, user?.name]);
+
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.style.height = "auto";
@@ -148,6 +172,7 @@ export function ChatSection({
             onBackToRequests={onBackToRequests}
             type="chat-provider"
             isUserOnline={isUserOnline}
+            onCancelByClient={() => setShowCancelModal(true)}
           />
 
           <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
@@ -246,6 +271,14 @@ export function ChatSection({
               </div>
             )}
           </div>
+
+          <CancelRequestModal
+            isOpen={showCancelModal}
+            onClose={() => setShowCancelModal(false)}
+            onConfirm={handleCancelRequest}
+            isLoading={cancelRequestMutation.isPending}
+            requestType="client"
+          />
         </>
       ) : (
         <div className="hidden md:flex flex-1 items-center justify-center">

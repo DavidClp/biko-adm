@@ -9,9 +9,11 @@ import { getStatusBadge } from "@/components/getStatusRequestBadge";
 interface ChatHeaderProps {
   selectedRequest: IRequestService | null;
   onBackToRequests: () => void;
-  type: "chat-client" | "chat-provider";
+  type: "chat-client" | "chat-provider"; // chat-client = provider, chat-provider = client
   isUserOnline: (userId: string) => boolean;
   onSendProposal?: () => void;
+  onCancelByClient?: () => void;
+  onCancelByProvider?: () => void;
 }
 
 export function ChatHeader({
@@ -20,6 +22,8 @@ export function ChatHeader({
   type,
   isUserOnline,
   onSendProposal,
+  onCancelByClient,
+  onCancelByProvider,
 }: ChatHeaderProps) {
   if (!selectedRequest) return null;
 
@@ -58,20 +62,20 @@ export function ChatHeader({
         {/*   {renderOnlineStatus()} */}
       </div>
 
-      {type === "chat-client" && (
+      {type === "chat-client" && selectedRequest.status === "PENDING" && (
         <Button variant="secondary" size="sm" onClick={onSendProposal}>
           Enviar Proposta
         </Button>
       )}
 
-      {type === "chat-client" && (
-        <Button variant="secondary" size="sm" onClick={onCancelProposalByProvider}>
-          Cancelar Proposta
+      {type === "chat-provider" && onCancelByClient && selectedRequest.status === "ACCEPTED" && (
+        <Button variant="destructive" size="sm" onClick={onCancelByClient}>
+          Cancelar Solicitação
         </Button>
       )}
 
-      {type === "chat-provider" && (
-        <Button variant="secondary" size="sm" onClick={onCancelProposalByClient}>
+      {type === "chat-client" && onCancelByProvider && selectedRequest.status === "ACCEPTED" && (
+        <Button variant="destructive" size="sm" onClick={onCancelByProvider}>
           Cancelar Proposta
         </Button>
       )}

@@ -25,6 +25,7 @@ import { EmojiPicker } from "@/components/emoji-picker"
 import { Textarea } from "@/components/ui/textarea"
 import { MessageComponent } from "@/app/my-requests/components/message-component"
 import { SendProposalModal } from "@/components/send-proposal-modal"
+import { CancelRequestModal } from "@/components/cancel-request-modal"
 
 export default function ChatPage() {
   const router = useRouter()
@@ -39,6 +40,7 @@ export default function ChatPage() {
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showSendModalProposal, setShowSendModalProposal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const {
     messages,
@@ -63,7 +65,7 @@ export default function ChatPage() {
     }
   })
 
-  const { sendBudgetRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });
+  const { sendBudgetRequestMutation, cancelRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });
 
   const handleSendProposal = useCallback(({ budget, observation }: { budget: number, observation: string }) => {
     sendBudgetRequestMutation.mutate({
@@ -79,6 +81,23 @@ export default function ChatPage() {
 
     setShowSendModalProposal(false)
   }, [selectedRequest?.id, sendBudgetRequestMutation, sendMessageProposal])
+
+  const handleCancelRequest = useCallback(() => {
+    if (!selectedRequest?.id) return;
+    
+    cancelRequestMutation.mutate({
+      requestId: selectedRequest.id,
+      providerId: selectedRequest.provider?.userId,
+      clientId: selectedRequest.client?.userId,
+      cancelledBy: 'provider',
+      userName: user?.name
+    }, {
+      onSuccess: () => {
+        setShowCancelModal(false);
+        router.push('/dashboard');
+      }
+    });
+  }, [selectedRequest?.id, cancelRequestMutation, router, user?.name]);
 
   useEffect(() => {
     if (requestsList && requestId) {
@@ -133,6 +152,7 @@ export default function ChatPage() {
         type="chat-client"
         isUserOnline={() => false}
         onSendProposal={() => setShowSendModalProposal(true)}
+        onCancelByProvider={() => setShowCancelModal(true)}
       />
       <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
         <RequestDetailsModal
@@ -208,6 +228,14 @@ export default function ChatPage() {
         isOpen={showSendModalProposal}
         onClose={() => setShowSendModalProposal(false)}
         onSendProposal={handleSendProposal}
+      />
+
+      <CancelRequestModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelRequest}
+        isLoading={cancelRequestMutation.isPending}
+        requestType="provider"
       />
     </div>
   )

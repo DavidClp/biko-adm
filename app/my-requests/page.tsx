@@ -182,6 +182,11 @@ export default function MyRequestsPage() {
               [msg.request_id]: (prev[msg.request_id] || 0) + 1
             }))
           }}
+          onRequestCancelled={() => {
+            setShowChat(false);
+            setSelectedRequest(null);
+            refetchRequests();
+          }}
         />
       </div>
     </div>

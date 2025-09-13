@@ -38,6 +38,14 @@ export const getStatusBadge = (status: string) => {
             Orçamento
           </Badge>
         )
+      case "cancelled_by_client":
+      case "cancelled_by_provider":
+        return (
+          <Badge variant="outline" className="text-red-600 border-red-600">
+            <XCircle className="w-3 h-3 mr-1" />
+            Cancelado
+          </Badge>
+        )
       default:
         return <Badge variant="outline">Desconhecido</Badge>
     }

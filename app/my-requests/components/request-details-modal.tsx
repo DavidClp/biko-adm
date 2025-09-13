@@ -36,7 +36,7 @@ export function RequestDetailsModal({
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="w-[80%] relative justify-start gap-2 text-gray-700 hover:bg-gray-100"
+                        className="w-[72%] relative justify-start gap-2 text-gray-700 hover:bg-gray-100"
                     >
                         <Info className="w-4 h-4 text-accent-foreground" />
                         <span className="text-sm">Ver detalhes da solicitação</span>
