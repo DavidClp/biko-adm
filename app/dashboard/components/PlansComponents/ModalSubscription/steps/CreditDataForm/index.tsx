@@ -1,25 +1,29 @@
-import { buy_payment_methods, IGroupProps, IOptionsProps, IFieldProps } from "@/app/dashboard/components/interfaces";
+import { buy_payment_methods } from "@/app/dashboard/components/interfaces";
 import { IPlan } from "@/hooks/use-subscriptions";
 import React, { useImperativeHandle, useCallback, useRef, useState, FormEvent, forwardRef, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { BsCreditCardFill, BsFillHouseFill } from 'react-icons/bs';
+import { BsCreditCardFill } from 'react-icons/bs';
 import { MdPix } from "react-icons/md";
 import { RiBarcodeFill } from "react-icons/ri";
 import { FinishSubscription } from "../FinishSubscription";
 import { PlanIcons } from "../../../PlanCard";
 import { maskFunctions } from "@/lib/maskServices";
 import { Button } from "@/components/ui/button";
-import { MagicButton } from "@/components/MagicButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Card from "react-credit-cards";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import CreditCard from "react-credit-cards";
 import valid from "card-validator";
 import { GerencianetCartao } from "../../../../../../../lib/gerencianetCartao";
 import { api } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { validateCardNumber, validateCEP, validateCNPJ, validateCPF, validateDate, validateDueDate, validateEmail, validatePhone } from "@/lib/validatesFields";
 import { useAuth } from "@/hooks/use-auth";
+import 'react-credit-cards-2/dist/es/styles-compiled.css';
+import Cards from "react-credit-cards-2";
 
 // Função para remover máscaras (pontuação) de strings
 const removeMask = (value: string | undefined): string => {
@@ -36,10 +40,6 @@ interface ICreditDataForm {
 
 export interface CreditDataRefProps {
     forceSubmit: () => any
-}
-
-export interface IGenericFormRefProps {
-    getForm: () => any
 }
 
 // Serviço para consultas de estados e cidades
@@ -121,204 +121,10 @@ const getBrand = (cardNumber: any) => {
 }
 
 
-export const personsTypesOptions: IOptionsProps[] = [
+export const personsTypesOptions = [
     { value: "PF", label: "Pessoa Física" },
     { value: "PJ", label: "Pessoa Jurídica" },
 ];
-
-// Componente GenericForm
-interface GenericFormProps {
-    groups: IGroupProps[]
-    _form: any
-    control: any
-    errors: any
-    trigger: any
-    setValue: any
-    register: any
-    disabled?: boolean
-    containerStyle?: any
-}
-
-const GenericFormComponent = forwardRef<IGenericFormRefProps, GenericFormProps>(({
-    groups,
-    _form,
-    control,
-    errors,
-    trigger,
-    setValue,
-    register,
-    disabled = false,
-    containerStyle
-}, ref) => {
-    const getForm = useCallback(() => _form, [_form]);
-
-    useImperativeHandle(ref, () => ({ getForm }));
-
-    const renderField = (field: IFieldProps) => {
-        const fieldError = errors[field.name];
-        const fieldValue = _form[field.name];
-
-        if (field.canSee && !field.canSee(_form)) {
-            return null;
-        }
-
-        const isDisabled = disabled || (field.getIsDisabled && field.getIsDisabled(_form));
-
-        switch (field.type) {
-            case 'input':
-                return (
-                    <div key={field.name} className="flex flex-col gap-2">
-                        <Label htmlFor={field.name}>
-                            {field.label}
-                            {field.required && <span className="text-red-500 ml-1">*</span>}
-                        </Label>
-                        <Controller
-                            name={field.name}
-                            control={control}
-                            rules={{
-                                required: field.required,
-                                validate: field.validate
-                            }}
-                            render={({ field: controllerField }) => (
-                                <Input
-                                    {...controllerField}
-                                    id={field.name}
-                                    disabled={isDisabled}
-                                    placeholder={field.label}
-                                    onChange={(e) => {
-                                        let value = e.target.value;
-                                        if (field.mask && maskFunctions[field.mask]) {
-                                            value = maskFunctions[field.mask].mask(value);
-                                        }
-                                        controllerField.onChange(value);
-                                        if (field.executeOnChange) {
-                                            field.executeOnChange(value);
-                                        }
-                                    }}
-                                />
-                            )}
-                        />
-                        {fieldError && (
-                            <span className="text-red-500 text-sm">{fieldError.message}</span>
-                        )}
-                    </div>
-                );
-
-            case 'select-fixed':
-                return (
-                    <div key={field.name} className="flex flex-col gap-2">
-                        <Label htmlFor={field.name}>
-                            {field.label}
-                            {field.required && <span className="text-red-500 ml-1">*</span>}
-                        </Label>
-                        <Controller
-                            name={field.name}
-                            control={control}
-                            rules={{
-                                required: field.required,
-                                validate: field.validate
-                            }}
-                            render={({ field: controllerField }) => (
-                                <Select
-                                    value={controllerField.value?.value || ''}
-                                    onValueChange={(value) => {
-                                        const option = field.options?.find((opt: any) => opt.value === value);
-                                        controllerField.onChange(option);
-                                    }}
-                                    disabled={isDisabled}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={field.label} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {field.options?.map((option: IOptionsProps) => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                        {fieldError && (
-                            <span className="text-red-500 text-sm">{fieldError.message}</span>
-                        )}
-                    </div>
-                );
-
-            case 'select-single-no-creatable':
-                return (
-                    <div key={field.name} className="flex flex-col gap-2">
-                        <Label htmlFor={field.name}>
-                            {field.label}
-                            {field.required && <span className="text-red-500 ml-1">*</span>}
-                        </Label>
-                        <Controller
-                            name={field.name}
-                            control={control}
-                            rules={{
-                                required: field.required,
-                                validate: field.validate
-                            }}
-                            render={({ field: controllerField }) => (
-                                <Select
-                                    value={controllerField.value?.value || ''}
-                                    onValueChange={(value) => {
-                                        const option = field.options?.find((opt: any) => opt.value === value);
-                                        controllerField.onChange(option);
-                                        if (field.executeOnChange) {
-                                            field.executeOnChange(option);
-                                        }
-                                    }}
-                                    disabled={isDisabled}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={field.label} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {field.options?.map((option: IOptionsProps) => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                        {fieldError && (
-                            <span className="text-red-500 text-sm">{fieldError.message}</span>
-                        )}
-                    </div>
-                );
-
-            default:
-                return null;
-        }
-    };
-
-    return (
-        <div style={containerStyle} className="space-y-4">
-            {groups.map((group) => {
-                if (group.canSee && !group.canSee(_form)) {
-                    return null;
-                }
-
-                return (
-                    <div key={group.name} className="space-y-4">
-                        <h3 className="text-lg font-semibold">{group.label}</h3>
-                        {group.fields.map((fieldRow, rowIndex) => (
-                            <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {fieldRow.map((field) => renderField(field))}
-                            </div>
-                        ))}
-                    </div>
-                );
-            })}
-        </div>
-    );
-});
-
-const GenericForm = GenericFormComponent;
 
 const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps, ICreditDataForm> = (props, ref) => {
     const { default_plan, onChangePlan = () => { }, amount, onSucess } = props
@@ -338,8 +144,6 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
     const [focus, setFocus] = useState<"name" | "cvc" | "expiry" | "number" | undefined>(undefined)
 
     const buttonSubmitRef = useRef<HTMLButtonElement>(null)
-    const creditCardFormRef = useRef<IGenericFormRefProps>(null)
-    const complementFormRef = useRef<IGenericFormRefProps>(null)
 
     const forceSubmit = useCallback(() => buttonSubmitRef.current?.click(), [buttonSubmitRef])
 
@@ -353,7 +157,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 setValue("public_place", "")
                 setValue("district", "")
                 setValue("complement", "")
-                setValue("city_id", null)
+                setValue("city_id", null, { shouldValidate: true })
                 setValue("state_id", null)
                 trigger()
             } catch (error) {
@@ -365,8 +169,8 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
     }, [setValue, trigger])
 
     // Carregar estados
-    const [statesOptions, setStatesOptions] = useState<IOptionsProps[]>([])
-    const [citiesOptions, setCitiesOptions] = useState<IOptionsProps[]>([])
+    const [statesOptions, setStatesOptions] = useState<any[]>([])
+    const [citiesOptions, setCitiesOptions] = useState<any[]>([])
 
     useEffect(() => {
         const loadStates = async () => {
@@ -397,43 +201,42 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
         loadCities()
     }, [_form.state_id])
 
-    const onSubmit = useCallback(async () => setOpenModalConfirm(true), [_form, creditCardFormRef, complementFormRef, payment_method, api])
+    const onSubmit = useCallback(async () => setOpenModalConfirm(true), [])
 
     const handleStopPropagation = useCallback((e: FormEvent<HTMLFormElement>) => {
         e?.stopPropagation()
         handleSubmit(onSubmit)(e)
-    }, [handleSubmit, onSubmit, _form, creditCardFormRef, complementFormRef, payment_method])
+    }, [handleSubmit, onSubmit])
 
     const onPaymentConfirm = useCallback(async () => {
-     /*    setOpenModalConfirm(false) */
-
         setLoadingSave(true)
         try {
-            const creditDataForm = creditCardFormRef.current?.getForm();
-            const complementCreditDataForm = complementFormRef.current?.getForm();
-
             const city_name = _form?.city_id?.this?.name
             const state_initials = _form?.state_id?.this?.initials
             
-            const credit_card = creditDataForm?.credit_card
+            const credit_card = {
+                cardNumber: _form?.cardNumber,
+                dueDate: _form?.dueDate,
+                cvv: _form?.cvv
+            }
             const address = {
-                cep: complementCreditDataForm?.cep,
-                public_place: complementCreditDataForm?.public_place,
-                number: complementCreditDataForm?.number,
-                district: complementCreditDataForm?.district,
-                complement: complementCreditDataForm?.complement,
-                city_id: complementCreditDataForm?.city_id,
-                state_id: complementCreditDataForm?.state_id
+                cep: _form?.cep,
+                public_place: _form?.public_place,
+                number: _form?.number,
+                district: _form?.district,
+                complement: _form?.complement,
+                city_id: _form?.city_id,
+                state_id: _form?.state_id
             } 
             let customer = {
-                type: complementCreditDataForm?.type,
-                name: complementCreditDataForm?.name,
-                corporate_name: complementCreditDataForm?.corporate_name,
-                email: complementCreditDataForm?.email,
-                cnpj: removeMask(complementCreditDataForm?.cnpj),
-                cpf: removeMask(complementCreditDataForm?.cpf),
-                phone_number: removeMask(complementCreditDataForm?.phone_number),
-                birth: complementCreditDataForm?.birth
+                type: _form?.type,
+                name: _form?.name,
+                corporate_name: _form?.corporate_name,
+                email: _form?.email,
+                cnpj: removeMask(_form?.cnpj),
+                cpf: removeMask(_form?.cpf),
+                phone_number: removeMask(_form?.phone_number),
+                birth: _form?.birth
             } 
 
             if (amount > 0) {
@@ -449,14 +252,16 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                     delete (customer as any)?.cnpj
                 }
 
+                let creditCardData = null;
                 if (payment_method === "credit_card") {
                     /* delete customer?.juridical_person */
 
-                    credit_card.brand = getBrand(credit_card?.cardNumber)
-                    credit_card.number = credit_card?.cardNumber
-                    credit_card.expiration_month = credit_card?.dueDate?.slice(0, 2)
-                    credit_card.expiration_year = credit_card?.dueDate?.slice(3, 7)
-                }
+                    creditCardData = {
+                        brand: getBrand(credit_card?.cardNumber),
+                        number: credit_card?.cardNumber,
+                        expiration_month: credit_card?.dueDate?.slice(0, 2),
+                        expiration_year: credit_card?.dueDate?.slice(3, 7)
+                    }
             }
 
             const data = {
@@ -470,9 +275,9 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 provider_id: user?.provider?.id
             }
 
-            if (payment_method === "credit_card" && amount > 0) {
+                if (payment_method === "credit_card" && amount > 0 && creditCardData) {
                 const sdkGn = await GerencianetCartao.instance(process.env.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID, true);
-                const { card_mask, payment_token } = await sdkGn.getPaymentToken({ ...credit_card });
+                    const { card_mask, payment_token } = await sdkGn.getPaymentToken({ ...creditCardData });
 
                 const billing_address = {
                     street: address.public_place,
@@ -485,7 +290,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
 
                 data.credit_card = {
                     card_mask,
-                    card_flag: credit_card.brand,
+                        card_flag: creditCardData.brand,
                     payment_token,
                     customer,
                     billing_address
@@ -495,279 +300,207 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
             console.log(data)
            const result = await api.post(`/subscriptions`, data);
 
-           /*   onSucess() */
+                onSucess()
+            }
         } catch (err) {
             console.error(err);
             toast({
                 title: "Problema ao assinar plano! Tente novamente mais tarde!",
                 variant: "destructive"
             })
-        }
-
+        } finally {
         setLoadingSave(false)
-    }, [_form, creditCardFormRef, complementFormRef, payment_method, api])
-
-    const creditCardGroups: IGroupProps[] = [
-        {
-            label: "Dados do cartão",
-            name: "credit_card",
-            fields: [
-                [
-                    {
-                        label: "Número do cartão",
-                        name: "cardNumber",
-                        type: "input",
-                        mask: "creditCard",
-                        validate: validateCardNumber,
-                        required: true
-                    }
-                ],
-                [
-                    {
-                        label: "Vencimento",
-                        name: "dueDate",
-                        type: "input",
-                        mask: "dueDate",
-                        validate: validateDueDate,
-                        required: true
-                    }
-                ],
-                [
-                    {
-                        label: "Código de segurança",
-                        name: "cvv",
-                        type: "input",
-                        mask: "onlyNumber",
-                        required: true,
-                        validate: async (value: any) => {
-                            if ([3, 4].includes(value?.length)) return true
-                            else return "Formato inválido"
-                        }
-                    }
-                ]
-            ]
         }
-    ]
+    }, [_form, payment_method, api])
 
-    const complementGroups: IGroupProps[] = [
-        {
-            label: "Seus dados",
-            name: "customer",
-            canSee: () => ["credit_card", "banking_billet"].includes(payment_method),
-            fields: [
-                [
-                    {
-                        name: "type",
-                        label: "Tipo",
-                        type: "select-fixed",
-                        required: true,
-                        options: personsTypesOptions,
-                        canSee: () => payment_method === "banking_billet"
-                    }
-                ],
-                [
-                    {
-                        label: "Nome completo",
-                        name: "name",
-                        type: "input",
-                        required: true,
-                        canSee: (data: any) => ["credit_card"].includes(payment_method) || (["banking_billet"].includes(payment_method) && data?.type?.value === "PF")
-                    },
-                    {
-                        name: "corporate_name",
-                        label: "Razão Social",
-                        type: "input",
-                        required: true,
-                        canSee: (data: any) => ["banking_billet"].includes(payment_method) && data?.type?.value === "PJ"
-                    },
-                    {
-                        name: "email",
-                        label: "Email",
-                        type: "input",
-                        validate: validateEmail,
-                        required: true,
-                        canSee: () => ["banking_billet", "credit_card"].includes(payment_method)
-                    }
-                ],
-                [
-                    {
-                        name: "cnpj",
-                        label: "CNPJ",
-                        type: "input",
-                        mask: "cnpj",
-                        validate: validateCNPJ,
-                        required: true,
-                        canSee: (data: any) => ["banking_billet"].includes(payment_method) && data?.type?.value === "PJ"
-                    },
-                    {
-                        label: "CPF",
-                        name: "cpf",
-                        type: "input",
-                        mask: "cpf",
-                        validate: validateCPF,
-                        required: true,
-                        canSee: (data: any) => ["credit_card"].includes(payment_method) || (["banking_billet"].includes(payment_method) && data?.type?.value === "PF")
-                    },
-                    {
-                        name: "phone_number",
-                        label: "Telefone",
-                        type: "input",
-                        mask: "phone",
-                        validate: validatePhone,
-                        required: true,
-                        canSee: () => ["banking_billet", "credit_card"].includes(payment_method)
-                    },
-                    {
-                        label: "Data de nascimento",
-                        name: "birth",
-                        type: "input",
-                        mask: "date",
-                        validate: validateDate,
-                        required: true,
-                        canSee: (data: any) => ["credit_card"].includes(payment_method) || (["banking_billet"].includes(payment_method) && data?.type?.value === "PF")
-                    }
-                ]
-            ]
-        },
-        {
-            name: "address",
-            label: "Dados de Endereço",
-            canSee: () => ["credit_card"].includes(payment_method),
-            fields: [
-                [
-                    {
-                        name: "cep",
-                        label: "CEP",
-                        type: "input",
-                        mask: "cep",
-                        validate: validateCEP,
-                        executeOnChange: changeCEP,
-                        required: true,
-                        canSee: () => payment_method === "credit_card"
-                    },
-                    {
-                        name: "state_id",
-                        label: "Estado",
-                        type: "select-single-no-creatable",
-                        isClearable: true,
-                        options: statesOptions,
-                        executeOnChange: async () => setValue("city_id", null),
-                        required: true,
-                        canSee: () => payment_method === "credit_card"
-                    },
-                    {
-                        name: "city_id",
-                        label: "Cidade",
-                        type: "select-single-no-creatable",
-                        isClearable: true,
-                        options: citiesOptions,
-                        getIsDisabled: (data: any) => !data?.state_id,
-                        required: true,
-                        canSee: () => payment_method === "credit_card"
-                    }
-                ],
-                [
-                    {
-                        name: "district",
-                        label: "Bairro",
-                        type: "input",
-                        canSee: () => payment_method === "credit_card",
-                        required: true
-                    },
-                    {
-                        name: "public_place",
-                        label: "Logradouro",
-                        type: "input",
-                        canSee: () => payment_method === "credit_card",
-                        required: true
-                    },
-                    {
-                        name: "complement",
-                        label: "Complemento",
-                        type: "input",
-                        canSee: () => payment_method === "credit_card"
-                    },
-                    {
-                        name: "number",
-                        label: "Número",
-                        type: "input",
-                        mask: "onlyNumber",
-                        canSee: () => payment_method === "credit_card",
-                        required: true
-                    }
-                ]
-            ]
-        }
-    ]
 
     useImperativeHandle(ref, () => ({ forceSubmit }))
 
     return (
         <>
-            <form onSubmit={handleStopPropagation}>
-                {default_plan?.id &&
-                    <div className="flex gap-2.5 flex-wrap justify-between rounded-md p-2.5 bg-primary border-2 border-border">
-                        <div className="flex" style={{ gap: 10, alignItems: "center" }}>
-                            <div className="p-2.5 justify-center bg-secondary items-center rounded-[50%] min-h-[50px] max-h-[50px] min-w-[50px] max-w-[50px]">
-                                <PlanIcons type={default_plan.icon || ''} size={26} opacity={1} />
+            <form onSubmit={handleStopPropagation} className="space-y-6">
+                {/* Plano Selecionado */}
+                {default_plan?.id && (
+                    <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    <div className="p-3 bg-primary rounded-full">
+                                        <PlanIcons type={default_plan.icon || ''} size={24} opacity={1} />
                             </div>
-                            <div className="flex flex-col" style={{ justifyContent: "center" }}>
-                                <b>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-foreground">
                                     {default_plan.name}
-                                </b>
-                                <div style={{ fontSize: 14 }}>
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
                                     Valor mensal de {maskFunctions.currency.mask(default_plan.value)} por acomodação ativa
+                                        </p>
+                                    </div>
                                 </div>
+                                <Button
+                                    onClick={() => onChangePlan()}
+                                    variant="outline"
+                                    size="sm"
+                                >
+                                    Alterar Plano
+                                </Button>
                             </div>
-                        </div>
+                        </CardContent>
+                    </Card>
+                )}
 
-                        <div className="flex flex-col" style={{ justifyContent: "center" }}>
-                            <Button
-                                onClick={() => { onChangePlan() }}
-                                children="Alterar"
-                                variant='outline'
-                            />
-                        </div>
-                    </div>
-                }
-
+                {/* Métodos de Pagamento */}
                 {(Number.parseFloat(`${amount}`)) > 0 && (
-                    <>
-                        <div className="flex flex-col">
-                            <div className="flex flex-col" style={{ gap: 10 }}>
-                                <b>Método de pagamento</b>
-
-                                <div className="flex flex-1 gap-5 flex-wrap">
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold">Método de Pagamento</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {methodsAllowed.map((method) => (
-                                        <div className="gap-2.5 cursor-pointer min-w-[250px] flex-1 justify-between rounded-md p-2.5 bg-primary border-2 border-border" key={method + "-button"} onClick={() => setPaymentMethod(method)}>
-                                            <MagicButton
-                                                disabled={false}
-                                                type="radio"
-                                                checked={payment_method === method}
+                                        <div
+                                            key={method}
+                                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${payment_method === method
+                                                    ? 'border-primary bg-primary/5 shadow-md'
+                                                    : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                                                }`}
                                                 onClick={() => setPaymentMethod(method)}
-                                                {...correct_methods[method]}
-                                            />
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className={`p-2 rounded-full ${payment_method === method ? 'bg-primary' : 'bg-muted'
+                                                    }`}>
+                                                    {correct_methods[method].icon}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-foreground">
+                                                        {correct_methods[method].label}
+                                                    </p>
+                                                </div>
+                                                {payment_method === method && (
+                                                    <Badge variant="default" className="ml-auto">
+                                                        Selecionado
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Dados do Cartão */}
+                        {payment_method === "credit_card" && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg font-semibold">Dados do Cartão</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                                        {/* Formulário de dados do cartão */}
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="cardNumber" className="text-sm font-medium">
+                                                    Número do cartão <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Controller
+                                                    name="cardNumber"
+                                                    control={control}
+                                                    rules={{
+                                                        required: "Número do cartão é obrigatório",
+                                                        validate: validateCardNumber
+                                                    }}
+                                                    render={({ field }) => (
+                                                        <Input
+                                                            {...field}
+                                                            id="cardNumber"
+                                                            placeholder="0000 0000 0000 0000"
+                                                            onChange={(e) => {
+                                                                const value = maskFunctions.creditCard.mask(e.target.value);
+                                                                field.onChange(value);
+                                                            }}
+                                                            onFocus={() => setFocus("number")}
+                                                            className={`h-12 text-lg ${errors.cardNumber ? 'border-red-500' : ''}`}
+                                                        />
+                                                    )}
+                                                />
+                                                {errors.cardNumber && (
+                                                    <p className="text-sm text-red-500">{errors.cardNumber.message as string}</p>
+                                                )}
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="dueDate" className="text-sm font-medium">
+                                                        Vencimento <span className="text-red-500">*</span>
+                                                    </Label>
+                                                    <Controller
+                                                        name="dueDate"
+                                                        control={control}
+                                                        rules={{
+                                                            required: "Data de vencimento é obrigatória",
+                                                            validate: validateDueDate
+                                                        }}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                {...field}
+                                                                id="dueDate"
+                                                                placeholder="MM/AAAA"
+                                                                maxLength={7}
+                                                                onChange={(e) => {
+                                                                    let value = e.target.value.replace(/\D/g, '');
+                                                                    if (value.length > 2) {
+                                                                        value = value.substring(0, 2) + '/' + value.substring(2, 6);
+                                                                    }
+                                                                    field.onChange(value);
+                                                                }}
+                                                                onFocus={() => setFocus("expiry")}
+                                                                className={`h-12 text-lg ${errors.dueDate ? 'border-red-500' : ''}`}
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.dueDate && (
+                                                        <p className="text-sm text-red-500">{errors.dueDate.message as string}</p>
+                                                    )}
                             </div>
 
-                            {payment_method === "credit_card" && (
-                                <div className="flex gap-5 items-end flex-wrap">
-                                    <GenericForm
-                                        ref={creditCardFormRef}
-                                        groups={creditCardGroups}
-                                        _form={_form}
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="cvv" className="text-sm font-medium">
+                                                        CVV <span className="text-red-500">*</span>
+                                                    </Label>
+                                                    <Controller
+                                                        name="cvv"
                                         control={control}
-                                        errors={errors}
-                                        trigger={trigger}
-                                        setValue={setValue}
-                                        register={register}
-                                        disabled={loadingCEP}
-                                        containerStyle={{ flex: 1 }}
-                                    />
-                                    <div className="flex items-end pt-2.5">
-                                        <Card
+                                                        rules={{
+                                                            required: "CVV é obrigatório",
+                                                            validate: (value) => {
+                                                                if ([3, 4].includes(value?.length)) return true;
+                                                                return "CVV deve ter 3 ou 4 dígitos";
+                                                            }
+                                                        }}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                {...field}
+                                                                id="cvv"
+                                                                placeholder="123"
+                                                                onChange={(e) => {
+                                                                    const value = maskFunctions.onlyNumber.mask(e.target.value);
+                                                                    field.onChange(value);
+                                                                }}
+                                                                onFocus={() => setFocus("cvc")}
+                                                                className={`h-12 text-lg ${errors.cvv ? 'border-red-500' : ''}`}
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.cvv && (
+                                                        <p className="text-sm text-red-500">{errors.cvv.message as string}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Simulador de cartão */}
+                                        <Cards
                                             cvc={_form?.cvv ?? ""}
                                             expiry={_form?.dueDate ?? ""}
                                             focused={focus}
@@ -777,22 +510,157 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                                             placeholders={{ name: "NOME SOBRENOME" }}
                                         />
                                     </div>
-                                </div>
-                            )}
+                                </CardContent>
+                            </Card>
+                        )}
 
-                            <GenericForm
-                                ref={complementFormRef}
-                                groups={complementGroups}
-                                _form={_form}
+                        {/* Dados Pessoais */}
+                        {["credit_card", "banking_billet"].includes(payment_method) && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg font-semibold">Dados Pessoais</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">
+                                                Nome completo <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="name"
+                                                control={control}
+                                                rules={{ required: "Nome é obrigatório" }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="name"
+                                                        placeholder="Digite seu nome completo"
+                                                        className={errors.name ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.name && (
+                                                <p className="text-sm text-red-500">{errors.name.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">
+                                                Email <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="email"
+                                                control={control}
+                                                rules={{
+                                                    required: "Email é obrigatório",
+                                                    validate: validateEmail
+                                                }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="email"
+                                                        type="email"
+                                                        placeholder="seu@email.com"
+                                                        className={errors.email ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.email && (
+                                                <p className="text-sm text-red-500">{errors.email.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="phone_number">
+                                                Telefone <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="phone_number"
+                                                control={control}
+                                                rules={{
+                                                    required: "Telefone é obrigatório",
+                                                    validate: validatePhone
+                                                }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="phone_number"
+                                                        placeholder="(11) 99999-9999"
+                                                        onChange={(e) => {
+                                                            const value = maskFunctions.phone.mask(e.target.value);
+                                                            field.onChange(value);
+                                                        }}
+                                                        className={errors.phone_number ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.phone_number && (
+                                                <p className="text-sm text-red-500">{errors.phone_number.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="cpf">
+                                                CPF <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="cpf"
+                                                control={control}
+                                                rules={{
+                                                    required: "CPF é obrigatório",
+                                                    validate: validateCPF
+                                                }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="cpf"
+                                                        placeholder="000.000.000-00"
+                                                        onChange={(e) => {
+                                                            const value = maskFunctions.cpf.mask(e.target.value);
+                                                            field.onChange(value);
+                                                        }}
+                                                        className={errors.cpf ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.cpf && (
+                                                <p className="text-sm text-red-500">{errors.cpf.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="birth">
+                                                Data de nascimento <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="birth"
                                 control={control}
-                                errors={errors}
-                                trigger={trigger}
-                                setValue={setValue}
-                                register={register}
-                                disabled={loadingCEP}
-                            />
+                                                rules={{
+                                                    required: "Data de nascimento é obrigatória",
+                                                    validate: validateDate
+                                                }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="birth"
+                                                        placeholder="DD/MM/AAAA"
+                                                        onChange={(e) => {
+                                                            const value = maskFunctions.date.mask(e.target.value);
+                                                            field.onChange(value);
+                                                        }}
+                                                        className={errors.birth ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.birth && (
+                                                <p className="text-sm text-red-500">{errors.birth.message as string}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
                         </div>
-                    </>
                 )}
 
                 <button
