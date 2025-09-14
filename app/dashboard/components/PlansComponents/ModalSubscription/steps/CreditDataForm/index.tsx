@@ -1,7 +1,7 @@
-import { buy_payment_methods, IGroupProps, IOptionsProps } from "@/app/dashboard/components/interfaces";
+import { buy_payment_methods, IGroupProps, IOptionsProps, IFieldProps } from "@/app/dashboard/components/interfaces";
 import { IPlan } from "@/hooks/use-subscriptions";
-import React, { useImperativeHandle, useCallback, useRef, useState, FormEvent } from "react";
-import { useForm } from "react-hook-form";
+import React, { useImperativeHandle, useCallback, useRef, useState, FormEvent, forwardRef, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { BsCreditCardFill, BsFillHouseFill } from 'react-icons/bs';
 import { MdPix } from "react-icons/md";
 import { RiBarcodeFill } from "react-icons/ri";
@@ -10,13 +10,22 @@ import { PlanIcons } from "../../../PlanCard";
 import { maskFunctions } from "@/lib/maskServices";
 import { Button } from "@/components/ui/button";
 import { MagicButton } from "@/components/MagicButton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Card from "react-credit-cards";
 import valid from "card-validator";
 import { GerencianetCartao } from "../../../../../../../lib/gerencianetCartao";
 import { api } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { validateCardNumber, validateCEP, validateCNPJ, validateCPF, validateDate, validateDueDate, validateEmail, validatePhone } from "@/lib/validatesFields";
+import { useAuth } from "@/hooks/use-auth";
 
+// Função para remover máscaras (pontuação) de strings
+const removeMask = (value: string | undefined): string => {
+    if (!value) return "";
+    return value.replace(/\D/g, "");
+};
 
 interface ICreditDataForm {
     default_plan?: IPlan
@@ -28,6 +37,45 @@ interface ICreditDataForm {
 export interface CreditDataRefProps {
     forceSubmit: () => any
 }
+
+export interface IGenericFormRefProps {
+    getForm: () => any
+}
+
+// Serviço para consultas de estados e cidades
+const consultsServices = {
+    state_id: async (search?: string) => {
+        try {
+            const response = await api.get('/states', {
+                params: { search }
+            });
+            return response.data.map((state: any) => ({
+                label: state.name,
+                value: state.id,
+                initials: state.initials,
+                this: state
+            }));
+        } catch (error) {
+            console.error('Erro ao buscar estados:', error);
+            return [];
+        }
+    },
+    city_id: async (search?: string, state_id?: string) => {
+        try {
+            const response = await api.get('/cities', {
+                params: { search, state_id }
+            });
+            return response.data.map((city: any) => ({
+                label: city.name,
+                value: city.id,
+                this: city
+            }));
+        } catch (error) {
+            console.error('Erro ao buscar cidades:', error);
+            return [];
+        }
+    }
+};
 
 const methodsAllowed: buy_payment_methods[] = ["credit_card", "banking_billet"]
 
@@ -76,7 +124,201 @@ const getBrand = (cardNumber: any) => {
 export const personsTypesOptions: IOptionsProps[] = [
     { value: "PF", label: "Pessoa Física" },
     { value: "PJ", label: "Pessoa Jurídica" },
-  ];
+];
+
+// Componente GenericForm
+interface GenericFormProps {
+    groups: IGroupProps[]
+    _form: any
+    control: any
+    errors: any
+    trigger: any
+    setValue: any
+    register: any
+    disabled?: boolean
+    containerStyle?: any
+}
+
+const GenericFormComponent = forwardRef<IGenericFormRefProps, GenericFormProps>(({
+    groups,
+    _form,
+    control,
+    errors,
+    trigger,
+    setValue,
+    register,
+    disabled = false,
+    containerStyle
+}, ref) => {
+    const getForm = useCallback(() => _form, [_form]);
+
+    useImperativeHandle(ref, () => ({ getForm }));
+
+    const renderField = (field: IFieldProps) => {
+        const fieldError = errors[field.name];
+        const fieldValue = _form[field.name];
+
+        if (field.canSee && !field.canSee(_form)) {
+            return null;
+        }
+
+        const isDisabled = disabled || (field.getIsDisabled && field.getIsDisabled(_form));
+
+        switch (field.type) {
+            case 'input':
+                return (
+                    <div key={field.name} className="flex flex-col gap-2">
+                        <Label htmlFor={field.name}>
+                            {field.label}
+                            {field.required && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+                        <Controller
+                            name={field.name}
+                            control={control}
+                            rules={{
+                                required: field.required,
+                                validate: field.validate
+                            }}
+                            render={({ field: controllerField }) => (
+                                <Input
+                                    {...controllerField}
+                                    id={field.name}
+                                    disabled={isDisabled}
+                                    placeholder={field.label}
+                                    onChange={(e) => {
+                                        let value = e.target.value;
+                                        if (field.mask && maskFunctions[field.mask]) {
+                                            value = maskFunctions[field.mask].mask(value);
+                                        }
+                                        controllerField.onChange(value);
+                                        if (field.executeOnChange) {
+                                            field.executeOnChange(value);
+                                        }
+                                    }}
+                                />
+                            )}
+                        />
+                        {fieldError && (
+                            <span className="text-red-500 text-sm">{fieldError.message}</span>
+                        )}
+                    </div>
+                );
+
+            case 'select-fixed':
+                return (
+                    <div key={field.name} className="flex flex-col gap-2">
+                        <Label htmlFor={field.name}>
+                            {field.label}
+                            {field.required && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+                        <Controller
+                            name={field.name}
+                            control={control}
+                            rules={{
+                                required: field.required,
+                                validate: field.validate
+                            }}
+                            render={({ field: controllerField }) => (
+                                <Select
+                                    value={controllerField.value?.value || ''}
+                                    onValueChange={(value) => {
+                                        const option = field.options?.find((opt: any) => opt.value === value);
+                                        controllerField.onChange(option);
+                                    }}
+                                    disabled={isDisabled}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={field.label} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {field.options?.map((option: IOptionsProps) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {fieldError && (
+                            <span className="text-red-500 text-sm">{fieldError.message}</span>
+                        )}
+                    </div>
+                );
+
+            case 'select-single-no-creatable':
+                return (
+                    <div key={field.name} className="flex flex-col gap-2">
+                        <Label htmlFor={field.name}>
+                            {field.label}
+                            {field.required && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+                        <Controller
+                            name={field.name}
+                            control={control}
+                            rules={{
+                                required: field.required,
+                                validate: field.validate
+                            }}
+                            render={({ field: controllerField }) => (
+                                <Select
+                                    value={controllerField.value?.value || ''}
+                                    onValueChange={(value) => {
+                                        const option = field.options?.find((opt: any) => opt.value === value);
+                                        controllerField.onChange(option);
+                                        if (field.executeOnChange) {
+                                            field.executeOnChange(option);
+                                        }
+                                    }}
+                                    disabled={isDisabled}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={field.label} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {field.options?.map((option: IOptionsProps) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {fieldError && (
+                            <span className="text-red-500 text-sm">{fieldError.message}</span>
+                        )}
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div style={containerStyle} className="space-y-4">
+            {groups.map((group) => {
+                if (group.canSee && !group.canSee(_form)) {
+                    return null;
+                }
+
+                return (
+                    <div key={group.name} className="space-y-4">
+                        <h3 className="text-lg font-semibold">{group.label}</h3>
+                        {group.fields.map((fieldRow, rowIndex) => (
+                            <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {fieldRow.map((field) => renderField(field))}
+                            </div>
+                        ))}
+                    </div>
+                );
+            })}
+        </div>
+    );
+});
+
+const GenericForm = GenericFormComponent;
 
 const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps, ICreditDataForm> = (props, ref) => {
     const { default_plan, onChangePlan = () => { }, amount, onSucess } = props
@@ -84,6 +326,8 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
     const { register, handleSubmit, control, watch, formState: { errors }, setError, setValue, trigger, unregister } = useForm({
         mode: "all"
     });
+
+    const { user } = useAuth()
 
     const _form = watch()
 
@@ -101,27 +345,57 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
 
     const changeCEP = useCallback(async (search: any) => {
         search = search.replace(/\D/g, "")
-        /* faz nada ainda por enquanto */
-       /*  if (search.length === 8) {
+        if (search.length === 8) {
             setLoadingCEP(true)
-
-            const { address, city, state } = await consultsServices.address({ search })
-
-            if (address) {
-                setValue("public_place", address.logradouro)
-                setValue("district", address.bairro)
-                setValue("complement", address.complemento)
+            try {
+                // Aqui você pode implementar a busca de CEP via API
+                // Por enquanto, vamos apenas limpar os campos de endereço
+                setValue("public_place", "")
+                setValue("district", "")
+                setValue("complement", "")
+                setValue("city_id", null)
+                setValue("state_id", null)
+                trigger()
+            } catch (error) {
+                console.error('Erro ao buscar CEP:', error)
+            } finally {
+                setLoadingCEP(false)
             }
+        }
+    }, [setValue, trigger])
 
-            if (city) setValue("city_id", { label: city.name, value: city.id, this: city })
+    // Carregar estados
+    const [statesOptions, setStatesOptions] = useState<IOptionsProps[]>([])
+    const [citiesOptions, setCitiesOptions] = useState<IOptionsProps[]>([])
 
-            if (state) setValue("state_id", { label: state.name, value: state.id, initials: state.initials, this: state })
-
-            setLoadingCEP(false)
-
-            trigger()
-        } */
+    useEffect(() => {
+        const loadStates = async () => {
+            try {
+                const states = await consultsServices.state_id()
+                setStatesOptions(states)
+            } catch (error) {
+                console.error('Erro ao carregar estados:', error)
+            }
+        }
+        loadStates()
     }, [])
+
+    // Carregar cidades quando estado for selecionado
+    useEffect(() => {
+        const loadCities = async () => {
+            if (_form.state_id?.value) {
+                try {
+                    const cities = await consultsServices.city_id(undefined, _form.state_id.value)
+                    setCitiesOptions(cities)
+                } catch (error) {
+                    console.error('Erro ao carregar cidades:', error)
+                }
+            } else {
+                setCitiesOptions([])
+            }
+        }
+        loadCities()
+    }, [_form.state_id])
 
     const onSubmit = useCallback(async () => setOpenModalConfirm(true), [_form, creditCardFormRef, complementFormRef, payment_method, api])
 
@@ -131,7 +405,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
     }, [handleSubmit, onSubmit, _form, creditCardFormRef, complementFormRef, payment_method])
 
     const onPaymentConfirm = useCallback(async () => {
-        setOpenModalConfirm(false)
+     /*    setOpenModalConfirm(false) */
 
         setLoadingSave(true)
         try {
@@ -142,24 +416,41 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
             const state_initials = _form?.state_id?.this?.initials
             
             const credit_card = creditDataForm?.credit_card
-            const address = complementCreditDataForm?.address
-            let customer = complementCreditDataForm?.customer
+            const address = {
+                cep: complementCreditDataForm?.cep,
+                public_place: complementCreditDataForm?.public_place,
+                number: complementCreditDataForm?.number,
+                district: complementCreditDataForm?.district,
+                complement: complementCreditDataForm?.complement,
+                city_id: complementCreditDataForm?.city_id,
+                state_id: complementCreditDataForm?.state_id
+            } 
+            let customer = {
+                type: complementCreditDataForm?.type,
+                name: complementCreditDataForm?.name,
+                corporate_name: complementCreditDataForm?.corporate_name,
+                email: complementCreditDataForm?.email,
+                cnpj: removeMask(complementCreditDataForm?.cnpj),
+                cpf: removeMask(complementCreditDataForm?.cpf),
+                phone_number: removeMask(complementCreditDataForm?.phone_number),
+                birth: complementCreditDataForm?.birth
+            } 
 
             if (amount > 0) {
                 if (customer) {
                     customer.birth = customer?.birth ? formatDate(customer?.birth) : undefined
-                    customer.juridical_person = {
+                   /*  customer.juridical_person = {
                         corporate_name: customer?.corporate_name,
                         cnpj: customer?.cnpj
-                    }
+                    } */
 
-                    delete customer?.type
-                    delete customer?.corporate_name
-                    delete customer?.cnpj
+                    delete (customer as any)?.type
+                    delete (customer as any)?.corporate_name
+                    delete (customer as any)?.cnpj
                 }
 
                 if (payment_method === "credit_card") {
-                    delete customer?.juridical_person
+                    /* delete customer?.juridical_person */
 
                     credit_card.brand = getBrand(credit_card?.cardNumber)
                     credit_card.number = credit_card?.cardNumber
@@ -172,7 +463,11 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 credit_card: {},
                 plan_id: default_plan?.id,
                 type: payment_method,
-                banking_billet: { customer, expire_at: formatDate(new Date()) },
+                banking_billet: { 
+                    customer, 
+                    expire_at: formatDate(new Date()) 
+                },
+                provider_id: user?.provider?.id
             }
 
             if (payment_method === "credit_card" && amount > 0) {
@@ -197,9 +492,10 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 }
             }
 
-            const result = await api.post(`/subscriptions`, data);
+            console.log(data)
+           const result = await api.post(`/subscriptions`, data);
 
-            onSucess()
+           /*   onSucess() */
         } catch (err) {
             console.error(err);
             toast({
@@ -285,8 +581,8 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                         canSee: (data: any) => ["banking_billet"].includes(payment_method) && data?.type?.value === "PJ"
                     },
                     {
-                        label: "Email",
                         name: "email",
+                        label: "Email",
                         type: "input",
                         validate: validateEmail,
                         required: true,
@@ -313,8 +609,8 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                         canSee: (data: any) => ["credit_card"].includes(payment_method) || (["banking_billet"].includes(payment_method) && data?.type?.value === "PF")
                     },
                     {
-                        label: "Telefone",
                         name: "phone_number",
+                        label: "Telefone",
                         type: "input",
                         mask: "phone",
                         validate: validatePhone,
@@ -354,7 +650,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                         label: "Estado",
                         type: "select-single-no-creatable",
                         isClearable: true,
-                        searchOptions: consultsServices.state_id,
+                        options: statesOptions,
                         executeOnChange: async () => setValue("city_id", null),
                         required: true,
                         canSee: () => payment_method === "credit_card"
@@ -364,8 +660,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                         label: "Cidade",
                         type: "select-single-no-creatable",
                         isClearable: true,
-                        searchOptions: consultsServices.city_id,
-                        additionalsQueries: (data: any) => ({ state_id: data?.state_id?.value }),
+                        options: citiesOptions,
                         getIsDisabled: (data: any) => !data?.state_id,
                         required: true,
                         canSee: () => payment_method === "credit_card"

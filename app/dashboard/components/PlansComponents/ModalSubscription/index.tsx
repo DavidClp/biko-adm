@@ -4,12 +4,12 @@ import { plansAttributes, tabProps } from "../../interfaces";
 import { useSubscriptions } from "@/hooks/use-subscriptions";
 import { toast } from "@/hooks/use-toast";
 import { copyOf } from "@/lib/generalServices";
-import { Dialog, DialogHeader } from "@/components/ui/dialog";
-import { DialogContent, DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+import { Dialog, DialogHeader, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { MessageCircle } from "lucide-react";
 import { ContentOrLoading } from "@/components/ContentOrLoading";
 import { ChoosePlan } from "./steps/ChoosePlan";
 import { Button } from "@/components/ui/button";
+import { CustomTabs } from "./components/CustomTabs";
 
 interface IModalResponsibleProps {
     onCancel: Function
@@ -24,40 +24,40 @@ const initialsTabs: tabProps[] = [
     { label: "2. Dados do Pagamento", canClick: false, open: false }
 ]
 
- /* ------------------------------------ */
+/* ------------------------------------ */
 
- const tertiary = "#07C5A6";
- const four = "#394F8F";
- 
- const fail = "#FF6B6B";
- const success = "#52C41A";
- const info = "#FAAD14";
- 
- const gray = "#DBDBDB";
- const white = "#FFF";
- const backScan = "#BDE5F3";
- 
- const inactiveItens = {
-     light: "#3a3a3a",
-     dark: "#8A8A8A",
-   };
- 
-   export const background = {
-     light: "#f8f8f8",
-     dark: "#1B191B",
-   };
- 
-   export const secondary = {
-     light: "#7041ff",
-     dark: "#7041ff",
-   };
+const tertiary = "#07C5A6";
+const four = "#394F8F";
 
-   export const borderColors = {
+const fail = "#FF6B6B";
+const success = "#52C41A";
+const info = "#FAAD14";
+
+const gray = "#DBDBDB";
+const white = "#FFF";
+const backScan = "#BDE5F3";
+
+const inactiveItens = {
+    light: "#3a3a3a",
+    dark: "#8A8A8A",
+};
+
+export const background = {
+    light: "#f8f8f8",
+    dark: "#1B191B",
+};
+
+export const secondary = {
+    light: "#7041ff",
+    dark: "#7041ff",
+};
+
+export const borderColors = {
     light: "#CCCCCC",
     dark: "rgb(68 68 68)",
-  };
- 
-   /* ------------------------------------ */
+};
+
+/* ------------------------------------ */
 
 export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
     const { onCancel, onSave, openModal, default_plan_id = null } = props
@@ -69,7 +69,7 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
     const buttonSubmitRef = useRef<HTMLButtonElement>(null)
     const paymentFormRef = useRef<CreditDataRefProps>(null)
 
-    const {plans, loading} = useSubscriptions()
+    const { plans, loading } = useSubscriptions()
 
     const handleGoToNextStep = useCallback(async (nextStep: any) => {
         if (nextStep === 3) paymentFormRef.current?.forceSubmit()
@@ -98,8 +98,8 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
     }, [step, planSelected])
 
     return (
-        <Dialog open={openModal} >
-            <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
+        <Dialog open={openModal} onOpenChange={(open) => !open && onCancel()}>
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div >
 
                     <DialogHeader className="text-center pb-4 sm:pb-6">
@@ -109,7 +109,7 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
                             </div>
                         </div>
                         <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
-                            Plano de Assinatura da sua Empresa"
+                            Plano de Assinatura da sua Empresa
                         </DialogTitle>
                         <DialogDescription className="text-sm sm:text-base text-muted-foreground px-2">
                             Selecione o melhor plano de assinatura para a sua Empresa
@@ -117,16 +117,13 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
                     </DialogHeader>
 
                     <ContentOrLoading loading={loading}>
-                    display: flex;
-                        <div className="flex flex-col overflow-auto flex-1 p5">
-                            {/* <div>
-                                <Tabs
-                                    tabs={tabs}
-                                    onChange={(index: any) => setStep(index + 1)}
-                                    pos={tabs.findIndex((tab) => tab.open)}
-                                />
-                            </div>
- */}
+                        <div className="flex flex-col overflow-auto flex-1 p-5">
+                            <CustomTabs
+                                tabs={tabs}
+                                onChange={(index: number) => setStep(index + 1)}
+                                pos={tabs.findIndex((tab) => tab.open)}
+                            />
+
                             <div style={{ display: step === 1 ? "flex" : "none", width: "100%" }}>
                                 <ChoosePlan
                                     plans={plans}
@@ -153,30 +150,24 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
                         </div>
                     </ContentOrLoading>
 
-                    <div className="flex justify-between flex-wrap p-5 gap-2.5 border-t-2 border-t-border" >
-                        <div style={{ height: "100%", flex: window.innerWidth <= 587 ? 1 : undefined }}>
-                            <Button
-                                onClick={() => step === 1 ? onCancel() : setStep((atual) => atual - 1)}
-                                color={"#FFF"}
-                                style={{ padding: 8, minWidth: 210, fontSize: 14, alignItems: "center" }}
-                                children="Voltar"
-                                variant='outline'
-                            />
-                        </div>
-                        <div style={{ height: "100%", flex: window.innerWidth <= 587 ? 1 : undefined }}>
-                            <Button
-                                onClick={() => handleGoToNextStep(step + 1)}
-                                color={"#FFF"}
-                                disabled={planSelected === null}
-                                style={{ padding: 8, minWidth: 210, fontSize: 14 }}
-                                children={step === 1 ? "Próximo" : "Confirmar pagamento"}
-                            />
-                        </div>
-                    </div>
-
+                </div>
+                <div className="flex justify-between flex-wrap py-5 gap-2.5 border-t-[1px] border-t-[#dee2e6]" >
+                    <Button
+                        onClick={() => step === 1 ? onCancel() : setStep((atual) => atual - 1)}
+                        color={"#FFF"}
+                        style={{ padding: 8, minWidth: 210, fontSize: 14, alignItems: "center" }}
+                        children="Voltar"
+                        variant='outline'
+                    />
+                    <Button
+                        onClick={() => handleGoToNextStep(step + 1)}
+                        color={"#FFF"}
+                        disabled={planSelected === null}
+                        style={{ padding: 8, minWidth: 210, fontSize: 14 }}
+                        children={step === 1 ? "Próximo" : "Confirmar pagamento"}
+                    />
                 </div>
             </DialogContent>
-
         </Dialog>
     )
 }

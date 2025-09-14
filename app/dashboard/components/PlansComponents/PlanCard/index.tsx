@@ -42,11 +42,6 @@ export const background = {
     dark: "#1B191B",
 };
 
-export const secondary = {
-    light: "#7041ff",
-    dark: "#7041ff",
-};
-
 /* ------------------------------------ */
 
 const getPartIntAndDecimal = (value: string) => {
@@ -64,27 +59,36 @@ export const PlanCard: React.FC<IPlanCard> = (props) => {
     const { plan, selected, onClick } = props
 
     return (
-        <div onClick={() => onClick(plan?.id)} /* selected={selected} theme={theme} */>
+       /*  ${props => css`
+            border: 2px solid ${primary[props.theme as themeTypes]};
+            background: ${primary[props.theme as themeTypes]};
+            box-shadow:0.125rem 0.125rem 0.5rem ${shadowColor[props.theme as themeTypes]};
+        `}
+        ${props => props.selected && css`
+            border: 2px solid ${secondary[props.theme as themeTypes]};
+        `} */
+        <div 
+            className={`rounded-md flex flex-col cursor-pointer p-5 min-w-[300px] flex-1 ${selected ? "border-2 border-primary" : ""}`} 
+            style={{ boxShadow: "0.125rem 0.125rem 0.5rem rgba(0,0,0,0.1)" }}
+            onClick={() => onClick(plan?.id)}
+      >
             <div style={{ display: "flex", whiteSpace: "nowrap", justifyContent: "flex-end", gap: 10 }}>
                 {selected &&
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minWidth: 20, maxWidth: 20, minHeight: 20, maxHeight: 20, borderRadius: "50%", boxShadow: "rgb(187 187 187 / 70%) 0.125rem 0.125rem 0.5rem" }}>
-                        <AiFillCheckCircle style={{ width: 20, height: 20 }} color={secondary['light']} />
+                        <AiFillCheckCircle style={{ width: 20, height: 20 }} className="text-primary" />
                     </div>}
                 {!selected && <div style={{ width: 20, height: 20, borderRadius: "50%", boxShadow: "rgb(187 187 187 / 70%) 0.125rem 0.125rem 0.5rem" }} />}
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20, gap: 10 }}>
-                <div style={{ display: "flex", background: secondary['light'], justifyContent: "center", alignItems: "center", minWidth: 100, maxWidth: 100, minHeight: 100, maxHeight: 100, borderRadius: "50%" }}>
+                <div className="bg-primary" style={{ display: "flex", justifyContent: "center", alignItems: "center", minWidth: 100, maxWidth: 100, minHeight: 100, maxHeight: 100, borderRadius: "50%" }}>
                     <PlanIcons type={plan?.icon || ''} size={70} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <div style={{ fontWeight: 600, fontSize: 22, color: secondary['light'], textAlign: "center" }}>{plan?.name?.toUpperCase()}</div>
+                    <div className="text-primary" style={{ fontWeight: 600, fontSize: 22, textAlign: "center" }}>{plan?.name?.toUpperCase()}</div>
                     <div style={{ opacity: 0.5, marginTop: -5, }}>Plano mensal</div>
                 </div>
-                <div style={{ fontWeight: 600, fontSize: 22, marginTop: -10, color: secondary['light'] }}>
+                <div className="text-primary" style={{ fontWeight: 600, fontSize: 22, marginTop: -10 }}>
                     {getPartIntAndDecimal(maskFunctions.currency.mask(plan?.value))}
-                </div>
-                <div style={{ fontWeight: 500, fontSize: 14, marginTop: -15 }}>
-                    POR ACOMODAÇÃO ATIVA
                 </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

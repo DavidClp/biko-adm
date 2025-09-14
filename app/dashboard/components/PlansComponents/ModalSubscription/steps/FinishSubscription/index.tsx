@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { IPlan } from "@/hooks/use-subscriptions";
 import { correctDate2 } from "@/lib/generalServices";
 import { maskFunctions } from "@/lib/maskServices";
-import { Description, DialogContent } from "@radix-ui/react-dialog";
+import { Description } from "@radix-ui/react-dialog";
 import React, { useState } from "react";
 import { TiDelete } from "react-icons/ti";
 interface IFinishSubscription {
@@ -21,20 +21,12 @@ export const FinishSubscription: React.FC<IFinishSubscription> = (props) => {
     const [textConfirm, setTextConfirm] = useState("")
 
     return (
-        <Dialog /* onClose={() => onCancel()} */ open={openModal} >
-            <DialogContent >
+        <Dialog open={openModal} onOpenChange={(open) => !open && onCancel()}>
+            <DialogContent className="max-w-2xl">
                 <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
-                        <p>
-                            Você tem certeza disso?
-                        </p>
-                        <div onClick={() => onCancel()} style={{ cursor: "pointer" }}>
-                            <TiDelete
-                                color={"#a00000"}
-                                size={20}
-                            />
-                        </div>
-                    </div>
+                    <p>
+                        Você tem certeza disso?
+                    </p>
                     <Description>
                         Ao assinar um novo plano, você concorda
                         em cancelar o seu plano atual, caso possua algum e
@@ -48,8 +40,10 @@ export const FinishSubscription: React.FC<IFinishSubscription> = (props) => {
                         Por favor digite <b>PAGAR</b> para confirmar
                     </div>
                     <Input
-                        onChange={(value: any) => setTextConfirm(value)}
+                        value={textConfirm}
+                        onChange={(e) => setTextConfirm(e.target.value)}
                         style={{ textTransform: "uppercase" }}
+                        placeholder="Digite PAGAR"
                     />
                 </div>
                 <Button
@@ -57,8 +51,9 @@ export const FinishSubscription: React.FC<IFinishSubscription> = (props) => {
                     color="#FFF"
                     style={{ width: "100%", fontSize: 16 }}
                     onClick={() => onConfirm()}
-                    children="Estou ciente, pagar agora"
-                />
+                >
+                    Estou ciente, pagar agora
+                </Button>
             </DialogContent>
         </Dialog>
     )

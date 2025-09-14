@@ -44,21 +44,34 @@ const MaskMxCoin = (number: any) => {
 const MaskCPF = (cpf: any) => {
     if (valueIsEmpty(cpf)) return ""
 
+    // Remove todos os caracteres não numéricos
+    const cleanCpf = cpf.replace(/\D/g, "")
+    
+    // Limita a 11 dígitos
+    const limitedCpf = cleanCpf.substring(0, 11)
+    
     let string = ""
-    for (let i = 0; i < cpf.length; i++) {
-        let char = cpf[i]
+    for (let i = 0; i < limitedCpf.length; i++) {
+        let char = limitedCpf[i]
         if (i === 3 || i === 6) string += "." + char
         else if (i === 9) string += "-" + char
-        else if (i <= 10) string += char
+        else string += char
     }
     return string
 }
 
 const MaskCNPJ = (cnpj: any) => {
     if (valueIsEmpty(cnpj)) return ""
+    
+    // Remove todos os caracteres não numéricos
+    const cleanCnpj = cnpj.replace(/\D/g, "")
+    
+    // Limita a 14 dígitos
+    const limitedCnpj = cleanCnpj.substring(0, 14)
+    
     let string = ""
-    for (let i = 0; i < cnpj.length; i++) {
-        let char = cnpj[i]
+    for (let i = 0; i < limitedCnpj.length; i++) {
+        let char = limitedCnpj[i]
         if (i === 2 || i === 5) string += "." + char
         else if (i === 8) string += "/" + char
         else if (i === 12) string += "-" + char
@@ -69,10 +82,17 @@ const MaskCNPJ = (cnpj: any) => {
 
 export const MaskPhone = (phone: any) => {
     if (valueIsEmpty(phone)) return ""
+    
+    // Remove todos os caracteres não numéricos
+    const cleanPhone = phone.replace(/\D/g, "")
+    
+    // Limita a 11 dígitos
+    const limitedPhone = cleanPhone.substring(0, 11)
+    
     let string = ""
-    if (phone.length < 11) {
-        for (let i = 0; i < phone.length; i++) {
-            let char = phone[i]
+    if (limitedPhone.length < 11) {
+        for (let i = 0; i < limitedPhone.length; i++) {
+            let char = limitedPhone[i]
             if (i === 0) string += "(" + char
             else if (i === 2) string += ") " + char
             else if (i === 6) string += "-" + char
@@ -80,8 +100,8 @@ export const MaskPhone = (phone: any) => {
         }
     }
     else {
-        for (let i = 0; i < phone.length; i++) {
-            let char = phone[i]
+        for (let i = 0; i < limitedPhone.length; i++) {
+            let char = limitedPhone[i]
             if (i === 0) string += "(" + char
             else if (i === 1) string += char + ")"
             else if (i === 2 || i === 3) string += " " + char
@@ -129,10 +149,16 @@ const MaskDate = (date: any) => {
 
 const MaskCEP = (cep: string) => {
     if (valueIsEmpty(cep)) return ""
+    
+    // Remove todos os caracteres não numéricos
+    const cleanCep = cep.replace(/\D/g, "")
+    
+    // Limita a 8 dígitos
+    const limitedCep = cleanCep.substring(0, 8)
+    
     let string = ""
-    cep = `${cep}`
-    for (let i = 0; i < cep.length; i++) {
-        let char = cep[i]
+    for (let i = 0; i < limitedCep.length; i++) {
+        let char = limitedCep[i]
         if (i === 5) string += "-" + char
         else string += char
     }

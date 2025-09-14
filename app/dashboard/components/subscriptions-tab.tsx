@@ -116,7 +116,7 @@ export function SubscriptionsTab() {
   }, [fetchSubscription])
 
   return (
-    <div>
+    <div className="">
       <h1>
         <div className="flex flex-col">{/* column */}
           <h4>Assinatura</h4>
@@ -148,8 +148,8 @@ export function SubscriptionsTab() {
       </h1>
 
       <ContentOrLoading loading={loading} text="Buscando assinatura da empresa">
-        <div className="flex flex-1">
-          {subscription?.id &&
+        <div className="flex flex-1 h-full w-full items-center justify-center">
+          {!subscription?.id &&
             <div className="flex flex-col gap-2.5 items-center justify-center">
               {/*  <img src={subscriptionImage} style={{ maxWidth: '30vh', marginBottom: '60px' }} /> */}
 
@@ -166,6 +166,7 @@ export function SubscriptionsTab() {
               </div>
             </div>
           }
+
           {subscription?.id &&
             <div className="flex flex-col gap-5 pt-5 w-full">
               <SubscriptionCard
