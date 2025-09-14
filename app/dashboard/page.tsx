@@ -44,6 +44,7 @@ import {
 } from "lucide-react"
 import { ProfileTab } from "./components/profile-tab"
 import { RequestsTab } from "./components/requests-tab"
+import { SubscriptionsTab } from "./components/subscriptions-tab"
 
 export default function DashboardPage() {
   const { user, deleteAccount, loading } = useAuth()
@@ -132,7 +133,7 @@ export default function DashboardPage() {
         </div>
 
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="requests" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
               Mensagens
@@ -140,6 +141,10 @@ export default function DashboardPage() {
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Perfil
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" className="flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              Assinatura
             </TabsTrigger>
            {/*  <TabsTrigger value="ai-tools" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
@@ -158,6 +163,11 @@ export default function DashboardPage() {
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
             <ProfileTab userId={user?.id!} providerId={user?.provider?.id!} />
+          </TabsContent>
+
+          {/* Subscriptions Tab */}
+          <TabsContent value="subscriptions" className="space-y-6">
+            <SubscriptionsTab />
           </TabsContent>
 
           {/* AI Tools Tab */}
