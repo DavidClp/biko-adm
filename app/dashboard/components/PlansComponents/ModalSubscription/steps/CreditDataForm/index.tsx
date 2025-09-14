@@ -660,7 +660,206 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                                 </CardContent>
                             </Card>
                         )}
-                        </div>
+
+                        {/* Endereço (apenas para cartão de crédito) */}
+                        {payment_method === "credit_card" && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg font-semibold">Dados de Endereço</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="cep">
+                                                CEP <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="cep"
+                                                control={control}
+                                                rules={{
+                                                    required: "CEP é obrigatório",
+                                                    validate: validateCEP
+                                                }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="cep"
+                                                        placeholder="00000-000"
+                                                        onChange={(e) => {
+                                                            const value = maskFunctions.cep.mask(e.target.value);
+                                                            field.onChange(value);
+                                                            changeCEP(value);
+                                                        }}
+                                                        className={errors.cep ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.cep && (
+                                                <p className="text-sm text-red-500">{errors.cep.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="state_id">
+                                                Estado <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="state_id"
+                                                control={control}
+                                                rules={{ required: "Estado é obrigatório" }}
+                                                render={({ field }) => (
+                                                    <Select
+                                                        value={field.value?.value || ''}
+                                                        onValueChange={(value) => {
+                                                            const option = statesOptions.find(opt => opt.value === value);
+                                                            field.onChange(option);
+                                                            setValue("city_id", null, { shouldValidate: true });
+                                                        }}
+                                                    >
+                                                        <SelectTrigger className={errors.state_id ? 'border-red-500' : ''}>
+                                                            <SelectValue placeholder="Selecione o estado" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {statesOptions.map((option) => (
+                                                                <SelectItem key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.state_id && (
+                                                <p className="text-sm text-red-500">{errors.state_id.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="city_id">
+                                                Cidade <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="city_id"
+                                                control={control}
+                                                rules={{ required: "Cidade é obrigatória" }}
+                                                render={({ field }) => (
+                                                    <Select
+                                                        value={field.value?.value || ''}
+                                                        onValueChange={(value) => {
+                                                            const option = citiesOptions.find(opt => opt.value === value);
+                                                            field.onChange(option);
+                                                        }}
+                                                        disabled={!statesOptions.length || !_form?.state_id}
+                                                    >
+                                                        <SelectTrigger className={errors.city_id ? 'border-red-500' : ''}>
+                                                            <SelectValue placeholder="Selecione a cidade" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {citiesOptions.map((option) => (
+                                                                <SelectItem key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.city_id && (
+                                                <p className="text-sm text-red-500">{errors.city_id.message as string}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="public_place">
+                                                Logradouro <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="public_place"
+                                                control={control}
+                                                rules={{ required: "Logradouro é obrigatório" }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="public_place"
+                                                        placeholder="Rua, Avenida, etc."
+                                                        className={errors.public_place ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.public_place && (
+                                                <p className="text-sm text-red-500">{errors.public_place.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="district">
+                                                Bairro <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="district"
+                                                control={control}
+                                                rules={{ required: "Bairro é obrigatório" }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="district"
+                                                        placeholder="Nome do bairro"
+                                                        className={errors.district ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.district && (
+                                                <p className="text-sm text-red-500">{errors.district.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="number">
+                                                Número <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Controller
+                                                name="number"
+                                                control={control}
+                                                rules={{ required: "Número é obrigatório" }}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="number"
+                                                        placeholder="123"
+                                                        onChange={(e) => {
+                                                            const value = maskFunctions.onlyNumber.mask(e.target.value);
+                                                            field.onChange(value);
+                                                        }}
+                                                        className={errors.number ? 'border-red-500' : ''}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.number && (
+                                                <p className="text-sm text-red-500">{errors.number.message as string}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="complement">Complemento</Label>
+                                            <Controller
+                                                name="complement"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        id="complement"
+                                                        placeholder="Apartamento, sala, etc."
+                                                    />
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
                 )}
 
                 <button
