@@ -51,7 +51,7 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
     if (provider) {
       form.reset({
         name: provider.name || "",
-        service: provider.service || "",
+        service: provider.services || "",
         cityId: provider.cityId || "",
         phone: provider.phone || "",
         description: provider.description || "",

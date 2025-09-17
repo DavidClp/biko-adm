@@ -24,6 +24,7 @@ import { validateCardNumber, validateCEP, validateCNPJ, validateCPF, validateDat
 import { useAuth } from "@/hooks/use-auth";
 import 'react-credit-cards-2/dist/es/styles-compiled.css';
 import Cards from "react-credit-cards-2";
+import { User } from "@/lib/types";
 
 // Função para remover máscaras (pontuação) de strings
 const removeMask = (value: string | undefined): string => {
@@ -149,7 +150,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
 
     const changeCEP = useCallback(async (search: any) => {
         search = search.replace(/\D/g, "")
-        if (search.length === 8) {
+        /* if (search.length === 8) {
             setLoadingCEP(true)
             try {
                 // Aqui você pode implementar a busca de CEP via API
@@ -165,7 +166,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
             } finally {
                 setLoadingCEP(false)
             }
-        }
+        } */
     }, [setValue, trigger])
 
     // Carregar estados
@@ -184,19 +185,18 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
         loadStates()
     }, [])
 
-    // Carregar cidades quando estado for selecionado
     useEffect(() => {
         const loadCities = async () => {
-            if (_form.state_id?.value) {
-                try {
-                    const cities = await consultsServices.city_id(undefined, _form.state_id.value)
-                    setCitiesOptions(cities)
-                } catch (error) {
-                    console.error('Erro ao carregar cidades:', error)
-                }
-            } else {
-                setCitiesOptions([])
+            /*   if (_form.state_id?.value) { */
+            try {
+                const cities = await consultsServices.city_id(undefined, _form.state_id.value)
+                setCitiesOptions(cities)
+            } catch (error) {
+                console.error('Erro ao carregar cidades:', error)
             }
+            /* } else {
+                setCitiesOptions([])
+            } */
         }
         loadCities()
     }, [_form.state_id])
@@ -209,16 +209,19 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
     }, [handleSubmit, onSubmit])
 
     const onPaymentConfirm = useCallback(async () => {
+        setOpenModalConfirm(false)
         setLoadingSave(true)
         try {
             const city_name = _form?.city_id?.this?.name
             const state_initials = _form?.state_id?.this?.initials
+
 
             const credit_card = {
                 cardNumber: _form?.cardNumber,
                 dueDate: _form?.dueDate,
                 cvv: _form?.cvv
             }
+
             const address = {
                 cep: _form?.cep,
                 public_place: _form?.public_place,
@@ -258,12 +261,12 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
 
                     creditCardData = {
                         brand: getBrand(credit_card?.cardNumber),
-                        number: credit_card?.cardNumber,
+                        number: removeMask(credit_card?.cardNumber),
                         expiration_month: credit_card?.dueDate?.slice(0, 2),
-                        expiration_year: credit_card?.dueDate?.slice(3, 7)
+                        expiration_year: credit_card?.dueDate?.slice(3, 7),
+                        cvv: credit_card?.cvv
                     }
                 }
-
                 const data = {
                     credit_card: {},
                     plan_id: default_plan?.id,
@@ -276,14 +279,15 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 }
 
                 if (payment_method === "credit_card" && amount > 0 && creditCardData) {
-                    const sdkGn = await GerencianetCartao.instance(process.env.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID, true);
+                    const sdkGn = await GerencianetCartao.instance(process.env.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID, false);
+
                     const { card_mask, payment_token } = await sdkGn.getPaymentToken({ ...creditCardData });
 
                     const billing_address = {
                         street: address.public_place,
                         number: address.number,
                         neighborhood: address.district,
-                        zipcode: address.cep,
+                        zipcode: address.cep?.replace(/\D/g, ""),
                         city: city_name,
                         state: state_initials
                     }
@@ -297,15 +301,13 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                     }
                 }
 
-                console.log(data)
                 const result = await api.post(`/subscriptions`, data);
 
-                console.log("result", result)
-              /*   setUser((user) => ({
-                     ...user,
-                      subscription_id: result?.data,
-                      subscription: result?.data?.id
-                    })) */
+                setUser({
+                    ...user,
+                    subscription_id: result?.data?.id,
+                    subscription: result?.data
+                } as User)
 
                 onSucess()
             }

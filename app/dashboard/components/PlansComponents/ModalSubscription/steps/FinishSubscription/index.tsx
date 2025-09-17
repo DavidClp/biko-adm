@@ -31,8 +31,8 @@ export const FinishSubscription: React.FC<IFinishSubscription> = (props) => {
                         Ao assinar um novo plano, você concorda
                         em cancelar o seu plano atual, caso possua algum e
                         em pagar mensalmente a partir do dia <b>{correctDate2(new Date())}</b> o
-                        valor de <b>{maskFunctions.currency.mask(planSelected.value)}</b> por acomodação ativa, em razão da assinatura
-                        do plano <b>{planSelected.name}</b>.
+                        valor de <b>{maskFunctions.currency.mask(planSelected?.value)}</b>, em razão da assinatura
+                        do plano <b>{planSelected?.name}</b>.
                     </Description>
                 </div>
                 <div style={{ display: "flex", gap: 5, flexDirection: "column", width: "100%", marginBottom: 10 }}>
