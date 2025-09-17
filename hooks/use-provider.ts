@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast'
 
 interface UpdateProfileData {
   name: string
-  service: string
+  services: string[]
   cityId: string
   phone: string
   description: string
@@ -36,39 +36,39 @@ export function useProvider({ providerId }: { providerId?: string }) {
     retry: 2,
   })
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (params: UpdateProfileData): Promise<Provider> => {
-      try {
-        const { data } = await api.put<Provider>(`/providers/${providerId}`, params)
+    const updateProfileMutation = useMutation({
+      mutationFn: async (params: UpdateProfileData): Promise<Provider> => {
+        try {
+          const { data } = await api.put<Provider>(`/providers/${providerId}`, params)
 
-        if (!data) {
-          throw new Error('Provider not found')
+          if (!data) {
+            throw new Error('Provider not found')
+          }
+
+          return data
+        } catch (error) {
+          console.error('Erro ao atualizar perfil:', error)
+          throw error
         }
+      },
+      onSuccess: (data) => {
+        queryClient.setQueryData(['profile', providerId], data)
+        queryClient.invalidateQueries({ queryKey: ['provider', providerId] })
 
-        return data
-      } catch (error) {
-        console.error('Erro ao atualizar perfil:', error)
-        throw error
-      }
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['profile', providerId], data)
-      queryClient.invalidateQueries({ queryKey: ['provider', providerId] })
-
-      toast({
-        title: "Perfil atualizado!",
-        description: "Suas informações foram salvas com sucesso.",
-        variant: "default",
-      })
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar perfil",
-        description: error.message || "Tente novamente mais tarde.",
-        variant: "destructive",
-      })
-    },
-  })
+        toast({
+          title: "Perfil atualizado!",
+          description: "Suas informações foram salvas com sucesso.",
+          variant: "default",
+        })
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "Erro ao atualizar perfil",
+          description: error.message || "Tente novamente mais tarde.",
+          variant: "destructive",
+        })
+      },
+    })
 
   const updateListedStatusMutation = useMutation({
     mutationFn: async (isListed: boolean): Promise<Provider> => {
@@ -104,6 +104,51 @@ export function useProvider({ providerId }: { providerId?: string }) {
     },
   })
 
+  const updateImgProfileMutation = useMutation({
+    mutationFn: async (formData: FormData): Promise<{ url: string }> => {
+      try {
+        const { data } = await api.post<{ url: string }>(`/providers/update-profile-img?providerId=${providerId}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+
+        if (!data) {
+          throw new Error('Erro ao fazer upload da imagem')
+        }
+
+        return data
+      } catch (error) {
+        console.error('Erro ao fazer upload da imagem:', error)
+        throw error
+      }
+    },
+    onSuccess: (data) => {
+      // Atualizar o cache com a nova URL da foto
+      queryClient.setQueryData(['profile', providerId], (oldData: Provider | undefined) => {
+        if (oldData) {
+          return { ...oldData, photoUrl: data.url }
+        }
+        return oldData
+      })
+      queryClient.invalidateQueries({ queryKey: ['provider', providerId] })
+
+      toast({
+        title: "Foto atualizada!",
+        description: "Sua foto de perfil foi atualizada com sucesso.",
+        variant: "default",
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar foto",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      })
+    },
+  })
+
+
   return {
     provider: profileQuery.data,
     isLoading: profileQuery.isLoading,
@@ -116,5 +161,6 @@ export function useProvider({ providerId }: { providerId?: string }) {
     isUpdatingListedStatus: updateListedStatusMutation.isPending,
 
     refetch: profileQuery.refetch,
+    updateImgProfileMutation: updateImgProfileMutation,
   }
 }
