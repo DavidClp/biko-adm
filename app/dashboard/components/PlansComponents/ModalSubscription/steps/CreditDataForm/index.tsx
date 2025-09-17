@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import CreditCard from "react-credit-cards";
 import valid from "card-validator";
 import { GerencianetCartao } from "../../../../../../../lib/gerencianetCartao";
@@ -209,7 +210,6 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
     }, [handleSubmit, onSubmit])
 
     const onPaymentConfirm = useCallback(async () => {
-        setOpenModalConfirm(false)
         setLoadingSave(true)
         try {
             const city_name = _form?.city_id?.this?.name
@@ -318,6 +318,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 variant: "destructive"
             })
         } finally {
+            setOpenModalConfirm(false)
             setLoadingSave(false)
         }
     }, [_form, payment_method, api])
@@ -889,6 +890,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                     openModal={openModalConfirm}
                     onCancel={() => setOpenModalConfirm(false)}
                     onConfirm={onPaymentConfirm}
+                    loading={loadingSave}
                 />
             }
         </div>

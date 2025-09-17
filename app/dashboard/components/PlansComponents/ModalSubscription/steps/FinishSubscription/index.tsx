@@ -5,6 +5,7 @@ import { IPlan } from "@/hooks/use-subscriptions";
 import { correctDate2 } from "@/lib/generalServices";
 import { maskFunctions } from "@/lib/maskServices";
 import { Description } from "@radix-ui/react-dialog";
+import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { TiDelete } from "react-icons/ti";
 interface IFinishSubscription {
@@ -13,15 +14,16 @@ interface IFinishSubscription {
     openModal: boolean
     backgroundVisible?: boolean
     planSelected: IPlan
+    loading: boolean
 }
 
 export const FinishSubscription: React.FC<IFinishSubscription> = (props) => {
-    const { onCancel, onConfirm, openModal, backgroundVisible, planSelected } = props
+    const { onCancel, onConfirm, openModal, backgroundVisible, planSelected, loading } = props
 
     const [textConfirm, setTextConfirm] = useState("")
 
     return (
-        <Dialog open={openModal} onOpenChange={(open) => !open && onCancel()}>
+        <Dialog open={openModal} onOpenChange={(open) => !open && !loading && onCancel()}>
             <DialogContent className="max-w-2xl">
                 <div>
                     <p>
@@ -46,14 +48,19 @@ export const FinishSubscription: React.FC<IFinishSubscription> = (props) => {
                         placeholder="Digite PAGAR"
                     />
                 </div>
-                <Button
-                    disabled={textConfirm.toUpperCase() !== "PAGAR"}
+              <Button
+                    disabled={textConfirm.toUpperCase() !== "PAGAR" || loading}
                     color="#FFF"
                     style={{ width: "100%", fontSize: 16 }}
                     onClick={() => onConfirm()}
                 >
                     Estou ciente, pagar agora
                 </Button>
+                {loading && (
+                    <div className="absolute top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-[999] overflow-y-auto">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                )}
             </DialogContent>
         </Dialog>
     )
