@@ -1,3 +1,5 @@
+import { subscriptionsAttributes } from "@/app/dashboard/components/interfaces"
+
 export interface ApiResponse<T = any> {
   success: boolean
   data?: T
@@ -49,7 +51,11 @@ export interface User {
   updatedAt?: string;
   client?: Client | null;
   provider?: Provider | null;
+  subscription?: subscriptionsAttributes | null;
+  subscription_id?: string | null;
 }
+
+
 
 export interface Client extends User {
   phone: string

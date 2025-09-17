@@ -142,9 +142,9 @@ export default function DashboardPage() {
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <UserRoundPen className="h-7 w-7" />
             </TabsTrigger>
-        {/*     <TabsTrigger value="subscriptions" className="flex items-center gap-2">
+            <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Star className="h-7 w-7" />
-            </TabsTrigger> */}
+            </TabsTrigger>
             {/*  <TabsTrigger value="ai-tools" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
               IA Tools
@@ -380,7 +380,6 @@ export default function DashboardPage() {
         </Tabs>
       </div>
 
-      <Footer />
     </div>
   )
 }

@@ -50,27 +50,13 @@ export function SubscriptionsTab() {
     fetchSubscription
   } = useSubscriptions()
 
-  const [selectedPlan, setSelectedPlan] = useState<IPlan | null>(null)
-  const [isSubscribeDialogOpen, setIsSubscribeDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState("credit_card")
-  const [cardData, setCardData] = useState({
-    number: "",
-    expiry: "",
-    cvv: "",
-    name: ""
-  })
-
-
   const [openModal, setOpenModal] = useState(false)
   const [changePlan, setChangePlan] = useState(false)
   const [openCancelSubscription, setOpenCancelSubscription] = useState(false)
   const [loadingCancelSubscription, setLoadingCancelSubscription] = useState(false)
   const [transaction_selected, setTransactionSelected] = useState<string | null>(null)
 
-
   const onSaveSubscription = useCallback(async (transaction_id: string) => {
-    /* notify("Compra de nova assinatura realizada!", "success") */
     toast({
       title: "Compra de nova assinatura realizada!",
       description: "Compra de nova assinatura realizada!",
@@ -117,36 +103,6 @@ export function SubscriptionsTab() {
 
   return (
     <div className="">
-      <h1>
-        <div className="flex flex-col">{/* column */}
-          <h4>Assinatura</h4>
-          {/*    <div className="flex gap-2.5 items-center justify-between flex-wrap pb-2.5 border-2 border-[#CCCCCC]">
-                    {!_wallet.loading_all ?
-                        <div className="flex flex-col gap-2.5 items-center flex-wrap">
-                            <div className="flex">
-                                <SubTitle>Última atualização realizada em <b>{correctDateDashboard(_wallet.updatedAt)}</b></SubTitle>
-                                <ContainerReload onClick={() => search()}>
-                                    <AiOutlineReload />
-                                </ContainerReload>
-                            </div>
-                            <div style={{ fontSize: 14, whiteSpace: "nowrap" }}>
-
-                            </div>
-                        </div>
-                        :
-                        <Line>
-                            <SubTitle>Atualizando dados da sua assinatura</SubTitle>
-                            <CircularProgress
-                                size={10}
-                                variant="indeterminate"
-                                style={{ color: secondary[theme] }}
-                            />
-                        </Line>
-                    }
-                </div> */}
-        </div>
-      </h1>
-
       <ContentOrLoading loading={loading} text="Buscando assinatura da empresa">
         <div className="flex flex-1 h-full w-full items-center justify-center">
           {!subscription?.id &&
@@ -154,7 +110,7 @@ export function SubscriptionsTab() {
               {/*  <img src={subscriptionImage} style={{ maxWidth: '30vh', marginBottom: '60px' }} /> */}
 
               <p className="font-[22px] italic">
-                Empresa ainda não possui uma assinatura
+                Você ainda não possui uma assinatura
               </p>
               <div>
                 <Button
@@ -168,7 +124,7 @@ export function SubscriptionsTab() {
           }
 
           {subscription?.id &&
-            <div className="flex flex-col gap-5 pt-5 w-full">
+            <div className="flex flex-col gap-5 pt-2 w-full">
               <SubscriptionCard
                 openCancelSubscription={() => setOpenCancelSubscription(true)}
                 changeCreditCard={() => setOpenModal(true)}

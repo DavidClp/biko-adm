@@ -16,7 +16,7 @@ interface AuthContextType {
     email: string
     password: string
     phone: string
-  }) => Promise<void>
+  }) => Promise<void>   
   registerProvider: (data: {
     name: string
     email: string
@@ -27,6 +27,7 @@ interface AuthContextType {
     description: string
   }) => Promise<void>
   deleteAccount: () => Promise<void>
+  setUser: (user: User | null) => void
   routerBeforeLogin: string | null
   setRouterBeforeLogin: (router: string) => void
 }
@@ -254,6 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     registerProvider,
     deleteAccount,
     routerBeforeLogin,
+    setUser,
     setRouterBeforeLogin: setRouterBeforeLoginWithPersistence,
   }
 

@@ -133,7 +133,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
         mode: "all"
     });
 
-    const { user } = useAuth()
+    const { user, setUser } = useAuth()
 
     const _form = watch()
 
@@ -213,7 +213,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
         try {
             const city_name = _form?.city_id?.this?.name
             const state_initials = _form?.state_id?.this?.initials
-            
+
             const credit_card = {
                 cardNumber: _form?.cardNumber,
                 dueDate: _form?.dueDate,
@@ -227,7 +227,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 complement: _form?.complement,
                 city_id: _form?.city_id,
                 state_id: _form?.state_id
-            } 
+            }
             let customer = {
                 type: _form?.type,
                 name: _form?.name,
@@ -237,15 +237,15 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 cpf: removeMask(_form?.cpf),
                 phone_number: removeMask(_form?.phone_number),
                 birth: _form?.birth
-            } 
+            }
 
             if (amount > 0) {
                 if (customer) {
                     customer.birth = customer?.birth ? formatDate(customer?.birth) : undefined
-                   /*  customer.juridical_person = {
-                        corporate_name: customer?.corporate_name,
-                        cnpj: customer?.cnpj
-                    } */
+                    /*  customer.juridical_person = {
+                         corporate_name: customer?.corporate_name,
+                         cnpj: customer?.cnpj
+                     } */
 
                     delete (customer as any)?.type
                     delete (customer as any)?.corporate_name
@@ -262,43 +262,50 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                         expiration_month: credit_card?.dueDate?.slice(0, 2),
                         expiration_year: credit_card?.dueDate?.slice(3, 7)
                     }
-            }
+                }
 
-            const data = {
-                credit_card: {},
-                plan_id: default_plan?.id,
-                type: payment_method,
-                banking_billet: { 
-                    customer, 
-                    expire_at: formatDate(new Date()) 
-                },
-                provider_id: user?.provider?.id
-            }
+                const data = {
+                    credit_card: {},
+                    plan_id: default_plan?.id,
+                    type: payment_method,
+                    banking_billet: {
+                        customer,
+                        expire_at: formatDate(new Date())
+                    },
+                    provider_id: user?.provider?.id
+                }
 
                 if (payment_method === "credit_card" && amount > 0 && creditCardData) {
-                const sdkGn = await GerencianetCartao.instance(process.env.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID, true);
+                    const sdkGn = await GerencianetCartao.instance(process.env.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID, true);
                     const { card_mask, payment_token } = await sdkGn.getPaymentToken({ ...creditCardData });
 
-                const billing_address = {
-                    street: address.public_place,
-                    number: address.number,
-                    neighborhood: address.district,
-                    zipcode: address.cep,
-                    city: city_name,
-                    state: state_initials
-                }
+                    const billing_address = {
+                        street: address.public_place,
+                        number: address.number,
+                        neighborhood: address.district,
+                        zipcode: address.cep,
+                        city: city_name,
+                        state: state_initials
+                    }
 
-                data.credit_card = {
-                    card_mask,
+                    data.credit_card = {
+                        card_mask,
                         card_flag: creditCardData.brand,
-                    payment_token,
-                    customer,
-                    billing_address
+                        payment_token,
+                        customer,
+                        billing_address
+                    }
                 }
-            }
 
-            console.log(data)
-           const result = await api.post(`/subscriptions`, data);
+                console.log(data)
+                const result = await api.post(`/subscriptions`, data);
+
+                console.log("result", result)
+              /*   setUser((user) => ({
+                     ...user,
+                      subscription_id: result?.data,
+                      subscription: result?.data?.id
+                    })) */
 
                 onSucess()
             }
@@ -309,7 +316,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 variant: "destructive"
             })
         } finally {
-        setLoadingSave(false)
+            setLoadingSave(false)
         }
     }, [_form, payment_method, api])
 
@@ -317,7 +324,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
     useImperativeHandle(ref, () => ({ forceSubmit }))
 
     return (
-        <>
+        <div className="w-full">
             <form onSubmit={handleStopPropagation} className="space-y-6">
                 {/* Plano Selecionado */}
                 {default_plan?.id && (
@@ -327,13 +334,13 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                                 <div className="flex items-center space-x-4">
                                     <div className="p-3 bg-primary rounded-full">
                                         <PlanIcons type={default_plan.icon || ''} size={24} opacity={1} />
-                            </div>
+                                    </div>
                                     <div>
                                         <h3 className="text-lg font-semibold text-foreground">
-                                    {default_plan.name}
+                                            {default_plan.name}
                                         </h3>
                                         <p className="text-sm text-muted-foreground">
-                                    Valor mensal de {maskFunctions.currency.mask(default_plan.value)} por acomodação ativa
+                                            Valor mensal de {maskFunctions.currency.mask(default_plan.value)}
                                         </p>
                                     </div>
                                 </div>
@@ -362,10 +369,10 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                                         <div
                                             key={method}
                                             className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${payment_method === method
-                                                    ? 'border-primary bg-primary/5 shadow-md'
-                                                    : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                                                ? 'border-primary bg-primary/5 shadow-md'
+                                                : 'border-border hover:border-primary/50 hover:bg-muted/50'
                                                 }`}
-                                                onClick={() => setPaymentMethod(method)}
+                                            onClick={() => setPaymentMethod(method)}
                                         >
                                             <div className="flex items-center space-x-3">
                                                 <div className={`p-2 rounded-full ${payment_method === method ? 'bg-primary' : 'bg-muted'
@@ -462,7 +469,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                                                     {errors.dueDate && (
                                                         <p className="text-sm text-red-500">{errors.dueDate.message as string}</p>
                                                     )}
-                            </div>
+                                                </div>
 
                                                 <div className="space-y-2">
                                                     <Label htmlFor="cvv" className="text-sm font-medium">
@@ -470,7 +477,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                                                     </Label>
                                                     <Controller
                                                         name="cvv"
-                                        control={control}
+                                                        control={control}
                                                         rules={{
                                                             required: "CVV é obrigatório",
                                                             validate: (value) => {
@@ -634,7 +641,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                                             </Label>
                                             <Controller
                                                 name="birth"
-                                control={control}
+                                                control={control}
                                                 rules={{
                                                     required: "Data de nascimento é obrigatória",
                                                     validate: validateDate
@@ -868,7 +875,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                     style={{ display: "none" }}
                 />
 
-              {/*   <ModalLoading
+                {/*   <ModalLoading
                     theme={theme}
                     loading={loadingSave}
                 /> */}
@@ -882,7 +889,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                     onConfirm={onPaymentConfirm}
                 />
             }
-        </>
+        </div>
     )
 }
 

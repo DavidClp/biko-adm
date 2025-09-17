@@ -99,20 +99,19 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
 
     return (
         <Dialog open={openModal} onOpenChange={(open) => !open && onCancel()}>
-            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0 md:px-8 md:py-2">
                 <div >
-
-                    <DialogHeader className="text-center pb-4 sm:pb-6">
+                    <DialogHeader className="text-center pb-0 pt-3 sm:pb-2">
                         <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-3 sm:mb-4">
                             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
                                 <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
                             </div>
                         </div>
-                        <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
-                            Plano de Assinatura da sua Empresa
+                        <DialogTitle className="text-lg sm:text-2xl font-bold text-primary">
+                            Plano de Assinatura
                         </DialogTitle>
                         <DialogDescription className="text-sm sm:text-base text-muted-foreground px-2">
-                            Selecione o melhor plano de assinatura para a sua Empresa
+                            Selecione o melhor plano de assinatura para você
                         </DialogDescription>
                     </DialogHeader>
 
@@ -151,7 +150,7 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
                     </ContentOrLoading>
 
                 </div>
-                <div className="flex justify-between flex-wrap py-5 gap-2.5 border-t-[1px] border-t-[#dee2e6]" >
+                <div className="flex justify-center md:justify-between flex-wrap py-5 gap-2.5 border-t-[1px] border-t-[#dee2e6]" >
                     <Button
                         onClick={() => step === 1 ? onCancel() : setStep((atual) => atual - 1)}
                         color={"#FFF"}

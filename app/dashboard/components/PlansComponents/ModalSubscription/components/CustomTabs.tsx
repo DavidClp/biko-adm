@@ -1,5 +1,5 @@
 import React from "react";
-import { tabProps } from "../../interfaces";
+import { tabProps } from "../../../interfaces";
 
 interface CustomTabsProps {
   tabs: tabProps[];
@@ -17,7 +17,7 @@ export const CustomTabs: React.FC<CustomTabsProps> = ({ tabs, onChange, pos }) =
             onClick={() => tab.canClick && onChange(index)}
             disabled={!tab.canClick}
             className={`
-              flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
+              flex-1 px-2 md:px-4 py-1 text-xs md:text-sm font-medium rounded-md transition-all duration-200
               ${tab.open 
                 ? 'bg-background text-foreground shadow-sm border border-input' 
                 : 'text-muted-foreground hover:text-foreground'

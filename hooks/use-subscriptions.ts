@@ -62,10 +62,12 @@ export function useSubscriptions() {
         }
       })
 
-      setSubscription(response?.data?.subscription)
-      setTransactionsSubscriptions(response?.data?.transactions)
+      //@ts-ignore
+      setSubscription(response?.subscription as subscriptionsAttributes)
+      //@ts-ignore
+      setTransactionsSubscriptions(response?.transactions as transactionsAttributes[])
 
-      return response.data || []
+      return response || []
     } catch (error) {
       console.error("Erro ao buscar assinaturas:", error)
       toast({

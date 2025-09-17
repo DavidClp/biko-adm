@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useImperativeHandle, useState, useRef } from "react";
 import { IoIosArrowDown } from "react-icons/io";
+import { Tooltip } from "./ui/tooltip";
+import { Button } from "./ui/button";
 
 interface IBag {
     title: string
@@ -41,44 +43,40 @@ const BagComponent: React.ForwardRefRenderFunction<IBagRef, IBag> = (props, ref)
     useImperativeHandle(ref, () => ({ openBag, closeBag }))
 
     return (
-        <div className="">
-            <div className="p-4 gap2.5 items-center justify-between" onClick={() => everOpen ? {} : setOpen((atual) => !atual)}>
+        <div className="cursor-pointer border border-gray-400 rounded-md">
+            <div className="p-4 gap:1 md:gap2.5 flex items-center justify-between" onClick={() => everOpen ? {} : setOpen((atual) => !atual)}>
                 <div className="gap-2.5 items-center flex">
                     {icon && (
                         <div className="flex items-center justify-center" style={{ minWidth: 36, maxWidth: 36 }}>
                             {icon}
                         </div>
                     )}
-                    <div className="gap-2 flex flex-col">
-                        <p className="font-semibold">{title}</p>
-                        <p className="font-normal">{description}</p>
+                    <div className="gap-1 flex flex-col">
+                        <p className="text-[14px] md:text-[16px] font-semibold">{title}</p>
+                        <p className="text-[14px] md:text-[16px] font-normal">{description}</p>
                     </div>
                 </div>
-               {/*  {!everOpen &&
-                    <Tooltip title={open ? "Fechar" : "Abrir"} style={{ width: 30, height: 30 }}>
-                        <IconButton aria-label={open ? "Fechar" : "Abrir"}>
-                            <ContainerArrow open={open}>
-                                <IoIosArrowDown
-                                    color={inactiveItens['light']}
-                                    size={16}
-                                />
-                            </ContainerArrow>
-                        </IconButton>
-                    </Tooltip>
-                } */}
+                {!everOpen &&
+                    <Button aria-label={open ? "Fechar" : "Abrir"} variant="link" style={{ padding: 3 }}>
+                        <div className="open={open}">
+                            <IoIosArrowDown
+                                color={'#3a3a3a'}
+                                size={16}
+                                style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease-in-out' }}
+                            />
+                        </div>
+                    </Button>
+                }
             </div>
 
-
-                <div 
-                    className={`relative overflow-hidden transition-all ${
-                        everOpen ? 'duration-0' : 'duration-300'
-                    }`}
-                    style={{ height: open ? `${getHeight()}px` : '0px' }}
-                >
-                    <div ref={div_ref}>
-                        {children}
-                    </div>
+            <div
+                className={`relative overflow-hidden transition-all ${everOpen ? 'duration-0' : 'duration-300'       }`}
+                style={{ height: open ? `${getHeight()}px` : '0px' }}
+            >
+                <div ref={div_ref}>
+                    {children}
                 </div>
+            </div>
 
         </div>
     )
