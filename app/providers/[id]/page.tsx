@@ -10,11 +10,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
 import { ArrowLeft, MapPin, Star, Instagram, Facebook, Linkedin, Loader2, MessageCircle } from "lucide-react"
 import { useProvider } from "@/hooks/use-provider"
+import { useReviews } from "@/hooks/use-reviews"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { ContactModal } from "@/app/providers/components/contact-modal"
 import { LoginRequiredModal } from "@/app/providers/components/login-required-modal"
@@ -26,6 +36,7 @@ export default function ProviderProfilePage() {
   const providerId = params.id as string
   const [review, setReview] = useState("")
   const [rating, setRating] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
   const searchParams = useSearchParams()
   const [isContactModalOpen, setIsContactModalOpen] = useState(searchParams.get("isContactModalOpen") === "true")
   const [isLoginRequiredModalOpen, setIsLoginRequiredModalOpen] = useState(searchParams.get("isModalOpen") === "true")
@@ -33,11 +44,32 @@ export default function ProviderProfilePage() {
   const { provider, isLoading, error, refetch } = useProvider({ providerId });
   const { user } = useAuth();
   const router = useRouter();
+  const { createReview, isCreating, getReviewsByProvider } = useReviews({ 
+    providerId, 
+    page: currentPage, 
+    limit: 5 
+  });
 
   const handleSubmitReview = () => {
-    console.log("Review submitted:", { rating, comment: review })
-    setReview("")
-    setRating(0)
+    if (!user) {
+      setIsLoginRequiredModalOpen(true)
+      return
+    }
+
+    if (rating === 0) {
+      return
+    }
+
+    createReview({
+      provider_id: providerId,
+      review: review.trim() || "Avaliação sem comentário",
+      stars: rating
+    }, {
+      onSuccess: () => {
+        setReview("")
+        setRating(0)
+      }
+    })
   }
 
   const handleOpenContactModal = (open: boolean) => {
@@ -115,6 +147,7 @@ export default function ProviderProfilePage() {
     )
   }
 
+  console.log(getReviewsByProvider.data?.pagination)
   // Se não há provider, mostrar erro
   if (!provider) {
     return (
@@ -143,6 +176,7 @@ export default function ProviderProfilePage() {
     )
   }
 
+  console.log("getReviewsByProvider.data.data.length", getReviewsByProvider?.data?.data.length)
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -188,7 +222,7 @@ export default function ProviderProfilePage() {
                       </div>
                       <div className="flex items-center justify-center sm:justify-start gap-2">
                         {renderStars(provider.rating || 0)}
-                        <span className="font-medium text-sm sm:text-base">{provider.rating || 0}</span>
+                        <span className="font-medium text-sm sm:text-base">{provider?.rating?.toFixed(1) || 0}</span>
                         <span className="text-muted-foreground text-sm">({provider.reviews || 0} avaliações)</span>
                       </div>
                     </div>
@@ -198,23 +232,6 @@ export default function ProviderProfilePage() {
               <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                 <h3 className="font-semibold mb-3 text-base sm:text-lg">Sobre o profissional</h3>
                 <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{provider?.description}</p>
-              </CardContent>
-            </Card>
-
-            {/* Reviews - Placeholder para quando implementar reviews */}
-            <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-lg sm:text-xl">Avaliações dos clientes</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0">
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Star className="h-8 w-8 text-gray-400" />
-                  </div>
-                  <p className="text-muted-foreground">
-                    Este profissional ainda não possui avaliações. Seja o primeiro a avaliar!
-                  </p>
-                </div>
               </CardContent>
             </Card>
 
@@ -242,8 +259,15 @@ export default function ProviderProfilePage() {
                     className="text-sm sm:text-base"
                   />
                 </div>
-                <Button onClick={handleSubmitReview} disabled={rating === 0} className="w-full sm:w-auto">
-                  Enviar avaliação
+                <Button onClick={handleSubmitReview} disabled={rating === 0 || isCreating} className="w-full sm:w-auto">
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Enviar avaliação"
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -282,6 +306,133 @@ export default function ProviderProfilePage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Reviews Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg sm:text-xl">Avaliações</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
+                  Veja o que outros clientes disseram sobre este profissional
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {getReviewsByProvider.isLoading ? (
+                  <div className="flex justify-center py-4">
+                    <LoadingSpinner />
+                  </div>
+                ) : getReviewsByProvider.data && getReviewsByProvider.data.data && getReviewsByProvider.data.data.length > 0 ? (
+                  <>
+                    <div className="space-y-4">
+                      {getReviewsByProvider.data.data.map((review) => (
+                        <div key={review.id} className="border rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < review.stars
+                                      ? "text-yellow-400 fill-yellow-400"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(review.createdAt).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+                          <p className="text-sm">{review.review}</p>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Paginação */}
+                    {getReviewsByProvider.data.pagination && getReviewsByProvider.data.pagination.totalPages > 1 && (
+                      <div className="mt-6">
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious 
+                                href="#"
+                                size="default"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  if (currentPage > 1) {
+                                    setCurrentPage(currentPage - 1)
+                                  }
+                                }}
+                                className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                              />
+                            </PaginationItem>
+                            
+                            {Array.from({ length: getReviewsByProvider.data.pagination.totalPages }).map((_, i) => {
+                              const page = i + 1
+                              const isCurrentPage = page === currentPage
+                              
+                              // Mostrar apenas algumas páginas ao redor da página atual
+                              if (
+                                page === 1 || 
+                                page === getReviewsByProvider.data.pagination.totalPages ||
+                                (page >= currentPage - 1 && page <= currentPage + 1)
+                              ) {
+                                return (
+                                  <PaginationItem key={page}>
+                                    <PaginationLink
+                                      href="#"
+                                      size="icon"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        setCurrentPage(page)
+                                      }}
+                                      isActive={isCurrentPage}
+                                    >
+                                      {page}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                )
+                              } else if (
+                                page === currentPage - 2 || 
+                                page === currentPage + 2
+                              ) {
+                                return (
+                                  <PaginationItem key={page}>
+                                    <PaginationEllipsis />
+                                  </PaginationItem>
+                                )
+                              }
+                              return null
+                            })}
+                            
+                            <PaginationItem>
+                              <PaginationNext 
+                                href="#"
+                                size="default"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  if (currentPage < getReviewsByProvider.data.pagination.totalPages) {
+                                    setCurrentPage(currentPage + 1)
+                                  }
+                                }}
+                                className={currentPage >= getReviewsByProvider.data.pagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                        
+                        <div className="text-center text-sm text-muted-foreground mt-2">
+                          Mostrando {getReviewsByProvider.data.data.length} de {getReviewsByProvider.data.pagination.total} avaliações
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">
+                    Ainda não há avaliações para este profissional.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Social Media */}
             {(provider.instagram || provider.facebook) && (
