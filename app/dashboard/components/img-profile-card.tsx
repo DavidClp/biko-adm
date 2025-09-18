@@ -102,6 +102,8 @@ export function ImgProfileCard({ providerId }: ImgProfileCardProps) {
         fileInputRef.current?.click();
     };
 
+    console.log("provider", provider);
+    console.log("previewUrl", previewUrl);
     return (
         <Card className="w-full mx-auto">
             <CardHeader>
