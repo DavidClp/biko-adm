@@ -65,6 +65,7 @@ export interface Client extends User {
 export interface Provider extends User {
   phone: string
   services: string[]
+  servicesNames: string[]
   cityId: string;
   cityName: string;
   description: string

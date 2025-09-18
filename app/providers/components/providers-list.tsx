@@ -54,14 +54,14 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
               <div className="flex-1">
                 <CardTitle className="text-lg">{provider?.name}</CardTitle>
                 <div className="flex flex-wrap gap-1 mb-2">
-                  {provider?.services?.slice(0, 2)?.map((service, index) => (
+                  {provider?.servicesNames?.slice(0, 2)?.map((service, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
                       {service}
                     </Badge>
                   ))}
-                  {provider?.services?.length > 2 && (
+                  {provider?.servicesNames?.length > 2 && (
                     <Badge variant="secondary" className="text-xs">
-                      +{provider?.services?.length - 2}
+                      +{provider?.servicesNames?.length - 2}
                     </Badge>
                   )}
                 </div>
