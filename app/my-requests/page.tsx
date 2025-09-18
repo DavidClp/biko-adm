@@ -128,7 +128,7 @@ export default function MyRequestsPage() {
                   <div className="flex items-start gap-3">
                     <div className="relative">
                       <Avatar className="w-12 h-12">
-                        <AvatarImage src={request?.provider?.avatar} />
+                        <AvatarImage src={request?.provider?.photoUrl} />
                         <AvatarFallback className="bg-green-100 text-green-700">
                           {request?.provider?.name?.charAt(0)}
                         </AvatarFallback>

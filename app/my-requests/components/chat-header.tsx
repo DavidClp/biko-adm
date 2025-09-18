@@ -47,7 +47,7 @@ export function ChatHeader({
       </Button>
 
       <Avatar className="w-9 h-9 left-[-3px] md:left-0 md:w-10 md:h-10">
-        <AvatarImage src={type === "chat-client" ? selectedRequest?.client?.avatar : selectedRequest?.provider?.avatar} />
+        <AvatarImage src={type === "chat-client" ? undefined : selectedRequest?.provider?.photoUrl} />
         <AvatarFallback className="bg-green-100 text-green-700">
           {type === "chat-client" ? selectedRequest?.client?.name?.charAt(0) : selectedRequest?.provider?.name?.charAt(0)}
         </AvatarFallback>

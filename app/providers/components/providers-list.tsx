@@ -46,7 +46,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
           <CardHeader >
             <div className="flex items-start gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={provider.avatar} alt={provider.name} />
+                <AvatarImage src={provider?.photoUrl} alt={provider?.name} />
                 <AvatarFallback>
                   {provider?.name.charAt(0)}
                 </AvatarFallback>

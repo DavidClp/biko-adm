@@ -32,43 +32,43 @@ export function useProvider({ providerId }: { providerId?: string }) {
       }
     },
     enabled: !!providerId,
- //   staleTime: 5 * 60 * 1000, // 5 minutos
+    //   staleTime: 5 * 60 * 1000, // 5 minutos
     retry: 2,
   })
 
-    const updateProfileMutation = useMutation({
-      mutationFn: async (params: UpdateProfileData): Promise<Provider> => {
-        try {
-          const { data } = await api.put<Provider>(`/providers/${providerId}`, params)
+  const updateProfileMutation = useMutation({
+    mutationFn: async (params: UpdateProfileData): Promise<Provider> => {
+      try {
+        const { data } = await api.put<Provider>(`/providers/${providerId}`, params)
 
-          if (!data) {
-            throw new Error('Provider not found')
-          }
-
-          return data
-        } catch (error) {
-          console.error('Erro ao atualizar perfil:', error)
-          throw error
+        if (!data) {
+          throw new Error('Provider not found')
         }
-      },
-      onSuccess: (data) => {
-        queryClient.setQueryData(['profile', providerId], data)
-        queryClient.invalidateQueries({ queryKey: ['provider', providerId] })
 
-        toast({
-          title: "Perfil atualizado!",
-          description: "Suas informações foram salvas com sucesso.",
-          variant: "default",
-        })
-      },
-      onError: (error: Error) => {
-        toast({
-          title: "Erro ao atualizar perfil",
-          description: error.message || "Tente novamente mais tarde.",
-          variant: "destructive",
-        })
-      },
-    })
+        return data
+      } catch (error) {
+        console.error('Erro ao atualizar perfil:', error)
+        throw error
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile', providerId], data)
+      queryClient.invalidateQueries({ queryKey: ['provider', providerId] })
+
+      toast({
+        title: "Perfil atualizado!",
+        description: "Suas informações foram salvas com sucesso.",
+        variant: "default",
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar perfil",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      })
+    },
+  })
 
   const updateListedStatusMutation = useMutation({
     mutationFn: async (isListed: boolean): Promise<Provider> => {
@@ -105,9 +105,9 @@ export function useProvider({ providerId }: { providerId?: string }) {
   })
 
   const updateImgProfileMutation = useMutation({
-    mutationFn: async (formData: FormData): Promise<{ url: string }> => {
+    mutationFn: async (formData: FormData): Promise<{ photoUrl: string }> => {
       try {
-        const { data } = await api.post<{ url: string }>(`/providers/update-profile-img?providerId=${providerId}`, formData, {
+        const { data } = await api.post<{ photoUrl: string }>(`/providers/update-profile-img?providerId=${providerId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -123,16 +123,7 @@ export function useProvider({ providerId }: { providerId?: string }) {
         throw error
       }
     },
-    onSuccess: (data) => {
-      // Atualizar o cache com a nova URL da foto
-      queryClient.setQueryData(['profile', providerId], (oldData: Provider | undefined) => {
-        if (oldData) {
-          return { ...oldData, photoUrl: data.url }
-        }
-        return oldData
-      })
-      queryClient.invalidateQueries({ queryKey: ['provider', providerId] })
-
+    onSuccess: () => {
       toast({
         title: "Foto atualizada!",
         description: "Sua foto de perfil foi atualizada com sucesso.",
