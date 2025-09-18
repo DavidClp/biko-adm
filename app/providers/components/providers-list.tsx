@@ -18,7 +18,7 @@ interface ProvidersListProps {
 }
 
 export function ProvidersList({ providers, loading, onRequestContact, onClearFilters }: ProvidersListProps) {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   if (loading) {
     return <LoadingSpinner size="lg" />
