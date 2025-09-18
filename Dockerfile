@@ -7,7 +7,9 @@ RUN apk add --no-cache libc6-compat
 
 # Copiar apenas package files para cache de dependências
 COPY package*.json ./
-RUN npm ci --only=production --legacy-peer-deps && npm cache clean --force
+
+# Instalar TODAS as dependências (incluindo devDependencies para build)
+RUN npm ci --legacy-peer-deps && npm cache clean --force
 
 # Etapa 2: Build
 FROM node:20-alpine AS builder
@@ -34,9 +36,15 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Instalar apenas dependências de runtime
+RUN apk add --no-cache dumb-init
+
+# Copiar package.json para instalar apenas production deps no runtime
+COPY package*.json ./
+RUN npm ci --only=production --legacy-peer-deps && npm cache clean --force
+
 # Copiar arquivos necessários
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/package*.json ./
 
 # Copiar build output com permissões corretas
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -49,4 +57,5 @@ ENV PORT=3000
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-CMD ["node", "server.js"]
+# Usar dumb-init para gerenciamento de processos
+CMD ["dumb-init", "node", "server.js"]
