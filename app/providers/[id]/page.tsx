@@ -171,14 +171,14 @@ export default function ProviderProfilePage() {
                   </Avatar>
                   <div className="flex-1 text-center sm:text-left">
                     <CardTitle className="text-xl sm:text-2xl mb-2">{provider?.name}</CardTitle>
-                    {provider?.services?.slice(0, 2)?.map((service, index) => (
+                    {provider?.servicesNames?.slice(0, 2)?.map((service, index) => (
                       <Badge key={index} variant="secondary" className="text-xs mb-3">
                         {service}
                       </Badge>
                     ))}
-                    {provider?.services?.length > 2 && (
+                    {provider?.servicesNames?.length > 2 && (
                       <Badge variant="secondary" className="text-xs mb-3">
-                        +{provider?.services?.length - 2}
+                        +{provider?.servicesNames?.length - 2}
                       </Badge>
                     )}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
