@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { api } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "./use-auth"
@@ -30,7 +30,7 @@ interface Subscription {
 
 export function useSubscriptions() {
   const { user } = useAuth()
-  
+
   const [plans, setPlans] = useState<IPlan[]>([])
   const [subscription, setSubscription] = useState<subscriptionsAttributes | null>(null)
   const [transactionsSubscriptions, setTransactionsSubscriptions] = useState<transactionsAttributes[]>([])
@@ -38,8 +38,9 @@ export function useSubscriptions() {
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
+      setLoading(true)
       const response = await api.get("/plans")
       setPlans(response.data || [])
       return response.data || []
@@ -52,9 +53,9 @@ export function useSubscriptions() {
       })
       return []
     }
-  }
+  }, [])
 
-  const fetchSubscription = async () => {
+  const fetchSubscription = useCallback(async () => {
     try {
       const response = await api.get("/subscriptions", {
         params: {
@@ -79,7 +80,7 @@ export function useSubscriptions() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   const subscribeToPlan = async (planId: string, paymentMethod: string, cardData?: any) => {
     try {
@@ -90,13 +91,13 @@ export function useSubscriptions() {
       }
 
       const response = await api.post("/subscriptions", subscriptionData)
-      
+
       toast({
         title: "Sucesso!",
         description: "Assinatura realizada com sucesso",
         variant: "default",
       })
-      
+
       // Atualizar lista de assinaturas
       await fetchSubscription()
       return response
@@ -119,7 +120,7 @@ export function useSubscriptions() {
         description: "Assinatura cancelada com sucesso",
         variant: "default",
       })
-      
+
       // Atualizar lista de assinaturas
       await fetchSubscription()
     } catch (error) {
@@ -135,8 +136,10 @@ export function useSubscriptions() {
 
 
   useEffect(() => {
-    fetchPlans()
-    fetchSubscription()
+    if (plans.length === 0) {
+      fetchPlans()
+      fetchSubscription()
+    }
   }, [])
 
   return {

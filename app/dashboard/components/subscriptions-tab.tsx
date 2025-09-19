@@ -2,35 +2,7 @@
 
 import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { IPlan, useSubscriptions } from "@/hooks/use-subscriptions"
-import {
-  Star,
-  CreditCard,
-  Receipt,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  Edit,
-  Plus,
-  Crown,
-  Zap,
-  Shield,
-  Clock,
-} from "lucide-react"
+import { useSubscriptions } from "@/hooks/use-subscriptions"
 import { ContentOrLoading } from "@/components/ContentOrLoading"
 import { SubscriptionCard } from "./PlansComponents/SubscriptionCard"
 import { TransactionList } from "./PlansComponents/TransactionList"
@@ -38,17 +10,22 @@ import { ModalSubscription } from "./PlansComponents/ModalSubscription"
 import { ModalConfirmCancel } from "./PlansComponents/ModalConfirmCancel"
 import { toast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
+import { useProvider } from "@/hooks/use-provider"
+import { useAuth } from "@/hooks/use-auth"
 
 export function SubscriptionsTab() {
+  const { user } = useAuth()
+
   const {
-    plans,
     subscription,
     transactionsSubscriptions,
     loading,
-    subscribeToPlan,
-    cancelSubscription,
     fetchSubscription
   } = useSubscriptions()
+
+  const { provider, updateListedStatus } = useProvider({
+    providerId: user?.provider?.id
+  })
 
   const [openModal, setOpenModal] = useState(false)
   const [changePlan, setChangePlan] = useState(false)
@@ -64,7 +41,11 @@ export function SubscriptionsTab() {
     })
     setOpenModal(false)
 
-    await fetchSubscription()
+    await Promise.all([
+      updateListedStatus(!provider?.is_listed),
+      fetchSubscription()
+    ])
+
     setTransactionSelected(transaction_id)
   }, [fetchSubscription])
 

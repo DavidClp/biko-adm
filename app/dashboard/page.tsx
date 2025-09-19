@@ -323,7 +323,7 @@ export default function DashboardPage() {
                         variant={provider?.is_listed ? "default" : "outline"}
                         size="sm"
                         onClick={handleToggleListedStatus}
-                        disabled={isUpdatingListedStatus}
+                        disabled={isUpdatingListedStatus || (provider?.subscription_situation !== 'active' && provider?.subscription_situation !== 'paid')}
                       >
                         {isUpdatingListedStatus ? (
                           <>

@@ -62,6 +62,8 @@ export interface Client extends User {
   createdAt?: string
 }
 
+export type SubscriptionSituationType = 'active' | 'paid' | 'paid-free' | 'unpaid' | 'waiting-block' | 'not-have-transactions' | 'not-have-subscription' | 'waiting-alert' | 'waiting' | 'expired' | 'canceled';
+
 export interface Provider extends User {
   phone: string
   services: string[]
@@ -76,6 +78,7 @@ export interface Provider extends User {
     facebook?: string
   }
   userId: string
+  subscription_situation: SubscriptionSituationType
   experience: string
   portfolio?: string
   website?: string
