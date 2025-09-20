@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "./use-auth"
@@ -28,128 +28,163 @@ interface Subscription {
   plan: IPlan
 }
 
+// Função para buscar planos
+const fetchPlans = async (): Promise<IPlan[]> => {
+  const response = await api.get("/plans")
+  return response.data || []
+}
+
+// Função para buscar assinaturas
+const fetchSubscription = async (providerId?: string): Promise<{
+  subscription: subscriptionsAttributes | null
+  transactions: transactionsAttributes[]
+}> => {
+  if (!providerId) {
+    return { subscription: null, transactions: [] }
+  }
+
+  const response = await api.get("/subscriptions", {
+    params: {
+      provider_id: providerId
+    }
+  })
+
+  return {
+    subscription: (response as any)?.subscription as subscriptionsAttributes || null,
+    transactions: (response as any)?.transactions as transactionsAttributes[] || []
+  }
+}
+
 export function useSubscriptions() {
   const { user } = useAuth()
-
-  const [plans, setPlans] = useState<IPlan[]>([])
-  const [subscription, setSubscription] = useState<subscriptionsAttributes | null>(null)
-  const [transactionsSubscriptions, setTransactionsSubscriptions] = useState<transactionsAttributes[]>([])
-
-  const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
-  const fetchPlans = useCallback(async () => {
-    try {
-      setLoading(true)
-      const response = await api.get("/plans")
-      setPlans(response.data || [])
-      return response.data || []
-    } catch (error) {
-      console.error("Erro ao buscar planos:", error)
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os planos",
-        variant: "destructive",
-      })
-      return []
-    }
-  }, [])
+  // Query para buscar planos
+  const {
+    data: plans = [],
+    isLoading: isLoadingPlans,
+    error: plansError
+  } = useQuery({
+    queryKey: ["plans"],
+    queryFn: fetchPlans,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  })
 
-  const fetchSubscription = useCallback(async () => {
-    try {
-      const response = await api.get("/subscriptions", {
-        params: {
-          provider_id: user?.provider?.id
-        }
-      })
+  // Query para buscar assinaturas
+  const {
+    data: subscriptionData,
+    isLoading: isLoadingSubscription,
+    error: subscriptionError
+  } = useQuery({
+    queryKey: ["subscriptions", user?.provider?.id],
+    queryFn: () => fetchSubscription(user?.provider?.id),
+    enabled: !!user?.provider?.id,
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 30 * 1000,
+    refetchOnWindowFocus: true
+  })
 
-      //@ts-ignore
-      setSubscription(response?.subscription as subscriptionsAttributes)
-      //@ts-ignore
-      setTransactionsSubscriptions(response?.transactions as transactionsAttributes[])
+  // Estados derivados
+  const subscription = subscriptionData?.subscription || null
+  const transactionsSubscriptions = subscriptionData?.transactions || []
+  const loading = isLoadingPlans || isLoadingSubscription
 
-      return response || []
-    } catch (error) {
-      console.error("Erro ao buscar assinaturas:", error)
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as assinaturas",
-        variant: "destructive",
-      })
-      return []
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const subscribeToPlan = async (planId: string, paymentMethod: string, cardData?: any) => {
-    try {
+  // Mutation para assinar plano
+  const subscribeToPlanMutation = useMutation({
+    mutationFn: async ({ planId, paymentMethod, cardData }: {
+      planId: string
+      paymentMethod: string
+      cardData?: any
+    }) => {
       const subscriptionData = {
         plan_id: planId,
         payment_method: paymentMethod,
         ...(paymentMethod === "credit_card" && { card_data: cardData })
       }
 
-      const response = await api.post("/subscriptions", subscriptionData)
-
+      return await api.post("/subscriptions", subscriptionData)
+    },
+    onSuccess: () => {
       toast({
         title: "Sucesso!",
         description: "Assinatura realizada com sucesso",
         variant: "default",
       })
 
-      // Atualizar lista de assinaturas
-      await fetchSubscription()
-      return response
-    } catch (error) {
+      // Invalidar cache das assinaturas para refetch automático
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] })
+    },
+    onError: (error) => {
       console.error("Erro ao assinar:", error)
       toast({
         title: "Erro",
         description: "Não foi possível realizar a assinatura",
         variant: "destructive",
       })
-      throw error
     }
-  }
+  })
 
-  const cancelSubscription = async (subscriptionId: string) => {
-    try {
-      await api.delete(`/subscriptions/${subscriptionId}`)
+  // Mutation para cancelar assinatura
+  const cancelSubscriptionMutation = useMutation({
+    mutationFn: async (subscriptionId: string) => {
+      return await api.post(`/subscriptions/cancel/${subscriptionId}`)
+    },
+    onSuccess: () => {
       toast({
         title: "Sucesso!",
         description: "Assinatura cancelada com sucesso",
         variant: "default",
       })
 
-      // Atualizar lista de assinaturas
-      await fetchSubscription()
-    } catch (error) {
+      // Invalidar cache das assinaturas para refetch automático
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] })
+    },
+    onError: (error) => {
       console.error("Erro ao cancelar assinatura:", error)
       toast({
         title: "Erro",
         description: "Não foi possível cancelar a assinatura",
         variant: "destructive",
       })
-      throw error
     }
+  })
+
+  // Funções wrapper para manter compatibilidade
+  const subscribeToPlan = (planId: string, paymentMethod: string, cardData?: any) => {
+    return subscribeToPlanMutation.mutateAsync({ planId, paymentMethod, cardData })
+  }
+
+  const cancelSubscription = (subscriptionId: string) => {
+    return cancelSubscriptionMutation.mutateAsync(subscriptionId)
   }
 
 
-  useEffect(() => {
-    if (plans.length === 0) {
-      fetchPlans()
-      fetchSubscription()
-    }
-  }, [])
-
   return {
+    // Dados
     plans,
     subscription,
     transactionsSubscriptions,
+
+    // Estados de loading
     loading,
-    fetchPlans,
-    fetchSubscription,
+    isLoadingPlans,
+    isLoadingSubscription,
+
+    // Estados das mutations
+    isSubscribing: subscribeToPlanMutation.isPending,
+    isCancelling: cancelSubscriptionMutation.isPending,
+
+    // Erros
+    plansError,
+    subscriptionError,
+
+    // Funções (mantidas para compatibilidade)
     subscribeToPlan,
     cancelSubscription,
+
+    // Mutations (para uso direto se necessário)
+    subscribeToPlanMutation,
+    cancelSubscriptionMutation,
   }
 }

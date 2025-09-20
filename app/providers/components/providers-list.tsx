@@ -52,7 +52,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <CardTitle className="text-lg">{provider?.name}</CardTitle>
+                <CardTitle className="text-lg">{provider?.name?.length > 20 ? provider?.name?.slice(0, 20) + "..." : provider?.name}</CardTitle>
                 <div className="flex flex-wrap gap-1 mb-2">
                   {provider?.servicesNames?.slice(0, 2)?.map((service, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
@@ -82,7 +82,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{provider.rating}</span>
+                  <span className="font-medium">{provider?.rating.toFixed(1) || 0}</span>
                 </div>
                 <span className="text-sm text-muted-foreground">
                   ({provider?.reviews || 0} avaliações)

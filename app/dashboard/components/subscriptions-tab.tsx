@@ -9,7 +9,6 @@ import { TransactionList } from "./PlansComponents/TransactionList"
 import { ModalSubscription } from "./PlansComponents/ModalSubscription"
 import { ModalConfirmCancel } from "./PlansComponents/ModalConfirmCancel"
 import { toast } from "@/hooks/use-toast"
-import { api } from "@/lib/api"
 import { useProvider } from "@/hooks/use-provider"
 import { useAuth } from "@/hooks/use-auth"
 
@@ -20,7 +19,8 @@ export function SubscriptionsTab() {
     subscription,
     transactionsSubscriptions,
     loading,
-    fetchSubscription
+    cancelSubscription,
+    isCancelling,
   } = useSubscriptions()
 
   const { provider, updateListedStatus } = useProvider({
@@ -30,7 +30,6 @@ export function SubscriptionsTab() {
   const [openModal, setOpenModal] = useState(false)
   const [changePlan, setChangePlan] = useState(false)
   const [openCancelSubscription, setOpenCancelSubscription] = useState(false)
-  const [loadingCancelSubscription, setLoadingCancelSubscription] = useState(false)
   const [transaction_selected, setTransactionSelected] = useState<string | null>(null)
 
   const onSaveSubscription = useCallback(async (transaction_id: string) => {
@@ -41,13 +40,10 @@ export function SubscriptionsTab() {
     })
     setOpenModal(false)
 
-    await Promise.all([
-      updateListedStatus(!provider?.is_listed),
-      fetchSubscription()
-    ])
-
+    // Atualizar status do provider (React Query já atualiza as assinaturas automaticamente)
+    await updateListedStatus(!provider?.is_listed)
     setTransactionSelected(transaction_id)
-  }, [fetchSubscription])
+  }, [updateListedStatus, provider?.is_listed])
 
   const onClickChangePlan = useCallback(() => {
     setChangePlan(true)
@@ -60,28 +56,18 @@ export function SubscriptionsTab() {
   }, [])
 
   const handleCancelSubscription = useCallback(async () => {
-    setLoadingCancelSubscription(true)
+    if (!subscription?.id) return
+    
     try {
-      await api.post(`/subscriptions/cancel/${subscription?.id}`)
-
-      toast({
-        title: "Assinatura cancelada com sucesso!",
-        description: "Assinatura cancelada com sucesso!",
-        variant: "default",
-      })
+      await cancelSubscription(subscription.id)
+      setOpenCancelSubscription(false)
     } catch (err) {
-      toast({
-        title: "Erro ao cancelar assinatura!",
-        description: "Erro ao cancelar assinatura!",
-        variant: "destructive",
-      })
+      // Erro já é tratado no hook com toast
+      console.error("Erro ao cancelar assinatura:", err)
     }
+  }, [subscription?.id, cancelSubscription])
 
-    setOpenCancelSubscription(false);
-    setLoadingCancelSubscription(false);
-    fetchSubscription();
-  }, [fetchSubscription])
-
+  console.log("subscription", subscription)
   return (
     <div className="">
       <ContentOrLoading loading={loading} text="Buscando assinatura da empresa">
@@ -133,8 +119,8 @@ export function SubscriptionsTab() {
 
       {openCancelSubscription &&
         <ModalConfirmCancel
-          loading={loadingCancelSubscription}
-          onCancel={() => !loadingCancelSubscription ? setOpenCancelSubscription(false) : {}}
+          loading={isCancelling}
+          onCancel={() => !isCancelling ? setOpenCancelSubscription(false) : {}}
           onConfirm={handleCancelSubscription}
           open={openCancelSubscription}
         />

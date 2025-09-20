@@ -12,6 +12,8 @@ import {
   CheckCircle,
   XCircle,
   MessageCircle,
+  Search,
+  MessageSquare,
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { IRequestService, UserRole } from "@/lib/types"
@@ -21,6 +23,7 @@ import { getStatusBadge } from "@/components/getStatusRequestBadge"
 
 export default function MyRequestsPage() {
   const { user } = useAuth()
+  const router = useRouter()
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
   const [showChat, setShowChat] = useState(false)
   const [unreadMessages, setUnreadMessages] = useState<Record<string, number>>({})
@@ -167,6 +170,30 @@ export default function MyRequestsPage() {
                 </div>
               )
             })}
+            {requestsList?.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-full p-6 mb-6">
+                  <MessageSquare className="w-16 h-16 text-primary/60" />
+                </div>
+                
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Nenhuma conversa ainda
+                </h3>
+                
+                <p className="text-gray-600 mb-6 max-w-sm">
+                  Você ainda não entrou em contato com nenhum profissional. 
+                  Encontre o prestador ideal para seu serviço!
+                </p>
+                
+                <button
+                  onClick={() => router.push('/providers')}
+                  className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md"
+                >
+                  <Search className="w-5 h-5" />
+                  Buscar Profissionais
+                </button>
+              </div>
+            )}
           </ScrollArea>
         </div>
 

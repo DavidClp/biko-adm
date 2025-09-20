@@ -192,8 +192,8 @@ export default function ProviderProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Provider Info */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            <Card>
-              <CardHeader className="p-4 sm:p-6">
+            <Card className="space-y-0 gap-0">
+              <CardHeader className="p-4 sm:p-6 pb-0">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
                   <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mx-auto sm:mx-0">
                     <AvatarImage style={{ objectFit: 'cover' }} src={provider.photoUrl || "https://cdn-icons-png.flaticon.com/512/2610/2610605.png"} alt={provider.name} />
@@ -221,7 +221,7 @@ export default function ProviderProfilePage() {
                       <div className="flex items-center justify-center sm:justify-start gap-2">
                         {renderStars(provider.rating || 0)}
                         <span className="font-medium text-sm sm:text-base">{provider?.rating?.toFixed(1) || 0}</span>
-                        <span className="text-muted-foreground text-sm">({provider.reviews || 0} avaliações)</span>
+                        <span className="text-muted-foreground text-sm">({provider?.reviews || 0} avaliações)</span>
                       </div>
                     </div>
                   </div>
@@ -232,6 +232,40 @@ export default function ProviderProfilePage() {
                 <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{provider?.description}</p>
               </CardContent>
             </Card>
+
+                {/* CONTACT MOBILE */}
+                {user?.role === UserRole.CLIENT && (
+              <Card className="space-y-0 gap-0 block md:hidden">
+                <CardHeader>
+                  <CardTitle className="text-lg sm:text-xl">Contato</CardTitle>
+                </CardHeader>
+
+                <CardContent className="pb-4 sm:pb-6 pt-[-100px] space-y-4">
+                  <Button className="w-full" size="lg" onClick={() => handleOpenContactModal(true)}>
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Solicitar Orçamento
+                  </Button>
+
+                  <ContactModal
+                    provider={provider}
+                    isOpen={isContactModalOpen}
+                    onOpenChange={setIsContactModalOpen}
+                  />
+
+                  <LoginRequiredModal
+                    isOpen={isLoginRequiredModalOpen}
+                    onOpenChange={setIsLoginRequiredModalOpen}
+                    providerId={providerId}
+                  />
+
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Todas as conversas acontecem dentro da plataforma Biko
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Add Review */}
             <Card>
@@ -272,8 +306,9 @@ export default function ProviderProfilePage() {
           </div>
 
           <div className="space-y-4 sm:space-y-6">
+            {/* CONTACT PC/NOTEBOOK */}
             {user?.role === UserRole.CLIENT && (
-              <Card className="space-y-0 gap-0">
+              <Card className="space-y-0 gap-0 hidden md:block">
                 <CardHeader className="pt-4 sm:pt-6">
                   <CardTitle className="text-lg sm:text-xl">Contato</CardTitle>
                 </CardHeader>
