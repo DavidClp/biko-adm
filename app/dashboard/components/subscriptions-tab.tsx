@@ -11,9 +11,10 @@ import { ModalConfirmCancel } from "./PlansComponents/ModalConfirmCancel"
 import { toast } from "@/hooks/use-toast"
 import { useProvider } from "@/hooks/use-provider"
 import { useAuth } from "@/hooks/use-auth"
+import { User } from "@/lib/types"
 
 export function SubscriptionsTab() {
-  const { user } = useAuth()
+  const { user, setUser } = useAuth()
 
   const {
     subscription,
@@ -40,10 +41,18 @@ export function SubscriptionsTab() {
     })
     setOpenModal(false)
 
-    // Atualizar status do provider (React Query já atualiza as assinaturas automaticamente)
-    await updateListedStatus(!provider?.is_listed)
+    updateListedStatus(true)
+
+    setUser({
+      ...user,
+      provider: {
+        ...user?.provider,
+        is_listed: true
+      }
+    } as User)
+
     setTransactionSelected(transaction_id)
-  }, [updateListedStatus, provider?.is_listed])
+  }, [updateListedStatus])
 
   const onClickChangePlan = useCallback(() => {
     setChangePlan(true)
@@ -60,9 +69,18 @@ export function SubscriptionsTab() {
     
     try {
       await cancelSubscription(subscription.id)
+
+      updateListedStatus(false)
       setOpenCancelSubscription(false)
+
+      setUser({
+        ...user,
+        provider: {
+          ...user?.provider,
+          is_listed: false
+        }
+      } as User)
     } catch (err) {
-      // Erro já é tratado no hook com toast
       console.error("Erro ao cancelar assinatura:", err)
     }
   }, [subscription?.id, cancelSubscription])

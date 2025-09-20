@@ -99,10 +99,10 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
 
     return (
         <Dialog open={openModal} onOpenChange={(open) => !open && onCancel()}>
-            <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0 md:px-8 md:py-2">
+            <DialogContent className="max-w-[95vw] md:max-w-[800px] max-h-[90vh] overflow-y-auto p-0 md:px-8 md:py-2">
                 <div >
-                    <DialogHeader className="text-center pb-0 pt-3 sm:pb-2">
-                        <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                    <DialogHeader className="text-center pb-0 pt-3">
+                        <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center ">
                             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
                                 <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
                             </div>
@@ -150,20 +150,20 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
                     </ContentOrLoading>
 
                 </div>
-                <div className="flex justify-center md:justify-between flex-wrap py-5 gap-2.5 border-t-[1px] border-t-[#dee2e6]" >
-                    <Button
-                        onClick={() => step === 1 ? onCancel() : setStep((atual) => atual - 1)}
-                        color={"#FFF"}
-                        style={{ padding: 8, minWidth: 210, fontSize: 14, alignItems: "center" }}
-                        children="Voltar"
-                        variant='outline'
-                    />
+                <div className="flex justify-center md:justify-between pb-10 flex-wrap py-5 gap-2.5 border-t-[1px] border-t-[#dee2e6]" >
                     <Button
                         onClick={() => handleGoToNextStep(step + 1)}
                         color={"#FFF"}
                         disabled={planSelected === null}
                         style={{ padding: 8, minWidth: 210, fontSize: 14 }}
                         children={step === 1 ? "Próximo" : "Confirmar pagamento"}
+                    />
+                    <Button
+                        onClick={() => step === 1 ? onCancel() : setStep((atual) => atual - 1)}
+                        color={"#FFF"}
+                        style={{ padding: 8, minWidth: 210, fontSize: 14, alignItems: "center" }}
+                        children="Voltar"
+                        variant='outline'
                     />
                 </div>
             </DialogContent>

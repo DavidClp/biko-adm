@@ -127,10 +127,6 @@ export function Header() {
                         </Link>
                       </DropdownMenuItem>
                     ))}
-                    <DropdownMenuItem>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Configurações
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
@@ -298,10 +294,6 @@ export function Header() {
           {user && (
             <div className="p-4 border-t">
               <div className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start gap-3">
-                  <Settings className="h-4 w-4" />
-                  Configurações
-                </Button>
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 text-destructive hover:text-destructive"
