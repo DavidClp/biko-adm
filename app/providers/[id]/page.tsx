@@ -147,7 +147,6 @@ export default function ProviderProfilePage() {
     )
   }
 
-  console.log(getReviewsByProvider.data?.pagination)
   // Se não há provider, mostrar erro
   if (!provider) {
     return (
@@ -176,7 +175,6 @@ export default function ProviderProfilePage() {
     )
   }
 
-  console.log("getReviewsByProvider.data.data.length", getReviewsByProvider?.data?.data.length)
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />

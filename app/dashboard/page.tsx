@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -51,6 +51,8 @@ import { LuMessageCircleMore } from "react-icons/lu";
 export default function DashboardPage() {
   const { user, deleteAccount, loading } = useAuth()
   const { toast } = useToast()
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   useRequireAuth("/login")
 
@@ -60,6 +62,17 @@ export default function DashboardPage() {
 
   const handleToggleListedStatus = () => {
     if (provider) {
+      // Verifica se tem assinatura ativa
+      if (provider.subscription_situation !== 'active' && provider.subscription_situation !== 'paid') {
+        toast({
+          title: "🔒 Assinatura necessária",
+          description: "Para ativar seu perfil público e aparecer nas buscas, você precisa de uma assinatura ativa. Acesse a aba 'Planos' para escolher o melhor plano para você!",
+          variant: "default",
+          duration: 6000,
+        })
+        return
+      }
+      
       updateListedStatus(!provider.is_listed)
     }
   }
@@ -124,6 +137,24 @@ export default function DashboardPage() {
     }
   }
 
+  // Estado para controlar qual aba está ativa
+  const [activeTab, setActiveTab] = useState("requests")
+
+  useEffect(() => {
+    // Verifica se há parâmetro 'tab' na URL
+    const tabParam = searchParams.get('tab')
+    
+    if (tabParam === 'subscriptions') {
+      setActiveTab('subscriptions')
+    } else if (tabParam === 'profile') {
+      setActiveTab('profile')
+    } else if (tabParam === 'settings') {
+      setActiveTab('settings')
+    } else {
+      setActiveTab('requests')
+    }
+  }, [searchParams])
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -131,10 +162,10 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Painel do Prestador</h1>
-          <p className="text-muted-foreground">Gerencie seu perfil, pedidos e ferramentas de marketing</p>
+          <p className="text-muted-foreground">Gerencie seu perfil, pedidos e assinatura</p>
         </div>
 
-        <Tabs defaultValue="requests" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="requests" className="flex items-center gap-2">
               <LuMessageCircleMore className="h-7 w-7" />
@@ -323,7 +354,7 @@ export default function DashboardPage() {
                         variant={provider?.is_listed ? "default" : "outline"}
                         size="sm"
                         onClick={handleToggleListedStatus}
-                        disabled={isUpdatingListedStatus || (provider?.subscription_situation !== 'active' && provider?.subscription_situation !== 'paid')}
+                        disabled={isUpdatingListedStatus}
                       >
                         {isUpdatingListedStatus ? (
                           <>
@@ -332,11 +363,36 @@ export default function DashboardPage() {
                           </>
                         ) : provider?.is_listed ? (
                           "Ativado"
+                        ) : provider?.subscription_situation !== 'active' && provider?.subscription_situation !== 'paid' ? (
+                          <>
+                            <Lock className="mr-2 h-4 w-4" />
+                            Assinar para ativar
+                          </>
                         ) : (
                           "Desativado"
                         )}
                       </Button>
                     </div>
+                    {provider?.subscription_situation !== 'active' && provider?.subscription_situation !== 'paid' && (
+                      <div className="mt-2">
+                        <Alert className="bg-primary/25">
+                          <Lock className="h-4 w-4" color="#db9d01" />
+                          <AlertDescription className="text-sm text-secondary font-medium">
+                            Para aparecer nas buscas, você precisa de uma assinatura ativa. 
+                          {/*   <span className="font-medium text-blue-600 cursor-pointer hover:underline ml-1" 
+                                  onClick={() => {
+                                    // Aqui você pode adicionar lógica para navegar para a aba de assinaturas
+                                    const subscriptionsTab = document.querySelector('[value="subscriptions"]') as HTMLElement;
+                                    if (subscriptionsTab) {
+                                      subscriptionsTab.click();
+                                    }
+                                  }}>
+                              Ver planos disponíveis →
+                            </span> */}
+                          </AlertDescription>
+                        </Alert>
+                      </div>
+                    )}
                   </div>
                 </div>
 

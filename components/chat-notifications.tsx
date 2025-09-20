@@ -86,7 +86,7 @@ export function ChatNotifications({ userId, onNewMessage }: ChatNotificationsPro
 
   // Função para reproduzir som de notificação
   const playNotificationSound = () => {
-    try {
+ /*    try {
       const audio = new Audio('/notification-sound.mp3');
       audio.volume = 0.3;
       audio.play().catch(() => {
@@ -109,13 +109,13 @@ export function ChatNotifications({ userId, onNewMessage }: ChatNotificationsPro
       });
     } catch (error) {
       console.log('Erro ao reproduzir som de notificação:', error);
-    }
+    } */
   };
 
   // Função para testar notificação
   const testNotification = () => {
     if (permissionGranted && notificationsEnabled) {
-      const testMessage: Message = {
+    /*   const testMessage: Message = {
         id: 'test',
         content: 'Esta é uma notificação de teste',
         sender_id: 'test',
@@ -135,7 +135,7 @@ export function ChatNotifications({ userId, onNewMessage }: ChatNotificationsPro
         playNotificationSound();
       }
 
-      setTimeout(() => notification.close(), 3000);
+      setTimeout(() => notification.close(), 3000); */
     }
   };
 

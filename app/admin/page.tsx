@@ -131,7 +131,6 @@ export default function AdminPage() {
   const handleApproveProvider = async (providerId: string, approved: boolean) => {
     try {
       // Simulate API call
-      console.log(`${approved ? "Approving" : "Rejecting"} provider ${providerId}`)
       // In real app: await adminApi.approveProvider(providerId, approved)
 
       // Update local state (in real app, refetch data)

@@ -76,7 +76,6 @@ function MessageProposal({ message, isOwnMessage, request }: { message: Message,
         toUserId: request?.client?.userId,
         providerId: request?.provider?.id,
         onRequestStatusUpdate: (data) => {
-          console.log("🔄 Status do request atualizado:", data)
           // Aqui você pode atualizar o estado local do request se necessário
         }
       })

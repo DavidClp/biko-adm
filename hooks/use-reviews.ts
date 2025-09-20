@@ -103,10 +103,9 @@ export function useReviews({
         limit: limit.toString(),
       })
       const response = await api.get<ReviewsResponse>(`/provider-reviews/provider/${providerId}?${params}`)
-      console.log(response)
       return response.data
     },
-    enabled: !!providerId, // Só executa a query se providerId existir
+    enabled: !!providerId,  
   })
 
   return {

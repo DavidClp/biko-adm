@@ -2,9 +2,11 @@
 
 import { useCallback, useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
-import { Search } from "lucide-react"
+import { Search, Star, ArrowRight, Lock } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CitiesSelector } from "@/components/cities-selector"
@@ -61,6 +63,35 @@ export default function ProvidersPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-6">Encontre prestadores de serviços</h1>
 
+          {/* Banner de aviso para prestadores sem assinatura */}
+          {user?.provider?.id && user.provider.subscription_situation !== 'active' && user.provider.subscription_situation !== 'paid' && (
+            <div className="mb-6">
+              <Alert className="bg-gradient-to-r from-primary/20 to-primary/10 border-primary/30">
+                <AlertDescription className="flex items-center gap-5 md:gap-1 justify-between flex-col md:flex-row">
+                  <div className="flex-1 ">
+                    <p className="font-semibold text-secondary mb-1">
+            {/*     <Star className="h-5 w-5" color="#db9d01"/> */}
+                      🚀 Seu perfil não está aparecendo nas buscas!
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Para aparecer nesta lista e receber mais clientes, você precisa de uma assinatura ativa. 
+                      <span className="font-medium text-secondary ml-1">Assine agora e aumente sua visibilidade!</span>
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => router.push('/dashboard?tab=subscriptions')}
+                    className="ml-4 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    size="sm"
+                  >
+                    <Star className="mr-2 h-4 w-4" />
+                    Ver Planos
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="md:col-span-2">
               <div className="relative">
@@ -88,14 +119,13 @@ export default function ProvidersPage() {
 
           <div className="text-sm text-muted-foreground">
             {providers?.length} prestador(es) encontrado(s)
-            {error && (
+            {/* {error && (
               <span className="text-destructive ml-2">
                 (Erro ao carregar dados, mostrando dados de exemplo)
               </span>
-            )}
+            )} */}
           </div>
         </div>
-
         <ProvidersList
           providers={providers}
           loading={loading}

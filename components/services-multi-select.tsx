@@ -44,7 +44,6 @@ export function ServicesMultiSelect({
       onServicesChange?.(selectedServices.filter(id => id !== serviceId))
     } else {
       if (!maxSelections || selectedServices.length < maxSelections) {
-        console.log('onServicesChange', [...selectedServices, serviceId])
         onServicesChange?.([...selectedServices, serviceId])
       }
     }

@@ -333,7 +333,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 {default_plan?.id && (
                     <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
                         <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col md:flex-row md:items-center items-none justify-between gap-3 ">
                                 <div className="flex items-center space-x-4">
                                     <div className="p-3 bg-primary rounded-full">
                                         <PlanIcons type={default_plan.icon || ''} size={24} opacity={1} />
@@ -371,15 +371,14 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                                     {methodsAllowed.map((method) => (
                                         <div
                                             key={method}
-                                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${payment_method === method
+                                            className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${payment_method === method
                                                 ? 'border-primary bg-primary/5 shadow-md'
                                                 : 'border-border hover:border-primary/50 hover:bg-muted/50'
                                                 }`}
                                             onClick={() => setPaymentMethod(method)}
                                         >
                                             <div className="flex items-center space-x-3">
-                                                <div className={`p-2 rounded-full ${payment_method === method ? 'bg-primary' : 'bg-muted'
-                                                    }`}>
+                                                <div className={`p-2 rounded-full ${payment_method === method ? 'bg-primary' : 'bg-muted' }`}>
                                                     {correct_methods[method].icon}
                                                 </div>
                                                 <div>

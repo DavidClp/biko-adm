@@ -107,7 +107,7 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
                                 <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
                             </div>
                         </div>
-                        <DialogTitle className="text-lg sm:text-2xl font-bold text-primary">
+                        <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
                             Plano de Assinatura
                         </DialogTitle>
                         <DialogDescription className="text-sm sm:text-base text-muted-foreground px-2">
@@ -123,7 +123,7 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
                                 pos={tabs.findIndex((tab) => tab.open)}
                             />
 
-                            <div style={{ display: step === 1 ? "flex" : "none", width: "100%" }}>
+                            <div style={{ display: step === 1 ? "flex" : "none", width: "100%", alignItems: "center", justifyContent: "center" }}>
                                 <ChoosePlan
                                     plans={plans}
                                     planSelected={planSelected}
