@@ -37,6 +37,7 @@ jobs:
 
             # Cria o .env
             echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env
+            echo "NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID=${{ secrets.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID }}" >> .env
 
             # Para containers antigos do projeto (evita conflito de nomes)
             docker compose down --remove-orphans
