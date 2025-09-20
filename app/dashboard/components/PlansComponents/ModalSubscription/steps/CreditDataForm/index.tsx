@@ -279,7 +279,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
                 }
 
                 if (payment_method === "credit_card" && amount > 0 && creditCardData) {
-                    const sdkGn = await GerencianetCartao.instance(process.env.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID, false);
+                    const sdkGn = await GerencianetCartao.instance(process.env.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID, true);
 
                     const { card_mask, payment_token } = await sdkGn.getPaymentToken({ ...creditCardData });
 
