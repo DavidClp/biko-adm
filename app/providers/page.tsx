@@ -70,7 +70,6 @@ export default function ProvidersPage() {
                 <AlertDescription className="flex items-center gap-5 md:gap-1 justify-between flex-col md:flex-row">
                   <div className="flex-1 ">
                     <p className="font-semibold text-secondary mb-1">
-            {/*     <Star className="h-5 w-5" color="#db9d01"/> */}
                       🚀 Seu perfil não está aparecendo nas buscas!
                     </p>
                     <p className="text-sm text-muted-foreground">

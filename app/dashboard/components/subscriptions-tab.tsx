@@ -85,7 +85,6 @@ export function SubscriptionsTab() {
     }
   }, [subscription?.id, cancelSubscription])
 
-  console.log("subscription", subscription)
   return (
     <div className="">
       <ContentOrLoading loading={loading} text="Buscando assinatura da empresa">
