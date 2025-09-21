@@ -244,7 +244,6 @@ export function RequestsTab() {
     }
   }, [newMessage]);
 
-  console.log("provider", user?.provider)
   return (
     <div className="flex h-[calc(100vh-200px)] lg:h-auto lg:grid lg:grid-cols-2 lg:gap-6">
       {/* Orders List */}

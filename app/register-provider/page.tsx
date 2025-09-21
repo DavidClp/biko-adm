@@ -25,6 +25,7 @@ import {
   MapPin,
   Phone,
   FileText,
+  Building2,
 } from "lucide-react"
 import { ServicesMultiSelect } from "@/components/services-multi-select"
 import { CitiesSelector } from "@/components/cities-selector"
@@ -32,6 +33,7 @@ import { CitiesSelector } from "@/components/cities-selector"
 const registerProviderSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
+  business_name: z.string().optional(),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   confirmPassword: z.string(),
   services: z.array(z.string()).min(1, "Selecione pelo menos um serviço"),
@@ -66,6 +68,7 @@ export default function RegisterProviderPage() {
       confirmPassword: "",
       services: [],
       city: "",
+      business_name: "",
       description: "",
       phone: "",
     },
@@ -87,6 +90,7 @@ export default function RegisterProviderPage() {
         city: data.city,
         description: data.description,
         phone: data.phone,
+        business_name: data.business_name || "",
       })
 
       router.push("/dashboard")
@@ -145,9 +149,8 @@ export default function RegisterProviderPage() {
                         type="text"
                         placeholder="Seu nome completo"
                         disabled={loading}
-                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
-                          errors.name ? "border-destructive" : ""
-                        }`}
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${errors.name ? "border-destructive" : ""
+                          }`}
                         {...register("name")}
                       />
                     </div>
@@ -167,9 +170,8 @@ export default function RegisterProviderPage() {
                         type="email"
                         placeholder="seu@email.com"
                         disabled={loading}
-                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
-                          errors.email ? "border-destructive" : ""
-                        }`}
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${errors.email ? "border-destructive" : ""
+                          }`}
                         {...register("email")}
                       />
                     </div>
@@ -191,9 +193,8 @@ export default function RegisterProviderPage() {
                         type="password"
                         placeholder="Mínimo 6 caracteres"
                         disabled={loading}
-                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
-                          errors.password ? "border-destructive" : ""
-                        }`}
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${errors.password ? "border-destructive" : ""
+                          }`}
                         {...register("password")}
                       />
                     </div>
@@ -213,9 +214,8 @@ export default function RegisterProviderPage() {
                         type="password"
                         placeholder="Digite a senha novamente"
                         disabled={loading}
-                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
-                          errors.confirmPassword ? "border-destructive" : ""
-                        }`}
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${errors.confirmPassword ? "border-destructive" : ""
+                          }`}
                         {...register("confirmPassword")}
                       />
                     </div>
@@ -234,6 +234,50 @@ export default function RegisterProviderPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1">
+                    <Label htmlFor="name" className="text-sm font-medium text-foreground">
+                      Nome da empresa/fantasia
+                    </Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder="Nome fantasia"
+                        disabled={loading}
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${errors.name ? "border-destructive" : ""
+                          }`}
+                        {...register("business_name")}
+                      />
+                    </div>
+                    {errors.name && (
+                      <p className="text-sm text-destructive">{errors.name.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="phone" className="text-sm font-medium text-foreground">
+                      WhatsApp
+                    </Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="(11) 99999-9999"
+                        disabled={loading}
+                        className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${errors.phone ? "border-destructive" : ""
+                          }`}
+                        {...register("phone")}
+                      />
+                    </div>
+                    {errors.phone && (
+                      <p className="text-sm text-destructive">{errors.phone.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-1">
                     <Label htmlFor="service" className="text-sm font-medium text-foreground">
                       Serviços oferecidos
                     </Label>
@@ -241,9 +285,8 @@ export default function RegisterProviderPage() {
                       <ServicesMultiSelect
                         selectedServices={selectedServices}
                         onServicesChange={setSelectedServices}
-                        classNameInput={`min-h-12 border-border/50 ${
-                          errors.services ? "border-destructive" : ""
-                        }`}
+                        classNameInput={`min-h-12 border-border/50 ${errors.services ? "border-destructive" : ""
+                          }`}
                       />
                     </div>
                     {errors.services && (
@@ -257,9 +300,8 @@ export default function RegisterProviderPage() {
                     </Label>
                     <div>
                       <CitiesSelector
-                        classNameInput={`min-h-12 border-border/50 ${
-                          errors.city ? "border-destructive" : ""
-                        }`}
+                        classNameInput={`min-h-12 border-border/50 ${errors.city ? "border-destructive" : ""
+                          }`}
                         onCitySelect={(cityId) => setValue("city", cityId)}
                       />
                     </div>
@@ -267,28 +309,6 @@ export default function RegisterProviderPage() {
                       <p className="text-sm text-destructive">{errors.city.message}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="phone" className="text-sm font-medium text-foreground">
-                    WhatsApp
-                  </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="(11) 99999-9999"
-                      disabled={loading}
-                      className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${
-                        errors.phone ? "border-destructive" : ""
-                      }`}
-                      {...register("phone")}
-                    />
-                  </div>
-                  {errors.phone && (
-                    <p className="text-sm text-destructive">{errors.phone.message}</p>
-                  )}
                 </div>
 
                 <div className="space-y-1">
@@ -302,9 +322,8 @@ export default function RegisterProviderPage() {
                       placeholder="Descreva seus serviços, experiência e diferenciais..."
                       disabled={loading}
                       rows={4}
-                      className={`pl-10 pt-3 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 resize-none ${
-                        errors.description ? "border-destructive" : ""
-                      }`}
+                      className={`pl-10 pt-3 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 resize-none ${errors.description ? "border-destructive" : ""
+                        }`}
                       {...register("description")}
                     />
                   </div>

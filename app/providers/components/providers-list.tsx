@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
@@ -51,8 +51,11 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
                   {provider?.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
+
               <div className="flex-1">
-                <CardTitle className="text-lg">{provider?.name?.length > 20 ? provider?.name?.slice(0, 20) + "..." : provider?.name}</CardTitle>
+                <CardTitle className="text-lg">{provider?.name}</CardTitle>
+                <p className="text-sm">{provider?.business_name}</p>
+
                 <div className="flex flex-wrap gap-1 mb-2">
                   {provider?.servicesNames?.slice(0, 2)?.map((service, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
@@ -73,7 +76,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
             </div>
           </CardHeader>
 
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 flex flex-1 flex-col justify-between">
             <CardDescription className="mb-4 line-clamp-2">
               {provider?.description}
             </CardDescription>
@@ -90,7 +93,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-end">
               <Link href={`/providers/${provider.id}`} className="flex-1">
                 <Button variant="outline" className="w-full bg-transparent">
                   Perfil
@@ -103,6 +106,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
               </Button>
               )}
             </div>
+        
           </CardContent>
         </Card>
       ))}

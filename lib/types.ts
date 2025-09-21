@@ -73,6 +73,7 @@ export interface Provider extends User {
   description: string
   photoUrl?: string
   createdAt: string
+  business_name: string
   socialMedia?: {
     instagram?: string
     facebook?: string

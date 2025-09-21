@@ -21,6 +21,7 @@ const profileFormSchema = z.object({
   cityId: z.string(),
   phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").max(15, "Telefone muito longo"),
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres").max(500, "Descrição muito longa"),
+  business_name: z.string().optional(),
   instagram: z.string().optional(),
   facebook: z.string().optional(),
   linkedin: z.string().optional(),
@@ -39,6 +40,7 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
       services: [],
       cityId: "",
       phone: "",
+      business_name: "",
       description: "",
     },
   });
@@ -159,6 +161,24 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
                       <FormLabel>Cidade</FormLabel>
                       <FormControl>
                         <CitiesSelector onCitySelect={field.onChange} defaultCityId={provider?.cityId} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="business_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da empresa/fantasia</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          disabled={isUpdating}
+                          placeholder="Nome fantasia"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

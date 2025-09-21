@@ -23,6 +23,7 @@ interface AuthContextType {
     password: string
     phone: string
     services: string[]
+    business_name: string
     city: string
     description: string
   }) => Promise<void>
@@ -158,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     phone: string
     services: string[]
     description: string
+    business_name: string
     city: string
   }) => {
     setLoading(true)
