@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   title: "Biko - Plataforma de Serviços",
   description: "Conecte-se com os melhores prestadores de serviços da sua região",
   generator: "v0.app",
+  openGraph: {
+    type: "website",
+    url: "https://bikoservicos.com.br",
+    title: "Biko - Plataforma de Serviços",
+    description: "Conecte-se com os melhores prestadores de serviços da sua região",
+    siteName: "Biko",
+  },
 }
 
 export const viewport: Viewport = {
@@ -30,7 +37,6 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <DefaultSeo {...SEO} />
         <QueryProvider>
           <AuthProvider>{children}</AuthProvider>
         </QueryProvider>
