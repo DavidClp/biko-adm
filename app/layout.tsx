@@ -6,6 +6,8 @@ import "./globals.css"
 import { AuthProvider } from "@/hooks/use-auth"
 import { QueryProvider } from "@/components/query-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { DefaultSeo } from "next-seo";
+import SEO from "../next-seo.config";
 
 export const metadata: Metadata = {
   title: "Biko - Plataforma de Serviços",
@@ -27,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        <DefaultSeo {...SEO} />
         <QueryProvider>
           <AuthProvider>{children}</AuthProvider>
         </QueryProvider>

@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://bikoservicos.com.br/
+
+# Sitemaps
+Sitemap: https://bikoservicos.com.br/sitemap.xml
