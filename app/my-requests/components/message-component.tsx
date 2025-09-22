@@ -27,7 +27,7 @@ export function MessageComponent({ message, isOwnMessage, request }: { message: 
 function MessageText({ message, isOwnMessage }: { message: Message, isOwnMessage: boolean }) {
     return (
         <div
-            key={message.id}
+            key={message?.id}
             className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
         >
             <div

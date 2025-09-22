@@ -36,7 +36,6 @@ import { CardNotRequests } from "./card-not-requests"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function RequestsTab() {
-  // Messaging state for internal chat system
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
   const [showChat, setShowChat] = useState(false);
 
@@ -45,7 +44,7 @@ export function RequestsTab() {
 
   const router = useRouter()
   const isMobile = useIsMobile()
-  const { user, loading: authLoading } = useAuth()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
 
   const { getRequestsByProvider } = useRequestService({ providerId: user?.provider?.id })
@@ -294,7 +293,7 @@ export function RequestsTab() {
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-sm">{request?.client?.name}</h3>
                             {isNewRequest && (
-                              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs mr-1">
                                 Nova
                               </Badge>
                             )}
@@ -436,7 +435,7 @@ export function RequestsTab() {
                   {messages?.map((message) => {
                     const isOwnMessage = message.sender_id === user?.id;
 
-                    return <MessageComponent message={message} request={selectedRequest} isOwnMessage={isOwnMessage} />
+                    return <MessageComponent message={message} request={selectedRequest} isOwnMessage={isOwnMessage} key={message.id}/>
                   })}
 
                   {/* Indicador de digitação */}

@@ -22,7 +22,7 @@ import {
 
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
-import { ArrowLeft, MapPin, Star, Instagram, Facebook, Linkedin, Loader2, MessageCircle } from "lucide-react"
+import { ArrowLeft, MapPin, Star, Instagram, Facebook, Linkedin, Loader2, MessageCircle, LogIn } from "lucide-react"
 import { useProvider } from "@/hooks/use-provider"
 import { useReviews } from "@/hooks/use-reviews"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
@@ -44,10 +44,10 @@ export default function ProviderProfilePage() {
   const { provider, isLoading, error, refetch } = useProvider({ providerId });
   const { user } = useAuth();
   const router = useRouter();
-  const { createReview, isCreating, getReviewsByProvider } = useReviews({ 
-    providerId, 
-    page: currentPage, 
-    limit: 5 
+  const { createReview, isCreating, getReviewsByProvider } = useReviews({
+    providerId,
+    page: currentPage,
+    limit: 5
   });
 
   const handleSubmitReview = () => {
@@ -233,8 +233,8 @@ export default function ProviderProfilePage() {
               </CardContent>
             </Card>
 
-                {/* CONTACT MOBILE */}
-                {user?.role === UserRole.CLIENT && (
+            {/* CONTACT MOBILE */}
+            {user?.role === UserRole.CLIENT && (
               <Card className="space-y-0 gap-0 block md:hidden">
                 <CardHeader>
                   <CardTitle className="text-lg sm:text-xl">Contato</CardTitle>
@@ -261,6 +261,27 @@ export default function ProviderProfilePage() {
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">
                       Todas as conversas acontecem dentro da plataforma Biko
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {!user && (
+              <Card className="space-y-0 gap-0 block md:hidden">
+                <CardHeader>
+                  <CardTitle className="text-lg sm:text-xl">Contato</CardTitle>
+                </CardHeader>
+
+                <CardContent className="pb-4 sm:pb-6 pt-[-100px] space-y-4">
+                  <Button className="w-full" size="lg" onClick={() => router.push("/login")}>
+                    <LogIn className="h-5 w-5 mr-2" />
+                    Login
+                  </Button>
+
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Para solicitar um orçamento, você precisa estar logado
                     </p>
                   </div>
                 </CardContent>
@@ -363,11 +384,10 @@ export default function ProviderProfilePage() {
                               {Array.from({ length: 5 }).map((_, i) => (
                                 <Star
                                   key={i}
-                                  className={`h-4 w-4 ${
-                                    i < review.stars
+                                  className={`h-4 w-4 ${i < review.stars
                                       ? "text-yellow-400 fill-yellow-400"
                                       : "text-gray-300"
-                                  }`}
+                                    }`}
                                 />
                               ))}
                             </div>
@@ -379,14 +399,14 @@ export default function ProviderProfilePage() {
                         </div>
                       ))}
                     </div>
-                    
+
                     {/* Paginação */}
                     {getReviewsByProvider.data.pagination && getReviewsByProvider.data.pagination.totalPages > 1 && (
                       <div className="mt-6">
                         <Pagination>
                           <PaginationContent>
                             <PaginationItem>
-                              <PaginationPrevious 
+                              <PaginationPrevious
                                 href="#"
                                 size="default"
                                 onClick={(e) => {
@@ -398,14 +418,14 @@ export default function ProviderProfilePage() {
                                 className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
                               />
                             </PaginationItem>
-                            
+
                             {Array.from({ length: getReviewsByProvider.data.pagination.totalPages }).map((_, i) => {
                               const page = i + 1
                               const isCurrentPage = page === currentPage
-                              
+
                               // Mostrar apenas algumas páginas ao redor da página atual
                               if (
-                                page === 1 || 
+                                page === 1 ||
                                 page === getReviewsByProvider.data.pagination.totalPages ||
                                 (page >= currentPage - 1 && page <= currentPage + 1)
                               ) {
@@ -425,7 +445,7 @@ export default function ProviderProfilePage() {
                                   </PaginationItem>
                                 )
                               } else if (
-                                page === currentPage - 2 || 
+                                page === currentPage - 2 ||
                                 page === currentPage + 2
                               ) {
                                 return (
@@ -436,9 +456,9 @@ export default function ProviderProfilePage() {
                               }
                               return null
                             })}
-                            
+
                             <PaginationItem>
-                              <PaginationNext 
+                              <PaginationNext
                                 href="#"
                                 size="default"
                                 onClick={(e) => {
@@ -452,7 +472,7 @@ export default function ProviderProfilePage() {
                             </PaginationItem>
                           </PaginationContent>
                         </Pagination>
-                        
+
                         <div className="text-center text-sm text-muted-foreground mt-2">
                           Mostrando {getReviewsByProvider.data.data.length} de {getReviewsByProvider.data.pagination.total} avaliações
                         </div>

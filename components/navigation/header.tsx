@@ -35,7 +35,7 @@ export function Header() {
 
   const navigationItems = [
     { href: "/", label: "Início", icon: Home },
-    { href: "/providers", label: "Buscar", icon: Search },
+    { href: "/providers", label: "Buscar Profissionais", icon: Search },
   ]
 
   const userNavigationItems = user

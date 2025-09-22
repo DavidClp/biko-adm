@@ -42,15 +42,15 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {providers.map((provider) => (
-        <Card key={provider?.id} className="group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-gray-50/50 overflow-hidden">
+        <Card key={provider?.id} className="border border-gray-100/80 group hover:shadow-xl gap-0 hover:shadow-primary/5 transition-all duration-300 shadow-md bg-gradient-to-br from-white to-gray-50/50 overflow-hidden">
           {/* Header com foto e informações principais */}
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-0">
             <div className="flex flex-col items-center text-center space-y-4">
               {/* Avatar com efeito de destaque */}
               <div className="relative">
-                <Avatar className="h-20 w-20 ring-4 ring-white shadow-lg group-hover:ring-primary/20 transition-all duration-300">
+                <Avatar className="h-18 w-18 ring-4 ring-white shadow-lg group-hover:ring-primary/20 transition-all duration-300">
                   <AvatarImage src={provider?.photoUrl} alt={provider?.name} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold text-xl">
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-secondary font-semibold text-xl">
                     {provider?.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -78,9 +78,9 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4  h-full">
             {/* Serviços oferecidos */}
-            <div className="space-y-2">
+            <div className="space-y-2 pt-3">
               <h4 className="text-sm font-semibold text-gray-700">Serviços</h4>
               <div className="flex flex-wrap gap-1.5">
                 {provider?.servicesNames?.slice(0, 3)?.map((service, index) => (
@@ -133,7 +133,7 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
           </CardContent>
 
           {/* Footer com ações */}
-          <CardFooter className="pt-4 border-t border-gray-100">
+          <CardFooter className="pt-4 mt-4 border-t border-gray-100">
             <div className="flex gap-2 w-full">
               <Link href={`/providers/${provider.id}`} className="flex-1">
                 <Button 

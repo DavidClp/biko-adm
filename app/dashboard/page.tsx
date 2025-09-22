@@ -123,7 +123,7 @@ export default function DashboardPage() {
       <Header />
 
       <div className="container mx-auto px-4 py-8 flex-1">
-        <div className="mb-8">
+        <div className="mb-4 md:mb-8">
           <h1 className="text-3xl font-bold mb-2">Painel do Prestador</h1>
           <p className="text-muted-foreground">Gerencie seu perfil, pedidos e assinatura</p>
         </div>

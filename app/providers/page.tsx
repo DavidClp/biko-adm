@@ -56,12 +56,12 @@ export default function ProvidersPage() {
   }, [refetch, router])
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col ">
       <Header />
 
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-6">Encontre prestadores de serviços</h1>
+          <h1 className="text-xl md:text-3xl font-bold mb-6">Encontre prestadores de serviços</h1>
 
           {/* Banner de aviso para prestadores sem assinatura */}
           {user?.provider?.id && user.provider.subscription_situation !== 'active' && user.provider.subscription_situation !== 'paid' && (

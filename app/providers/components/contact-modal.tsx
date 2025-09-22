@@ -97,7 +97,7 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center pb-4 sm:pb-6">
-          <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+          <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
               <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
             </div>
@@ -112,9 +112,9 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
 
         {!isContactSent ? (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-            <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-1">
               <Label htmlFor="service_type" className="text-sm font-medium text-foreground">
-                Tipo de serviço *
+                Tipo de serviço <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -136,9 +136,9 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
               )}
             </div>
 
-            <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-1">
               <Label htmlFor="description" className="text-sm font-medium text-foreground">
-                Descrição detalhada *
+                Descrição detalhada <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -153,7 +153,7 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
                       message: "Mínimo de 10 caracteres"
                     }
                   })}
-                  className="pl-10 pt-3 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 resize-none text-sm sm:text-base"
+                  className="pl-10 pt-3 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 overflow-y-auto whitespace-pre-wrap break-all  resize-none text-sm sm:text-base"
                 />
               </div>
               {errors.description && (
@@ -161,9 +161,9 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
               )}
             </div>
 
-            <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-1">
               <Label htmlFor="urgency" className="text-sm font-medium text-foreground">
-                Urgência
+                Urgência <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={watch("urgency")}
@@ -190,9 +190,9 @@ export function ContactModal({ provider, isOpen, onOpenChange, onContactSent }: 
               </Select>
             </div>
 
-            <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-1">
               <Label htmlFor="address" className="text-sm font-medium text-foreground">
-                Endereço
+                Endereço <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

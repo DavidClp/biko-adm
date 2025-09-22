@@ -25,7 +25,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/providers" className="text-muted-foreground hover:text-primary transition-colors">
-                  Buscar Prestadores
+                  Buscar Profissionais
                 </Link>
               </li>
               <li>
