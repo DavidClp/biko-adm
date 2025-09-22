@@ -4,72 +4,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
-import { Check, Star, Zap, Users, TrendingUp, Megaphone, Crown, Sparkles } from "lucide-react"
+import { Check, Star, Zap, Users, TrendingUp, Megaphone, Crown, Sparkles, StarHalf, Gem } from "lucide-react"
 
 export default function ProviderLandingPage() {
   const plans = [
     {
-      name: "Gratuito",
-      price: "R$ 0",
+      name: "Plano Premium",
+      price: "R$ 89,99",
       period: "/mês",
-      description: "Ideal para começar",
+      description: "Acesso completo à plataforma",
       features: [
-        "Listagem básica na plataforma",
-        "Perfil público simples",
-        "Recebimento de contatos",
-        "Suporte por email",
-      ],
-      icon: Users,
-      popular: false,
-      cta: "Começar Grátis",
-    },
-    {
-      name: "Essencial",
-      price: "R$ 29",
-      period: "/mês",
-      description: "Para profissionais ativos",
-      features: [
-        "Destaque nos resultados de busca",
-        "Acesso parcial à IA de marketing",
-        "Até 3 fotos no perfil",
-        "Estatísticas básicas",
-        "Suporte prioritário",
-      ],
-      icon: Star,
-      popular: true,
-      cta: "Escolher Essencial",
-    },
-    {
-      name: "Profissional",
-      price: "R$ 79",
-      period: "/mês",
-      description: "Para quem quer crescer",
-      features: [
-        "Acesso avançado à IA de marketing",
-        "Página personalizada completa",
-        "Galeria de trabalhos ilimitada",
-        "Relatórios detalhados",
-        "Badge de verificado",
-      ],
-      icon: TrendingUp,
-      popular: false,
-      cta: "Escolher Profissional",
-    },
-    {
-      name: "Premium",
-      price: "R$ 149",
-      period: "/mês",
-      description: "Solução completa",
-      features: [
-        "IA ilimitada + consultoria personalizada",
-        "Anúncios internos na plataforma",
-        "Posição premium nos resultados",
-        "Gerente de conta dedicado",
-        "Análises avançadas de mercado",
+        "Destaque nas buscas da plataforma",
+        "Chat direto com clientes",
+        "Avaliações de clientes no perfil",
+        "Selo de verificação Biko",
+        "Perfil público visível para clientes",
       ],
       icon: Crown,
-      popular: false,
-      cta: "Escolher Premium",
+      popular: true,
+      cta: "Assinar Plano",
     },
   ]
 
@@ -87,7 +40,7 @@ export default function ProviderLandingPage() {
 
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
             Transforme seu negócio com
-            <span className="text-primary"> tecnologia e IA</span>
+            <span className="text-primary"> tecnologia</span>
           </h1>
 
           <p className="text-xl text-muted-foreground mb-12 text-pretty max-w-2xl mx-auto">
@@ -99,12 +52,12 @@ export default function ProviderLandingPage() {
             <Link href="/register-provider">
               <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-6">
                 <Zap className="mr-2 h-5 w-5" />
-                Começar Agora - Grátis
+                Começar Agora
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8 py-6 bg-transparent">
+       {/*      <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8 py-6 bg-transparent">
               Ver Demonstração
-            </Button>
+            </Button> */}
           </div>
 
           {/* Trust Indicators */}
@@ -153,7 +106,7 @@ export default function ProviderLandingPage() {
             <Card className="text-center border-2 hover:border-primary/20 transition-colors">
               <CardHeader>
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Star className="h-6 w-6 text-primary" />
+                  <Gem className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Destaque Premium</CardTitle>
               </CardHeader>
@@ -175,6 +128,20 @@ export default function ProviderLandingPage() {
                 </CardDescription>
               </CardContent>
             </Card>
+
+            <Card className="text-center border-2 hover:border-primary/20 transition-colors">
+              <CardHeader>
+                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                  <StarHalf className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>Avaliações</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Receba avaliações de clientes e aumente sua reputação
+                </CardDescription>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -183,13 +150,14 @@ export default function ProviderLandingPage() {
       <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Escolha o plano ideal para você</h2>
+            <h2 className="text-3xl font-bold mb-4">Acesso completo à plataforma</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Comece grátis e evolua conforme seu negócio cresce
+              Cadastre-se gratuitamente e assine nosso plano para começar a receber clientes
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          <div className="flex justify-center">
+            <div className="max-w-md w-full">
             {plans.map((plan) => {
               const IconComponent = plan.icon
               return (
@@ -237,16 +205,35 @@ export default function ProviderLandingPage() {
                 </Card>
               )
             })}
+            </div>
           </div>
 
+       {/*    <div className="text-center mt-12">
+            <p className="text-muted-foreground mb-4">Cadastro gratuito • Teste de 14 dias • Cancele quando quiser</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/register-provider">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+                  <Users className="mr-2 h-5 w-5" />
+                  Cadastrar-se Grátis
+                </Button>
+              </Link>
+              <Link href="/register-provider">
+                <Button size="lg" className="text-lg px-8 py-6">
+                  <Zap className="mr-2 h-5 w-5" />
+                  Assinar Plano Premium
+                </Button>
+              </Link>
+            </div>
+          </div> */}
           <div className="text-center mt-12">
-            <p className="text-muted-foreground mb-4">Todos os planos incluem período de teste gratuito de 14 dias</p>
-            <Link href="/register-provider">
-              <Button size="lg" className="text-lg px-8 py-6">
-                <Zap className="mr-2 h-5 w-5" />
-                Começar Teste Gratuito
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/register-provider">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+                  <Users className="mr-2 h-5 w-5" />
+                  Cadastrar-se Agora
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

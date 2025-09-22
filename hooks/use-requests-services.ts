@@ -219,7 +219,7 @@ export function useRequestService({ clientId, providerId }: { clientId?: string,
       })
       
       const userName = variables.userName || (variables.cancelledBy === 'client' ? 'Cliente' : 'Prestador')
-      const cancelMessage = `${userName} cancelou a ${variables.cancelledBy === 'client' ? 'solicitação' : 'proposta'}`
+      const cancelMessage = `❌🚨 ${userName} cancelou a ${variables.cancelledBy === 'client' ? 'solicitação' : 'proposta'} 🚨❌`
       
       socket.emit("chat:send", {
         requestId: variables.requestId,

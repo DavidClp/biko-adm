@@ -269,8 +269,8 @@ export function RequestsTab() {
             </div>
           </CardHeader>
 
-          <CardContent>
-            <ScrollArea className="space-y-3 h-[calc(100vh-300px)] pr-3">
+          <CardContent className="px-3 md:px-4">
+            <ScrollArea className="space-y-3 h-[calc(100vh-300px)]">
               {requestsList?.map((request) => {
                 const isNewRequest = newRequests.some(newReq => newReq.id === request.id);
 
@@ -318,9 +318,14 @@ export function RequestsTab() {
                           <p className="text-xs text-muted-foreground mt-1">{request?.createdAt ? formatDateWithTime(request?.createdAt) : ""}</p>
                         </div>
                       </div>
-                      {(request?.status !== "PENDING" && request?.value) && (
+                      {(request?.status === 'ACCEPTED' || request?.status === 'COMPLETED') && (request?.value) && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-semibold text-primary">{formatCurrency(Number(request?.value))}</span>
+                        </div>
+                      )}
+                      {(request?.status === "ON_BUDGET" || request?.status === "CANCELLED_BY_PROVIDER" || request?.status === "CANCELLED_BY_CLIENT") && (request?.budget) && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-primary">{formatCurrency(Number(request?.budget))}</span>
                         </div>
                       )}
                     </CardContent>

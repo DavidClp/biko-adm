@@ -27,7 +27,7 @@ export default function HomePage() {
             <Link href="/providers">
               <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-6 bg-primary hover:bg-primary/90">
                 <Search className="mr-2 h-5 w-5" />
-                Sou Cliente
+                 Buscar Profissionais
               </Button>
             </Link>
             <Link href="/provider-landing">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Smile, Search } from "lucide-react";
@@ -23,6 +23,7 @@ const EMOJI_CATEGORIES = {
 export function EmojiPicker({ onEmojiSelect, isOpen, onClose }: EmojiPickerProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Faces");
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   const filteredEmojis = EMOJI_CATEGORIES[selectedCategory as keyof typeof EMOJI_CATEGORIES]?.filter(emoji => 
     emoji.toLowerCase().includes(searchTerm.toLowerCase())
@@ -32,10 +33,27 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onClose }: EmojiPickerProps
     onEmojiSelect(emoji);
   };
 
+  // Hook para detectar cliques fora do componente
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="absolute bottom-full left-0 mb-2 w-80 h-[260px] bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+    <div ref={pickerRef} className="absolute bottom-full left-0 mb-2 w-80 h-[260px] bg-white border border-gray-200 rounded-lg shadow-lg z-50">
       <div className="p-3 border-b border-gray-200">
       {/*   <div className="flex items-center gap-2 mb-2">
           <Search className="w-4 h-4 text-gray-500" />

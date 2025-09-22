@@ -92,7 +92,7 @@ export interface Provider extends User {
 }
 
 
-export type requestStatus =  "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" | "ON_BUDGET"
+export type requestStatus =  "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" | "ON_BUDGET" | "CANCELLED_BY_PROVIDER" | "CANCELLED_BY_CLIENT"
 
 export type requestBudgetStatus =  "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED"
 
@@ -106,6 +106,7 @@ export interface IRequestService {
   urgency: "urgent" | "normal" | "low"; // se houver categorias
   value: string; // poderia ser number se o backend tratar como número
   status:requestStatus,
+  budget: string
   createdAt: string;
   client: Client;
   provider: Provider;
