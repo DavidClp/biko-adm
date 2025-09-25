@@ -135,26 +135,10 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
 
     const { register, handleSubmit, control, watch, formState: { errors }, setError, getValues, setValue, trigger, unregister } = useForm({
         mode: "all",
-        /* defaultValues: {
+        defaultValues: {
             email: user?.email,
-            state_id: '',
-            city_id: user?.provider?.cityId ?? '',
-            cep: '',
-            public_place:'',
-            number: '',
-            district: '',
-            complement: '',
-            type: '',
-            name: user?.provider?.name ?? '',
-            corporate_name: '',
-            cnpj: '',
-            cpf: '',
-            phone_number: '',
-            birth: '',
-            cardNumber: '',
-            dueDate: '',
-            cvv: '',
-        } */
+            name: user?.provider?.name,
+        } as any
     });
 
     const _form = watch()
@@ -342,7 +326,6 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
             setLoadingSave(false)
         }
     }, [_form, payment_method, api])
-
 
     useImperativeHandle(ref, () => ({ forceSubmit }))
 
