@@ -39,7 +39,7 @@ export const validateCPFOrCNPJ = async (cpfOrCnpj: string) => {
 
 export const validatePhone = async (phone: string) => {
     phone = phone?.replace(/\D/g, "")
-    if (phone && phone.length > 0) {
+  /*   if (phone && phone.length > 0) {
         const schemaPhone = Yup.object().shape({
             phone: Yup.string().min(10, "Formato Inválido").max(11, "Formato Inválido")
         })
@@ -48,7 +48,7 @@ export const validatePhone = async (phone: string) => {
         } catch (err: any) {
             return err.errors ? err.errors[0] : "Formato Inválido"
         }
-    }
+    } */
     return true
 }
 

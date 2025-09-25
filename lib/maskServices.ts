@@ -83,8 +83,13 @@ const MaskCNPJ = (cnpj: any) => {
 export const MaskPhone = (phone: any) => {
     if (valueIsEmpty(phone)) return ""
     
-    // Remove todos os caracteres não numéricos
-    const cleanPhone = phone.replace(/\D/g, "")
+    let cleanPhone = phone.replace(/\D/g, "")
+
+    if (cleanPhone?.length > 11 && cleanPhone?.startsWith('55')) {
+        // Considera 55 como DDI do Brasil e remove
+        cleanPhone = cleanPhone.slice(2);
+      }
+    
     
     // Limita a 11 dígitos
     const limitedPhone = cleanPhone.substring(0, 11)
