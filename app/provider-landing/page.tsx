@@ -4,25 +4,61 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/navigation/header"
 import { Footer } from "@/components/navigation/footer"
-import { Check, Star, Zap, Users, TrendingUp, Megaphone, Crown, Sparkles, StarHalf, Gem } from "lucide-react"
+import { Check, Star, Zap, Users, TrendingUp, Megaphone, Crown, Sparkles, StarHalf, Gem, MapPin, Camera, MessageSquare, BarChart3, Shield, Clock, Video } from "lucide-react"
 
 export default function ProviderLandingPage() {
   const plans = [
     {
-      name: "Plano Premium",
+      name: "Plano Free",
+      price: "Grátis",
+      period: "",
+      description: "Para testar a plataforma",
+      features: [
+        "Perfil público (com menos destaque)",
+        "Foto de perfil",
+        "1 foto de marketing no perfil",
+        "Apenas 5 orçamentos por mês",
+        "Aparece em 1 cidade apenas",
+      ],
+      icon: Users,
+      cta: "Cadastrar-se Grátis",
+      limitations: true,
+    },
+    {
+      name: "Plano Prestador",
       price: "R$ 89,99",
       period: "/mês",
-      description: "Acesso completo à plataforma",
+      description: "O plano mais popular",
       features: [
-        "Destaque nas buscas da plataforma",
+        "Orçamentos ilimitados",
+        "Até 5 fotos no portfólio",
+        "Perfil em até 5 cidades",
+        "Sem anúncios de concorrentes",
+        "Dashboard básico com métricas",
         "Chat direto com clientes",
-        "Avaliações de clientes no perfil",
-        "Selo de verificação Biko",
-        "Perfil público visível para clientes",
+        "Avaliações no perfil",
       ],
       icon: Crown,
       popular: true,
       cta: "Assinar Plano",
+    },
+    {
+      name: "Plano Profissional+",
+      price: "R$ 149,99",
+      period: "/mês",
+      description: "Para profissionais sérios",
+      features: [
+        "Tudo do Plano Prestador",
+        "Perfil em cidades ilimitadas",
+        "Até 10 fotos + vídeos curtos",
+        "Destaque Premium no topo das buscas",
+        "Selo de verificado",
+        "Dashboard avançado com analytics",
+        "Acesso a pedidos urgentes em primeira mão",
+      ],
+      icon: Gem,
+      cta: "Assinar Plano",
+      premium: true,
     },
   ]
 
@@ -150,33 +186,49 @@ export default function ProviderLandingPage() {
       <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Acesso completo à plataforma</h2>
+            <h2 className="text-3xl font-bold mb-4">Escolha o plano ideal para seu negócio</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Cadastre-se gratuitamente e assine nosso plano para começar a receber clientes
+              Comece grátis e evolua conforme sua necessidade. O Plano Prestador é o mais escolhido pelos profissionais.
             </p>
           </div>
 
-          <div className="flex justify-center">
-            <div className="max-w-md w-full">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {plans.map((plan) => {
               const IconComponent = plan.icon
               return (
                 <Card
                   key={plan.name}
-                  className={`relative ${plan.popular ? "border-primary border-2 shadow-lg scale-105" : "border-border"}`}
+                  className={`relative ${
+                    plan.popular 
+                      ? "border-primary border-2 shadow-lg scale-105" 
+                      : plan.premium 
+                        ? "border-purple-500 border-2 shadow-lg" 
+                        : "border-border"
+                  }`}
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                       <Badge className="bg-primary text-primary-foreground px-3 py-1">Mais Popular</Badge>
                     </div>
                   )}
+                  {plan.premium && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-purple-500 text-white px-3 py-1">Premium</Badge>
+                    </div>
+                  )}
 
                   <CardHeader className="text-center">
-                    <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                      <IconComponent className="h-6 w-6 text-primary" />
+                    <div className={`mx-auto w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
+                      plan.premium ? "bg-purple-500/10" : "bg-primary/10"
+                    }`}>
+                      <IconComponent className={`h-6 w-6 ${
+                        plan.premium ? "text-purple-500" : "text-primary"
+                      }`} />
                     </div>
                     <CardTitle className="text-xl">{plan.name}</CardTitle>
-                    <div className="text-3xl font-bold text-primary">
+                    <div className={`text-3xl font-bold ${
+                      plan.premium ? "text-purple-500" : "text-primary"
+                    }`}>
                       {plan.price}
                       <span className="text-sm text-muted-foreground font-normal">{plan.period}</span>
                     </div>
@@ -187,7 +239,9 @@ export default function ProviderLandingPage() {
                     <ul className="space-y-3">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <Check className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+                            plan.premium ? "text-purple-500" : "text-primary"
+                          }`} />
                           <span className="text-sm text-muted-foreground">{feature}</span>
                         </li>
                       ))}
@@ -195,8 +249,14 @@ export default function ProviderLandingPage() {
 
                     <Link href="/register-provider" className="block">
                       <Button
-                        className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
-                        variant={plan.popular ? "default" : "outline"}
+                        className={`w-full ${
+                          plan.popular 
+                            ? "bg-primary hover:bg-primary/90" 
+                            : plan.premium 
+                              ? "bg-purple-500 hover:bg-purple-600" 
+                              : ""
+                        }`}
+                        variant={plan.popular || plan.premium ? "default" : "outline"}
                       >
                         {plan.cta}
                       </Button>
@@ -205,7 +265,6 @@ export default function ProviderLandingPage() {
                 </Card>
               )
             })}
-            </div>
           </div>
 
        {/*    <div className="text-center mt-12">

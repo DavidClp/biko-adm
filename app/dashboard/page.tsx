@@ -42,20 +42,23 @@ import {
   Loader2,
   Lock,
   UserRoundPen,
+  Camera,
 } from "lucide-react"
 import { ProfileTab } from "./components/profile-tab"
 import { RequestsTab } from "./components/requests-tab"
 import { SubscriptionsTab } from "./components/subscriptions-tab"
 import { LuMessageCircleMore } from "react-icons/lu";
 import { SettingsTab } from "./components/settings-tab"
+import { PhotoManagement } from "@/components/photo-management"
+import { useSubscriptions } from "@/hooks/use-subscriptions"
 
 export default function DashboardPage() {
-  const { user, deleteAccount, loading } = useAuth()
+  const { user } = useAuth();
+  const { subscription } = useSubscriptions();
 
   const searchParams = useSearchParams()
 
   useRequireAuth("/login")
-
 
   // AI Tools state
   const [aiPrompt, setAiPrompt] = useState("")
@@ -111,6 +114,8 @@ export default function DashboardPage() {
       setActiveTab('subscriptions')
     } else if (tabParam === 'profile') {
       setActiveTab('profile')
+    } else if (tabParam === 'photos') {
+      setActiveTab('photos')
     } else if (tabParam === 'settings') {
       setActiveTab('settings')
     } else {
@@ -129,20 +134,19 @@ export default function DashboardPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="requests" className="flex items-center gap-2">
               <LuMessageCircleMore className="h-7 w-7" />
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <UserRoundPen className="h-7 w-7" />
             </TabsTrigger>
+            <TabsTrigger value="photos" className="flex items-center gap-2">
+              <Camera className="h-7 w-7" />
+            </TabsTrigger>
             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Star className="h-7 w-7" />
             </TabsTrigger>
-            {/*  <TabsTrigger value="ai-tools" className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4" />
-              IA Tools
-            </TabsTrigger> */}
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
             </TabsTrigger>
@@ -155,6 +159,15 @@ export default function DashboardPage() {
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
             <ProfileTab userId={user?.id!} providerId={user?.provider?.id!} />
+          </TabsContent>
+
+          {/* Photos Tab */}
+          <TabsContent value="photos" className="space-y-6">
+            <PhotoManagement 
+              providerId={user?.provider?.id!} 
+              maxPhotos={subscription?.plans?.name?.toUpperCase()?.includes('PRESTADOR') ? 5 : subscription?.plans?.name?.toUpperCase()?.includes('PROFISSIONAL+') ? 10 : 1}
+              planName={subscription?.plans?.name || 'GRATIS'}
+            />
           </TabsContent>
 
           {/* Subscriptions Tab */}
@@ -283,67 +296,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
-// Mock orders data
-/*  const orders = [
-   {
-     id: "1",
-     clientName: "Maria Santos",
-     service: "Instalação elétrica",
-     description: "Preciso instalar pontos de energia em uma sala comercial",
-     status: "pending",
-     date: "2024-01-20",
-     budget: "R$ 800,00",
-   },
-   {
-     id: "2",
-     clientName: "Carlos Oliveira",
-     service: "Manutenção elétrica",
-     description: "Problema no disjuntor principal, precisa de reparo urgente",
-     status: "accepted",
-     date: "2024-01-18",
-     budget: "R$ 350,00",
-   },
-   {
-     id: "3",
-     clientName: "Ana Costa",
-     service: "Automação residencial",
-     description: "Instalação de sistema de automação para iluminação",
-     status: "completed",
-     date: "2024-01-15",
-     budget: "R$ 1.200,00",
-   },
- ] */
-
-
-/*   {
-    "1": [
-      {
-        id: "1",
-        sender: "client",
-        senderName: "Maria Santos",
-        message:
-          "Olá! Preciso instalar pontos de energia em uma sala comercial de 50m². Quando você poderia fazer uma visita técnica?",
-        timestamp: "2024-01-20 14:30",
-        type: "text",
-      },
-      {
-        id: "2",
-        sender: "provider",
-        senderName: "João Silva",
-        message: "Olá Maria! Posso fazer a visita técnica amanhã pela manhã. Qual o endereço?",
-        timestamp: "2024-01-20 15:45",
-        type: "text",
-      },
-    ],
-    "2": [
-      {
-        id: "3",
-        sender: "client",
-        senderName: "Carlos Oliveira",
-        message: "Urgente! O disjuntor principal está desarmando constantemente. Preciso de reparo hoje se possível.",
-        timestamp: "2024-01-18 09:15",
-        type: "text",
-      },
-    ],
-  } */

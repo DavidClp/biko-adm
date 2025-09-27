@@ -25,9 +25,11 @@ import { Footer } from "@/components/navigation/footer"
 import { ArrowLeft, MapPin, Star, Instagram, Facebook, Linkedin, Loader2, MessageCircle, LogIn } from "lucide-react"
 import { useProvider } from "@/hooks/use-provider"
 import { useReviews } from "@/hooks/use-reviews"
+import { useProviderPhotos } from "@/hooks/use-provider-photos"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { ContactModal } from "@/app/providers/components/contact-modal"
 import { LoginRequiredModal } from "@/app/providers/components/login-required-modal"
+import { PhotoGallery } from "@/components/photo-gallery"
 import { useAuth } from "@/hooks/use-auth"
 import { UserRole } from "@/lib/types"
 
@@ -49,6 +51,7 @@ export default function ProviderProfilePage() {
     page: currentPage,
     limit: 5
   });
+  const { photos, uploadPhoto, deletePhoto } = useProviderPhotos({ providerId });
 
   const handleSubmitReview = () => {
     if (!user) {
@@ -196,7 +199,7 @@ export default function ProviderProfilePage() {
               <CardHeader className="p-4 sm:p-6 pb-0">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
                   <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mx-auto sm:mx-0">
-                    <AvatarImage style={{ objectFit: 'cover' }} src={provider.photoUrl || "https://cdn-icons-png.flaticon.com/512/2610/2610605.png"} alt={provider.name} />
+                    <AvatarImage style={{ objectFit: 'cover' }} src={provider.photoUrl} alt={provider.name} />
                     <AvatarFallback className="text-xl sm:text-2xl">
                       {provider?.name?.split(" ")?.map((n: string) => n[0])?.join("")}
                     </AvatarFallback>
@@ -232,6 +235,14 @@ export default function ProviderProfilePage() {
                 <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{provider?.description}</p>
               </CardContent>
             </Card>
+
+            {/* Vitrine de Fotos */}
+            <PhotoGallery
+              photos={photos}
+              providerId={providerId}
+              isOwner={user?.role === UserRole.PROVIDER && user.provider?.id === providerId}
+              onPhotoDelete={deletePhoto}
+            />
 
             {/* CONTACT MOBILE */}
             {user?.role === UserRole.CLIENT && (
@@ -520,8 +531,8 @@ export default function ProviderProfilePage() {
               </Card>
             )}
 
-            {/* Trust Badge */}
-            <Card>
+            {/* SELO DE VERICADO PARA PREMIUM */}
+         {/*    <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -531,7 +542,7 @@ export default function ProviderProfilePage() {
                   <div className="text-sm text-muted-foreground">Este prestador foi verificado pela nossa equipe</div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </div>
