@@ -15,9 +15,14 @@ interface ProvidersListProps {
   loading: boolean
   onRequestContact: (providerId: string) => void
   onClearFilters?: () => void
+  currentFilters?: {
+    query?: string
+    cityId?: string
+    services?: string[]
+  }
 }
 
-export function ProvidersList({ providers, loading, onRequestContact, onClearFilters }: ProvidersListProps) {
+export function ProvidersList({ providers, loading, onRequestContact, onClearFilters, currentFilters }: ProvidersListProps) {
   const { user } = useAuth();
 
   if (loading) {
@@ -135,7 +140,14 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
           {/* Footer com ações */}
           <CardFooter className="pt-4 mt-4 border-t border-gray-100">
             <div className="flex gap-2 w-full">
-              <Link href={`/providers/${provider.id}`} className="flex-1">
+              <Link 
+                href={`/providers/${provider.id}${currentFilters ? `?${new URLSearchParams({
+                  ...(currentFilters.query && { q: currentFilters.query }),
+                  ...(currentFilters.cityId && { cityId: currentFilters.cityId }),
+                  ...(currentFilters.services && currentFilters.services.length > 0 && { services: currentFilters.services.join(',') })
+                }).toString()}` : ''}`} 
+                className="flex-1"
+              >
                 <Button 
                   variant="outline" 
                   className="w-full bg-white hover:bg-gray-50 border-gray-200 hover:border-primary/30 text-gray-700 hover:text-primary transition-all duration-200"

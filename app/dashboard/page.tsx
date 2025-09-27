@@ -43,6 +43,7 @@ import {
   Lock,
   UserRoundPen,
   Camera,
+  BarChart3,
 } from "lucide-react"
 import { ProfileTab } from "./components/profile-tab"
 import { RequestsTab } from "./components/requests-tab"
@@ -50,6 +51,7 @@ import { SubscriptionsTab } from "./components/subscriptions-tab"
 import { LuMessageCircleMore } from "react-icons/lu";
 import { SettingsTab } from "./components/settings-tab"
 import { PhotoManagement } from "@/components/photo-management"
+import { ProviderDashboard } from "@/components/provider-dashboard"
 import { useSubscriptions } from "@/hooks/use-subscriptions"
 
 export default function DashboardPage() {
@@ -118,6 +120,8 @@ export default function DashboardPage() {
       setActiveTab('photos')
     } else if (tabParam === 'settings') {
       setActiveTab('settings')
+    } else if (tabParam === 'metrics') {
+      setActiveTab('metrics')
     } else {
       setActiveTab('requests')
     }
@@ -134,7 +138,7 @@ export default function DashboardPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="requests" className="flex items-center gap-2">
               <LuMessageCircleMore className="h-7 w-7" />
             </TabsTrigger>
@@ -143,6 +147,9 @@ export default function DashboardPage() {
             </TabsTrigger>
             <TabsTrigger value="photos" className="flex items-center gap-2">
               <Camera className="h-7 w-7" />
+            </TabsTrigger>
+            <TabsTrigger value="metrics" className="flex items-center gap-2">
+              <BarChart3 className="h-7 w-7" />
             </TabsTrigger>
             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Star className="h-7 w-7" />
@@ -167,6 +174,15 @@ export default function DashboardPage() {
               providerId={user?.provider?.id!} 
               maxPhotos={subscription?.plans?.name?.toUpperCase()?.includes('PRESTADOR') ? 5 : subscription?.plans?.name?.toUpperCase()?.includes('PROFISSIONAL+') ? 10 : 1}
               planName={subscription?.plans?.name || 'GRATIS'}
+            />
+          </TabsContent>
+
+          {/* Metrics Tab */}
+          <TabsContent value="metrics" className="space-y-6">
+            <ProviderDashboard 
+              providerId={user?.provider?.id!} 
+              query={searchParams.get('q') || undefined}
+              cityId={searchParams.get('cityId') || undefined}
             />
           </TabsContent>
 

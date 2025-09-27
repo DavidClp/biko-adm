@@ -11,15 +11,26 @@ interface UpdateProfileData {
   description: string
 }
 
-export function useProvider({ providerId }: { providerId?: string }) {
+export function useProvider({ providerId, query, cityId, services }: { 
+  providerId?: string; 
+  query?: string; 
+  cityId?: string; 
+  services?: string[] 
+}) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
   const profileQuery = useQuery({
-    queryKey: ['profile', providerId],
+    queryKey: ['profile', providerId, query, cityId, services],
     queryFn: async (): Promise<Provider> => {
       try {
-        const { data } = await api.get<Provider>(`/providers/${providerId}`)
+        const params = new URLSearchParams();
+        if (query) params.append('q', query);
+        if (cityId) params.append('cityId', cityId);
+        if (services && services.length > 0) params.append('services', services.join(','));
+        
+        const url = `/providers/${providerId}${params.toString() ? `?${params.toString()}` : ''}`;
+        const { data } = await api.get<Provider>(url)
 
         if (!data) {
           throw new Error('Provider not found')

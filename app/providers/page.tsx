@@ -130,6 +130,11 @@ export default function ProvidersPage() {
           loading={loading}
           onRequestContact={handleRequestContact}
           onClearFilters={handleClearFilters}
+          currentFilters={{
+            query: searchTerm || undefined,
+            cityId: selectedCity !== 'all' ? selectedCity : undefined,
+            services: selectedServices.length > 0 ? selectedServices : undefined
+          }}
         />
 
       </div>

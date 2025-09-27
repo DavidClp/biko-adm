@@ -43,7 +43,12 @@ export default function ProviderProfilePage() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(searchParams.get("isContactModalOpen") === "true")
   const [isLoginRequiredModalOpen, setIsLoginRequiredModalOpen] = useState(searchParams.get("isModalOpen") === "true")
 
-  const { provider, isLoading, error, refetch } = useProvider({ providerId });
+  const { provider, isLoading, error, refetch } = useProvider({ 
+    providerId,
+    query: searchParams.get('q') || undefined,
+    cityId: searchParams.get('cityId') || undefined,
+    services: searchParams.get('services')?.split(',') || undefined
+  });
   const { user } = useAuth();
   const router = useRouter();
   const { createReview, isCreating, getReviewsByProvider } = useReviews({
