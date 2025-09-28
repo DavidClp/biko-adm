@@ -14,10 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
-import { User, Settings, LogOut, Shield, Search, Home, Menu, X, MessageCircle, ChevronRight } from "lucide-react"
+import { User, LogOut, Shield, Search, Home, Menu, X, MessageCircle, ChevronRight } from "lucide-react"
 import { UserRole } from "@/lib/types"
 import { WorkerIcon } from "@/lib/icons/worker"
 import { cn } from "@/lib/utils"
+import { AvatarImage } from "@radix-ui/react-avatar"
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -75,9 +76,8 @@ export function Header() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-                      isActive(item.href) ? "text-primary" : "text-muted-foreground"
-                    }`}
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary" : "text-muted-foreground"
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     {item.label}
@@ -89,9 +89,8 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(item.href) ? "text-primary" : "text-muted-foreground"
-                  }`}
+                  className={`text-sm font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary" : "text-muted-foreground"
+                    }`}
                 >
                   {item.label}
                 </Link>
@@ -105,6 +104,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.provider?.photoUrl} alt={user?.provider?.name} />
                         <AvatarFallback>
                           {user.provider?.name?.charAt(0) || user.client?.name?.charAt(0) || user.name?.charAt(0)}
                         </AvatarFallback>
@@ -147,9 +147,9 @@ export function Header() {
             </div>
 
             {/* Mobile Menu Button */}
-            <Button 
-              variant="ghost" 
-              className="md:hidden" 
+            <Button
+              variant="ghost"
+              className="md:hidden"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -160,7 +160,7 @@ export function Header() {
 
       {/* Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-50 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -182,8 +182,8 @@ export function Header() {
               </div>
               <span className="text-lg font-bold text-primary">Biko</span>
             </div>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(false)}
             >
@@ -196,6 +196,7 @@ export function Header() {
             <div className="p-4 border-b bg-muted/30">
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
+                  <AvatarImage src={user?.provider?.photoUrl} alt={user?.provider?.name} />
                   <AvatarFallback className="text-lg">
                     {user.provider?.name?.charAt(0) || user.client?.name?.charAt(0) || user.name?.charAt(0)}
                   </AvatarFallback>
@@ -229,8 +230,8 @@ export function Header() {
                       href={item.href}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                        isActive(item.href) 
-                          ? "bg-primary text-primary-foreground" 
+                        isActive(item.href)
+                          ? "bg-primary text-primary-foreground"
                           : "hover:bg-muted"
                       )}
                       onClick={() => setSidebarOpen(false)}
@@ -254,8 +255,8 @@ export function Header() {
                       href={item.href}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                        isActive(item.href) 
-                          ? "bg-primary text-primary-foreground" 
+                        isActive(item.href)
+                          ? "bg-primary text-primary-foreground"
                           : "hover:bg-muted"
                       )}
                       onClick={() => setSidebarOpen(false)}
@@ -294,8 +295,8 @@ export function Header() {
           {user && (
             <div className="p-4 border-t">
               <div className="space-y-2">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="w-full justify-start gap-3 text-destructive hover:text-destructive"
                   onClick={handleLogout}
                 >

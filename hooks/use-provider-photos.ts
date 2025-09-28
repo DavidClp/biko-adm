@@ -1,124 +1,119 @@
-import { useState, useEffect } from 'react';
-import { useToast } from './use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { providerPhotosApi, ProviderPhoto } from '@/lib/provider-photos-api';
+import { useToast } from './use-toast';
 
 interface UseProviderPhotosProps {
   providerId: string;
 }
 
 export function useProviderPhotos({ providerId }: UseProviderPhotosProps) {
-  const [photos, setPhotos] = useState<ProviderPhoto[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchPhotos = async () => {
-    if (!providerId) return;
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
+  // Query para buscar fotos do provider
+  const photosQuery = useQuery({
+    queryKey: ['provider-photos', providerId],
+    queryFn: async () => {
       const result = await providerPhotosApi.list(providerId);
-      setPhotos(result.data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-      console.error('Erro ao carregar fotos:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return result.data || [];
+    },
+    enabled: !!providerId,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 2,
+  });
 
-  const uploadPhoto = async (file: File, description?: string): Promise<ProviderPhoto | null> => {
-    try {
-      const newPhoto = await providerPhotosApi.upload(providerId, file, { description });
-      setPhotos(prev => [...prev, newPhoto]);
-      
+  // Mutation para upload de foto
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async ({ file, description }: { file: File; description?: string }) => {
+      return await providerPhotosApi.upload(providerId, file, { description });
+    },
+    onSuccess: (newPhoto) => {
+      // Atualizar o cache com a nova foto
+      queryClient.setQueryData(['provider-photos', providerId], (oldPhotos: ProviderPhoto[] = []) => [
+        ...oldPhotos,
+        newPhoto
+      ]);
+
       toast({
         title: "Sucesso",
         description: "Foto adicionada com sucesso!",
       });
-      
-      return newPhoto;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      
+    },
+    onError: (error: Error) => {
       toast({
         title: "Erro",
-        description: errorMessage,
+        description: error.message || 'Erro desconhecido',
         variant: "destructive",
       });
-      
-      console.error('Erro ao fazer upload:', err);
-      return null;
-    }
-  };
+      console.error('Erro ao fazer upload:', error);
+    },
+  });
 
-  const deletePhoto = async (photoId: string): Promise<boolean> => {
-    try {
+  // Mutation para deletar foto
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (photoId: string) => {
       await providerPhotosApi.delete(photoId);
-      setPhotos(prev => prev.filter(photo => photo.id !== photoId));
-      
+      return photoId;
+    },
+    onSuccess: (photoId) => {
+      // Remover a foto do cache
+      queryClient.setQueryData(['provider-photos', providerId], (oldPhotos: ProviderPhoto[] = []) =>
+        oldPhotos.filter(photo => photo.id !== photoId)
+      );
+
       toast({
         title: "Sucesso",
         description: "Foto removida com sucesso!",
       });
-      
-      return true;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      
+    },
+    onError: (error: Error) => {
       toast({
         title: "Erro",
-        description: errorMessage,
+        description: error.message || 'Erro desconhecido',
         variant: "destructive",
       });
-      
-      console.error('Erro ao deletar foto:', err);
-      return false;
-    }
-  };
+      console.error('Erro ao deletar foto:', error);
+    },
+  });
 
-  const updatePhoto = async (photoId: string, data: { description?: string; order?: number }): Promise<boolean> => {
-    try {
-      const updatedPhoto = await providerPhotosApi.update(photoId, data);
-      setPhotos(prev => 
-        prev.map(photo => 
-          photo.id === photoId ? updatedPhoto : photo
+  // Mutation para atualizar foto
+  const updatePhotoMutation = useMutation({
+    mutationFn: async ({ photoId, data }: { photoId: string; data: { description?: string; order?: number } }) => {
+      return await providerPhotosApi.update(photoId, data);
+    },
+    onSuccess: (updatedPhoto) => {
+      // Atualizar a foto no cache
+      queryClient.setQueryData(['provider-photos', providerId], (oldPhotos: ProviderPhoto[] = []) =>
+        oldPhotos.map(photo =>
+          photo.id === updatedPhoto.id ? updatedPhoto : photo
         )
       );
-      
+
       toast({
         title: "Sucesso",
         description: "Foto atualizada com sucesso!",
       });
-      
-      return true;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      
+    },
+    onError: (error: Error) => {
       toast({
         title: "Erro",
-        description: errorMessage,
+        description: error.message || 'Erro desconhecido',
         variant: "destructive",
       });
-      
-      console.error('Erro ao atualizar foto:', err);
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    fetchPhotos();
-  }, [providerId]);
+      console.error('Erro ao atualizar foto:', error);
+    },
+  });
 
   return {
-    photos,
-    isLoading,
-    error,
-    refetch: fetchPhotos,
-    uploadPhoto,
-    deletePhoto,
-    updatePhoto,
+    photos: photosQuery.data || [],
+    isLoading: photosQuery.isLoading,
+    error: photosQuery.error?.message || null,
+    refetch: photosQuery.refetch,
+    uploadPhoto: (file: File, description?: string) => uploadPhotoMutation.mutate({ file, description }),
+    deletePhoto: (photoId: string) => deletePhotoMutation.mutate(photoId),
+    updatePhoto: (photoId: string, data: { description?: string; order?: number }) =>    updatePhotoMutation.mutate({ photoId, data }),
+    isUploading: uploadPhotoMutation.isPending,
+    isDeleting: deletePhotoMutation.isPending,
+    isUpdating: updatePhotoMutation.isPending,
   };
 }

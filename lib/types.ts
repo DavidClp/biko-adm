@@ -96,6 +96,9 @@ export type requestStatus =  "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" |
 
 export type requestBudgetStatus =  "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED"
 
+export type IPermissions = 'UNLIMITED-REQUESTS' | 'PORTFOLIO-PHOTOS-5' | 'PORTFOLIO-PHOTOS-10' | 
+'MAX-PROFILE-CITY-5' | 'UNLIMITED-PROFILE-CITY' | 'BASIC-DASHBOARD' | 'UNLIMITED-DASHBOARD' | 'PROFILE-PREMIUM';
+
 export interface IRequestService {
   id: string;
   clientId: string;

@@ -48,11 +48,12 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
   useEffect(() => {
     if (provider) {
       form.reset({
-        name: provider.name || "",
-        services: provider.services || [],
-        cityId: provider.cityId || "",
-        phone: provider.phone || "",
-        description: provider.description || "",
+        name: provider?.name || "",
+        services: provider?.services || [],
+        cityId: provider?.cityId || "",
+        phone: provider?.phone || "",
+        description: provider?.description || "",
+        business_name: provider?.business_name || "",
       });
     }
   }, [provider, form]);

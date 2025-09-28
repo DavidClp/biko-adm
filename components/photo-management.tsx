@@ -30,10 +30,8 @@ export function PhotoManagement({ providerId, maxPhotos, planName }: PhotoManage
   const canAddMorePhotos = photos.length < maxPhotos;
 
   const handleUpload = async (file: File, description?: string) => {
-    const result = await uploadPhoto(file, description);
-    if (result) {
-      setIsUploadModalOpen(false);
-    }
+    uploadPhoto(file, description);
+    setIsUploadModalOpen(false);
   };
 
   const handleDelete = async (photoId: string) => {
@@ -50,14 +48,12 @@ export function PhotoManagement({ providerId, maxPhotos, planName }: PhotoManage
   const handleSaveEdit = async () => {
     if (!editingPhoto) return;
     
-    const success = await updatePhoto(editingPhoto.id, {
+    updatePhoto(editingPhoto.id, {
       description: editDescription,
     });
     
-    if (success) {
-      setEditingPhoto(null);
-      setEditDescription("");
-    }
+    setEditingPhoto(null);
+    setEditDescription("");
   };
 
   const getPlanInfo = () => {
@@ -99,7 +95,7 @@ export function PhotoManagement({ providerId, maxPhotos, planName }: PhotoManage
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3">
         {photos.length === 0 ? (
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">

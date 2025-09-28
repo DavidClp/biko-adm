@@ -28,8 +28,6 @@ interface ProviderDashboardProps {
 export function ProviderDashboard({ providerId, query, cityId }: ProviderDashboardProps) {
   const { data: metrics, isLoading, error } = useProviderMetrics({ providerId, query, cityId });
 
-  console.log("metrics", metrics);
-  console.log("error", error);
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">

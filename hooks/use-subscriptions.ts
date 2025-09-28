@@ -3,6 +3,7 @@ import { api } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "./use-auth"
 import { subscriptionsAttributes, transactionsAttributes } from "@/app/dashboard/components/interfaces";
+import { IPermissions } from "@/lib/types";
 
 export interface IPlan {
   value: string;
@@ -34,7 +35,6 @@ const fetchPlans = async (): Promise<IPlan[]> => {
   return response.data || []
 }
 
-// Função para buscar assinaturas
 const fetchSubscription = async (providerId?: string): Promise<{
   subscription: subscriptionsAttributes | null
   transactions: transactionsAttributes[]
@@ -55,6 +55,23 @@ const fetchSubscription = async (providerId?: string): Promise<{
   }
 }
 
+const fetchSubscriptionPermissions = async (providerId?: string): Promise<{permissions: IPermissions[], planName: string}> => {
+  if (!providerId) {
+    return { permissions: [], planName: 'PLANO GRATUITO' }
+  }
+
+  const response = await api.get("/subscriptions/permissions", {
+    params: {
+      provider_id: providerId
+    }
+  })
+
+  return {
+    permissions: (response as any)?.permissions as IPermissions[] || [],
+    planName: (response as any)?.planName as string || 'PLANO GRATUITO'
+  }
+}
+
 export function useSubscriptions() {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -71,6 +88,17 @@ export function useSubscriptions() {
     staleTime: 5 * 60 * 1000, // 5 minutos
   })
 
+    // Query para permissões da assinatura
+    const {
+      data: subscriptionPermissionsData,
+    } = useQuery({
+      queryKey: ["subscriptions-permissions", user?.provider?.id],
+      queryFn: () => fetchSubscriptionPermissions(user?.provider?.id),
+      enabled: !!user?.provider?.id,
+      staleTime: 2 * 60 * 1000,
+      refetchOnWindowFocus: true
+    })
+
   // Query para buscar assinaturas
   const {
     data: subscriptionData,
@@ -80,7 +108,7 @@ export function useSubscriptions() {
     queryKey: ["subscriptions", user?.provider?.id],
     queryFn: () => fetchSubscription(user?.provider?.id),
     enabled: !!user?.provider?.id,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 2 * 60 * 1000, //,
     refetchInterval: 30 * 1000,
     refetchOnWindowFocus: true
   })
@@ -89,6 +117,9 @@ export function useSubscriptions() {
   const subscription = subscriptionData?.subscription || null
   const transactionsSubscriptions = subscriptionData?.transactions || []
   const loading = isLoadingPlans || isLoadingSubscription
+
+  const subscriptionPermissions = subscriptionPermissionsData?.permissions || []
+  const subscriptionPlanName = subscriptionPermissionsData?.planName || 'PLANO GRATUITO'
 
   // Mutation para assinar plano
   const subscribeToPlanMutation = useMutation({
@@ -114,6 +145,7 @@ export function useSubscriptions() {
 
       // Invalidar cache das assinaturas para refetch automático
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] })
+      queryClient.invalidateQueries({ queryKey: ["subscriptions-permissions"] })
     },
     onError: (error) => {
       console.error("Erro ao assinar:", error)
@@ -165,6 +197,8 @@ export function useSubscriptions() {
     plans,
     subscription,
     transactionsSubscriptions,
+    subscriptionPermissions,
+    subscriptionPlanName,
 
     // Estados de loading
     loading,
