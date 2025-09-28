@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast'
 interface UpdateProfileData {
   name: string
   services: string[]
-  cityId: string
+  cityIdList: string[]
   phone: string
   description: string
 }

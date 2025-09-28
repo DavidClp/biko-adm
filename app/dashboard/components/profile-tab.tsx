@@ -14,17 +14,20 @@ import { useProvider } from "@/hooks/use-provider";
 import { CitiesSelector } from "@/components/cities-selector";
 import { ServicesMultiSelect } from "@/components/services-multi-select";
 import { ImgProfileCard } from "./img-profile-card";
+import { CitiesMultiSelect } from "@/components/cities-multi-select";
+import { useSubscriptions } from "@/hooks/use-subscriptions";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
   services: z.string().array(),
-  cityId: z.string(),
+  cityIdList: z.string().array(),
   phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").max(15, "Telefone muito longo"),
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres").max(500, "Descrição muito longa"),
   business_name: z.string().optional(),
   instagram: z.string().optional(),
   facebook: z.string().optional(),
   linkedin: z.string().optional(),
+  isAllCities: z.boolean().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -33,15 +36,18 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
 
   const { provider, isLoading, error, updateProfile, isUpdating } = useProvider({ providerId });
 
+  const { subscriptionPermissions } = useSubscriptions();
+
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       name: "",
       services: [],
-      cityId: "",
+      cityIdList: [],
       phone: "",
       business_name: "",
       description: "",
+      isAllCities: false, // implementado futuramente com o plano profissional+
     },
   });
 
@@ -50,10 +56,11 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
       form.reset({
         name: provider?.name || "",
         services: provider?.services || [],
-        cityId: provider?.cityId || "",
+        cityIdList: provider?.cityIdList || [],
         phone: provider?.phone || "",
         description: provider?.description || "",
         business_name: provider?.business_name || "",
+        isAllCities: provider?.isAllCities || false,
       });
     }
   }, [provider, form]);
@@ -115,7 +122,7 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
         <CardContent>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -154,7 +161,7 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="cityId"
                   render={({ field }) => (
@@ -162,6 +169,26 @@ export function ProfileTab({ userId, providerId }: { userId: string, providerId:
                       <FormLabel>Cidade</FormLabel>
                       <FormControl>
                         <CitiesSelector onCitySelect={field.onChange} defaultCityId={provider?.cityId} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+ */}
+
+                <FormField
+                  control={form.control}
+                  name="cityIdList"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidades</FormLabel>
+                      <FormControl>
+                        <CitiesMultiSelect
+                          placeholder="Selecione as cidades que atende"
+                          selectedCities={field.value}
+                          onCitiesChange={field.onChange}
+                          maxSelections={subscriptionPermissions.includes('UNLIMITED-PROFILE-CITY') ? 100 : subscriptionPermissions.includes('MAX-PROFILE-CITY-5') ? 3 : 1 }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

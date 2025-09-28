@@ -32,7 +32,7 @@ export default function ProviderLandingPage() {
       features: [
         "Orçamentos ilimitados",
         "Até 5 fotos no portfólio",
-        "Perfil em até 5 cidades",
+        "Perfil em até 3 cidades",
         "Sem anúncios de concorrentes",
         "Dashboard básico com métricas",
         "Chat direto com clientes",

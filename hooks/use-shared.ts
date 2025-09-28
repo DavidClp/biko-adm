@@ -33,6 +33,7 @@ export function useShared() {
     isLoadingCities: citiesQuery.isLoading,
     errorCities: citiesQuery.error,
     refetchCities: citiesQuery.refetch,
-    servicesQuery: servicesQuery
+    servicesQuery: servicesQuery,
+    citiesQuery: citiesQuery
   }
 }

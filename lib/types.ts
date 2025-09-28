@@ -69,6 +69,8 @@ export interface Provider extends User {
   services: string[]
   servicesNames: string[]
   cityId: string;
+  cityIdList: string[];
+  isAllCities: boolean;
   cityName: string;
   description: string
   photoUrl?: string
