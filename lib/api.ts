@@ -39,7 +39,7 @@ api.interceptors.response.use(
     console.error("API request failed:", error)
     
     // Se for erro 401 (não autorizado) ou 403 (proibido), limpar dados de autenticação e redirecionar
-    if (error.response?.status === 401 || error.response?.status === 403) {
+   /*  if (error.response?.status === 401 || error.response?.status === 403) {
       // Limpar dados de autenticação do localStorage
       if (typeof window !== "undefined") {
         localStorage.removeItem("token")
@@ -61,7 +61,7 @@ api.interceptors.response.use(
           window.location.href = "/login"
         }
       }
-    }
+    } */
     
     // Normaliza erro para React Query / seu app
     return Promise.reject({

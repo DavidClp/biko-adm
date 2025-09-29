@@ -136,7 +136,7 @@ export function IATab() {
                 <Label>Imagem gerada</Label>
                 <div className="border rounded-lg overflow-hidden">
                   <img
-                    src={generatedImage || "/placeholder.svg"}
+                    src={generatedImage}
                     alt="Imagem gerada por IA"
                     className="w-full h-auto"
                   />

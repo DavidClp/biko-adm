@@ -96,7 +96,7 @@ export function RequestDetailsModal({
                                 <p className="text-sm font-medium text-gray-800 mb-2">Prestador de Serviço</p>
                                 <div className="flex items-center gap-3">
                                     <Avatar className="w-10 h-10">
-                                        <AvatarImage src={selectedRequest?.provider?.photoUrl || "/placeholder.svg"} />
+                                        <AvatarImage src={selectedRequest?.provider?.photoUrl} />
                                         <AvatarFallback className="bg-green-100 text-green-700">
                                             {selectedRequest?.provider?.name?.charAt(0)}
                                         </AvatarFallback>
