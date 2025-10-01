@@ -34,6 +34,7 @@ import { CancelRequestModal } from "@/components/cancel-request-modal"
 import { ChatHeader } from "@/app/my-requests/components/chat-header"
 import { CardNotRequests } from "./card-not-requests"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ProviderNotListedCard } from "@/components/provider-not-listed-card"
 
 export function RequestsTab() {
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
@@ -247,6 +248,9 @@ export function RequestsTab() {
     <div className="flex h-[calc(100vh-200px)] lg:h-auto lg:grid lg:grid-cols-2 lg:gap-6">
       {/* Orders List */}
       <div className={`${showChat && !isMobile ? "hidden" : "flex"} lg:flex flex-col w-full lg:w-auto`}>
+        {!user?.provider?.is_listed && (
+          <ProviderNotListedCard />
+          )}
         <Card className="h-full">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -342,7 +346,7 @@ export function RequestsTab() {
                   <div className="mb-6">
                     <MessageCircleX className="h-16 w-16 mx-auto text-secondary mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">
-                    Seu perfil não está aparecendo nas buscas!
+                      Seu perfil não está aparecendo nas buscas!
                     </h3>
                   </div>
 
@@ -440,7 +444,7 @@ export function RequestsTab() {
                   {messages?.map((message) => {
                     const isOwnMessage = message.sender_id === user?.id;
 
-                    return <MessageComponent message={message} request={selectedRequest} isOwnMessage={isOwnMessage} key={message.id}/>
+                    return <MessageComponent message={message} request={selectedRequest} isOwnMessage={isOwnMessage} key={message.id} />
                   })}
 
                   {/* Indicador de digitação */}

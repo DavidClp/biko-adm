@@ -18,7 +18,7 @@ export function SettingsTab() {
 
   const handleToggleListedStatus = () => {
     if (user?.provider) {
-      if (user?.provider.subscription_situation !== 'active' && user?.provider.subscription_situation !== 'paid') {
+    /*   if (user?.provider.subscription_situation !== 'active' && user?.provider.subscription_situation !== 'paid') {
         toast({
           title: "🔒 Assinatura necessária",
           description: "Para ativar seu perfil público e aparecer nas buscas, você precisa de uma assinatura ativa. Acesse a aba 'Planos' para escolher o melhor plano para você!",
@@ -26,7 +26,7 @@ export function SettingsTab() {
           duration: 6000,
         })
         return
-      }
+      } */
 
       updateListedStatus(!user?.provider.is_listed)
 
@@ -109,23 +109,18 @@ export function SettingsTab() {
                   </>
                 ) : user?.provider?.is_listed ? (
                   "Ativado"
-                ) : user?.provider?.subscription_situation !== 'active' && user?.provider?.subscription_situation !== 'paid' ? (
-                  <>
-                    <Lock className="mr-2 h-4 w-4" />
-                    Assinar para ativar
-                  </>
-                ) : (
+                ) : 
                   "Desativado"
-                )}
+                }
               </Button>
             </div>
-            {(user?.provider?.subscription_situation !== 'active' && user?.provider?.subscription_situation !== 'paid') && (
+         {/*    {(user?.provider?.subscription_situation !== 'active' && user?.provider?.subscription_situation !== 'paid') && (
               <div className="mt-2">
                 <Alert className="bg-primary/25">
                   <Lock className="h-4 w-4" color="#db9d01" />
                   <AlertDescription className="text-sm text-secondary font-medium">
                     Para aparecer nas buscas, você precisa de uma assinatura ativa.
-                    {/*   <span className="font-medium text-blue-600 cursor-pointer hover:underline ml-1" 
+                      <span className="font-medium text-blue-600 cursor-pointer hover:underline ml-1" 
                         onClick={() => {
                           // Aqui você pode adicionar lógica para navegar para a aba de assinaturas
                           const subscriptionsTab = document.querySelector('[value="subscriptions"]') as HTMLElement;
@@ -134,11 +129,11 @@ export function SettingsTab() {
                           }
                         }}>
                     Ver planos disponíveis →
-                  </span> */}
+                  </span>
                   </AlertDescription>
                 </Alert>
               </div>
-            )}
+            )} */}
           </div>
         </div>
 
