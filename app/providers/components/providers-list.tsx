@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { MapPin, Star, MessageCircle } from "lucide-react"
 import { Provider, UserRole } from "@/lib/types"
 import { useAuth } from "@/hooks/use-auth"
+import Image from "next/image"
 
 interface ProvidersListProps {
   providers: Provider[]
@@ -54,7 +55,9 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
               {/* Avatar com efeito de destaque */}
               <div className="relative">
                 <Avatar className="h-18 w-18 ring-4 ring-white shadow-lg group-hover:ring-primary/20 transition-all duration-300">
-                  <AvatarImage src={provider?.photoUrl} alt={provider?.name} />
+                  {provider?.photoUrl && (
+                    <Image src={provider?.photoUrl} alt={provider?.name} fill={true} objectFit="cover" />
+                  )}
                   <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-secondary font-semibold text-xl">
                     {provider?.name.charAt(0)}
                   </AvatarFallback>
@@ -89,17 +92,17 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
               <h4 className="text-sm font-semibold text-gray-700">Serviços</h4>
               <div className="flex flex-wrap gap-1.5">
                 {provider?.servicesNames?.slice(0, 3)?.map((service, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="secondary" 
+                  <Badge
+                    key={index}
+                    variant="secondary"
                     className="text-xs bg-primary/10 text-secondary border-primary/20 hover:bg-primary/20 transition-colors"
                   >
                     {service}
                   </Badge>
                 ))}
                 {provider?.servicesNames?.length > 3 && (
-                  <Badge 
-                    variant="outline" 
+                  <Badge
+                    variant="outline"
                     className="text-xs border-primary/30 text-primary hover:bg-primary/10"
                   >
                     +{provider?.servicesNames?.length - 3} mais
@@ -140,24 +143,24 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
           {/* Footer com ações */}
           <CardFooter className="pt-4 mt-4 border-t border-gray-100">
             <div className="flex gap-2 w-full">
-              <Link 
+              <Link
                 href={`/providers/${provider.id}${currentFilters ? `?${new URLSearchParams({
                   ...(currentFilters.query && { q: currentFilters.query }),
                   ...(currentFilters.cityId && { cityId: currentFilters.cityId }),
                   ...(currentFilters.services && currentFilters.services.length > 0 && { services: currentFilters.services.join(',') })
-                }).toString()}` : ''}`} 
+                }).toString()}` : ''}`}
                 className="flex-1"
               >
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full bg-white hover:bg-gray-50 border-gray-200 hover:border-primary/30 text-gray-700 hover:text-primary transition-all duration-200"
                 >
                   Ver Perfil
                 </Button>
               </Link>
               {(!user?.role || user?.role === UserRole.CLIENT) && (
-                <Button 
-                  onClick={() => onRequestContact(provider.id)} 
+                <Button
+                  onClick={() => onRequestContact(provider.id)}
                   className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all duration-200"
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />

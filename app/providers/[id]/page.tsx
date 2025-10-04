@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -43,7 +44,7 @@ export default function ProviderProfilePage() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(searchParams.get("isContactModalOpen") === "true")
   const [isLoginRequiredModalOpen, setIsLoginRequiredModalOpen] = useState(searchParams.get("isModalOpen") === "true")
 
-  const { provider, isLoading, error, refetch } = useProvider({ 
+  const { provider, isLoading, error, refetch } = useProvider({
     providerId,
     query: searchParams.get('q') || undefined,
     cityId: searchParams.get('cityId') || undefined,
@@ -204,7 +205,9 @@ export default function ProviderProfilePage() {
               <CardHeader className="p-4 sm:p-6 pb-0">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
                   <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mx-auto sm:mx-0">
-                    <AvatarImage style={{ objectFit: 'cover' }} src={provider.photoUrl} alt={provider.name} />
+                  {provider?.photoUrl && (
+                    <Image src={provider?.photoUrl} alt={provider?.name} fill={true} objectFit="cover" />
+                  )}
                     <AvatarFallback className="text-xl sm:text-2xl">
                       {provider?.name?.split(" ")?.map((n: string) => n[0])?.join("")}
                     </AvatarFallback>
@@ -242,12 +245,14 @@ export default function ProviderProfilePage() {
             </Card>
 
             {/* Vitrine de Fotos */}
+            {photos.length > 0 && (
             <PhotoGallery
               photos={photos}
               providerId={providerId}
-              isOwner={user?.role === UserRole.PROVIDER && user.provider?.id === providerId}
-              onPhotoDelete={deletePhoto}
-            />
+                isOwner={user?.role === UserRole.PROVIDER && user.provider?.id === providerId}
+                onPhotoDelete={deletePhoto}
+              />
+            )}
 
             {/* CONTACT MOBILE */}
             {user?.role === UserRole.CLIENT && (
@@ -282,7 +287,7 @@ export default function ProviderProfilePage() {
                 </CardContent>
               </Card>
             )}
-            
+
             {!user && (
               <Card className="space-y-0 gap-0 block md:hidden">
                 <CardHeader>
@@ -298,6 +303,22 @@ export default function ProviderProfilePage() {
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">
                       Para solicitar um orçamento, você precisa estar logado
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {user?.role && user?.role === UserRole?.PROVIDER && (
+              <Card className="space-y-0 gap-0 block md:hidden">
+                <CardHeader>
+                  <CardTitle className="text-lg sm:text-xl">Contato</CardTitle>
+                </CardHeader>
+
+                <CardContent className="pb-4 sm:pb-6 pt-[-100px] space-y-4">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Para solicitar um orçamento, você precisa estar logado como Cliente!
                     </p>
                   </div>
                 </CardContent>
@@ -401,8 +422,8 @@ export default function ProviderProfilePage() {
                                 <Star
                                   key={i}
                                   className={`h-4 w-4 ${i < review.stars
-                                      ? "text-yellow-400 fill-yellow-400"
-                                      : "text-gray-300"
+                                    ? "text-yellow-400 fill-yellow-400"
+                                    : "text-gray-300"
                                     }`}
                                 />
                               ))}
@@ -537,7 +558,7 @@ export default function ProviderProfilePage() {
             )}
 
             {/* SELO DE VERICADO PARA PREMIUM */}
-         {/*    <Card>
+            {/*    <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">

@@ -7,13 +7,14 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+  /*   unoptimized: true, */
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'biko.s3.amazonaws.com',
         port: '',
         pathname: '/**',
+        search: ''
       },
     ],
   },
