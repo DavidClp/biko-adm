@@ -14,7 +14,8 @@ import {
   Smile,
   Paperclip,
   Phone,
-  Video
+  Video,
+  Image
 } from "lucide-react";
 import { IRequestService } from "@/lib/types";
 import { Message } from "@/lib/types";
@@ -27,6 +28,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { MessageComponent } from "./message-component";
 import { CancelRequestModal } from "@/components/cancel-request-modal";
 import { useRequestService } from "@/hooks/use-requests-services";
+import { ImagePicker } from "@/components/image-picker";
+import { useImageUpload } from "@/hooks/use-image-upload";
 
 interface ChatSectionProps {
   selectedRequest: IRequestService | null;
@@ -47,9 +50,11 @@ export function ChatSection({
 }: ChatSectionProps) {
   const { user } = useAuth();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const { cancelRequestMutation } = useRequestService({ clientId: user?.id });
+  const uploadImageMutation = useImageUpload();
 
   const {
     messages,
@@ -65,7 +70,8 @@ export function ChatSection({
     stopTyping,
     scrollToBottom,
     isUserOnline,
-    getTypingUsersInRoom
+    getTypingUsersInRoom,
+    sendImageMessage
   } = useChat({
     selectedRequestId: selectedRequest?.id,
     userId: user?.id,
@@ -132,6 +138,20 @@ export function ChatSection({
       }
     });
   }, [selectedRequest?.id, cancelRequestMutation, onRequestCancelled, user?.name]);
+
+  const handleImageSelect = useCallback(async (file: File) => {
+    if (!selectedRequest?.id) return;
+
+    uploadImageMutation.mutate({
+      file,
+      requestId: selectedRequest.id
+    }, {
+      onSuccess: (data) => {
+        // Enviar mensagem com a URL da imagem
+        sendImageMessage(data.imageUrl);
+      }
+    });
+  }, [selectedRequest?.id, uploadImageMutation, sendImageMessage]);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -235,6 +255,14 @@ export function ChatSection({
                 >
                   <Smile className="w-4 h-4" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-8 h-8 p-0"
+                  onClick={() => setShowImagePicker(true)}
+                >
+                  <Image className="w-4 h-4" />
+                </Button>
               </div>
 
               <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
@@ -278,6 +306,12 @@ export function ChatSection({
             onConfirm={handleCancelRequest}
             isLoading={cancelRequestMutation.isPending}
             requestType="client"
+          />
+
+          <ImagePicker
+            isOpen={showImagePicker}
+            onClose={() => setShowImagePicker(false)}
+            onImageSelect={handleImageSelect}
           />
         </>
       ) : (

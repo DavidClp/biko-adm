@@ -6,11 +6,14 @@ import { useRequestService } from "@/hooks/use-requests-services";
 import { IRequestService, Message } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
+import { MessageImage } from "./message-image";
 
 export function MessageComponent({ message, isOwnMessage, request }: { message: Message, isOwnMessage: boolean, request: IRequestService }) {
     switch (message.type) {
         case "TEXT":
             return <MessageText message={message} isOwnMessage={isOwnMessage} />
+        case "IMAGE":
+            return <MessageImage message={message} isOwnMessage={isOwnMessage} />
         case "PROPOSAL":
             return <MessageProposal message={message} isOwnMessage={isOwnMessage} request={request} />
         case "PROPOSAL_REJECTED":

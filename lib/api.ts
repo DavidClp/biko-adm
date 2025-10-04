@@ -1,10 +1,7 @@
 // api.ts
 import axios, { AxiosError, AxiosInstance } from "axios"
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL
-if (!BASE_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not defined")
-}
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 // Função global para limpar dados de autenticação
 let clearAuthCallback: (() => void) | null = null

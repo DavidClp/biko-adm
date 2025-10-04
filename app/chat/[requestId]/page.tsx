@@ -13,6 +13,7 @@ import {
   Clock,
   Star,
   Smile,
+  Image,
 } from "lucide-react"
 import { useRequestService } from "@/hooks/use-requests-services"
 import { useAuth } from "@/hooks/use-auth"
@@ -26,6 +27,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { MessageComponent } from "@/app/my-requests/components/message-component"
 import { SendProposalModal } from "@/components/send-proposal-modal"
 import { CancelRequestModal } from "@/components/cancel-request-modal"
+import { ImagePicker } from "@/components/image-picker"
+import { useImageUpload } from "@/hooks/use-image-upload"
 
 export default function ChatPage() {
   const router = useRouter()
@@ -39,6 +42,7 @@ export default function ChatPage() {
   const { data: requestsList } = getRequestsByProvider
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
   const [showSendModalProposal, setShowSendModalProposal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
@@ -50,6 +54,7 @@ export default function ChatPage() {
     messagesContainerRef,
     send,
     sendMessageProposal,
+    sendImageMessage,
   } = useChat({
     selectedRequestId: selectedRequest?.id,
     userId: user?.id,
@@ -66,6 +71,7 @@ export default function ChatPage() {
   })
 
   const { sendBudgetRequestMutation, cancelRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });
+  const uploadImageMutation = useImageUpload();
 
   const handleSendProposal = useCallback(({ budget, observation }: { budget: number, observation: string }) => {
     sendBudgetRequestMutation.mutate({
@@ -98,6 +104,20 @@ export default function ChatPage() {
       }
     });
   }, [selectedRequest?.id, cancelRequestMutation, router, user?.name]);
+
+  const handleImageSelect = useCallback(async (file: File) => {
+    if (!selectedRequest?.id) return;
+
+    uploadImageMutation.mutate({
+      file,
+      requestId: selectedRequest.id
+    }, {
+      onSuccess: (data) => {
+        // Enviar mensagem com a URL da imagem
+        sendImageMessage(data.imageUrl);
+      }
+    });
+  }, [selectedRequest?.id, uploadImageMutation, sendImageMessage]);
 
   useEffect(() => {
     if (requestsList && requestId) {
@@ -185,6 +205,14 @@ export default function ChatPage() {
             >
               <Smile className="w-4 h-4" />
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-8 h-8 p-0"
+              onClick={() => setShowImagePicker(true)}
+            >
+              <Image className="w-4 h-4" />
+            </Button>
           </div>
 
           <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
@@ -233,6 +261,12 @@ export default function ChatPage() {
         onConfirm={handleCancelRequest}
         isLoading={cancelRequestMutation.isPending}
         requestType="provider"
+      />
+
+      <ImagePicker
+        isOpen={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onImageSelect={handleImageSelect}
       />
     </div>
   )

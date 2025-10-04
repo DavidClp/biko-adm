@@ -106,6 +106,18 @@ export function useChat({
     })
   }, [selectedRequestId, userId, toUserId, providerId])
 
+  const sendImageMessage = useCallback((imageUrl: string) => {
+    if (!selectedRequestId || !userId || !toUserId || !providerId) return;
+
+    socket.emit("chat:send", {
+      requestId: selectedRequestId,
+      content: imageUrl,
+      type: "IMAGE",
+      toUserId,
+      providerId
+    })
+  }, [selectedRequestId, userId, toUserId, providerId])
+
   const updateProposalStatus = useCallback((messageId: string, newType: "PROPOSAL_ACCEPTED" | "PROPOSAL_REJECTED" | "PROPOSAL_CANCELLED") => {
     if (!selectedRequestId) return;
 
@@ -522,6 +534,7 @@ export function useChat({
     scrollToBottom,
     scrollToTop,
     sendMessageProposal,
+    sendImageMessage,
     updateProposalStatus,
     updateRequestStatus,
 

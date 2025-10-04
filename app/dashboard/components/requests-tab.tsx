@@ -12,6 +12,7 @@ import {
   Send,
   Smile,
   ArrowRight,
+  Image,
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -35,6 +36,8 @@ import { ChatHeader } from "@/app/my-requests/components/chat-header"
 import { CardNotRequests } from "./card-not-requests"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ProviderNotListedCard } from "@/components/provider-not-listed-card"
+import { ImagePicker } from "@/components/image-picker"
+import { useImageUpload } from "@/hooks/use-image-upload"
 
 export function RequestsTab() {
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
@@ -52,6 +55,7 @@ export function RequestsTab() {
   const { data: requestsList, refetch: refetchRequests } = getRequestsByProvider;
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
   const [showSendModalProposal, setShowSendModalProposal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
@@ -109,6 +113,7 @@ export function RequestsTab() {
     loadMoreMessages,
     handleTyping,
     sendMessageProposal,
+    sendImageMessage,
   } = useChat({
     selectedRequestId: selectedRequest?.id,
     userId: user?.id,
@@ -136,6 +141,7 @@ export function RequestsTab() {
   });
 
   const { sendBudgetRequestMutation, cancelRequestMutation } = useRequestService({ providerId: selectedRequest?.provider?.id });
+  const uploadImageMutation = useImageUpload();
 
   const handleSendProposal = useCallback(({ budget, observation }: { budget: number, observation: string }) => {
     sendBudgetRequestMutation.mutate({
@@ -171,6 +177,20 @@ export function RequestsTab() {
     });
   }, [selectedRequest?.id, cancelRequestMutation, refetchRequests, user?.name]);
 
+  const handleImageSelect = useCallback(async (file: File) => {
+    if (!selectedRequest?.id) return;
+
+    uploadImageMutation.mutate({
+      file,
+      requestId: selectedRequest.id
+    }, {
+      onSuccess: (data) => {
+        // Enviar mensagem com a URL da imagem
+        sendImageMessage(data.imageUrl);
+      }
+    });
+  }, [selectedRequest?.id, uploadImageMutation, sendImageMessage]);
+
   useEffect(() => {
     if (!user?.id || !user?.provider?.id) return
 
@@ -184,7 +204,7 @@ export function RequestsTab() {
 
     // Evento para notificação de nova mensagem
     socket.on("chat:notification", (data: { message: Message, requestId: string, senderId: string }) => {
-      console.log("🔔 Notificação de mensagem recebida:", data.message.id, "para solicitação:", data.requestId)
+      //console.log("🔔 Notificação de mensagem recebida:", data.message.id, "para solicitação:", data.requestId)
 
       // Incrementar contador de mensagens não lidas
       setUnreadMessages(prev => ({
@@ -495,6 +515,14 @@ export function RequestsTab() {
                       >
                         <Smile className="w-4 h-4" />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() => setShowImagePicker(true)}
+                      >
+                        <Image className="w-4 h-4" />
+                      </Button>
                     </div>
 
                     <div className="flex-1 bg-primary/10 rounded-full px-4 py-2">
@@ -564,6 +592,12 @@ export function RequestsTab() {
         onConfirm={handleCancelRequest}
         isLoading={cancelRequestMutation.isPending}
         requestType="provider"
+      />
+
+      <ImagePicker
+        isOpen={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onImageSelect={handleImageSelect}
       />
     </div>
   )

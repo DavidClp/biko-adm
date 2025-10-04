@@ -19,6 +19,7 @@ import { UserRole } from "@/lib/types"
 import { WorkerIcon } from "@/lib/icons/worker"
 import { cn } from "@/lib/utils"
 import { AvatarImage } from "@radix-ui/react-avatar"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -47,20 +48,22 @@ export function Header() {
     ]
     : []
 
+  const isMobile = useIsMobile()
+
   return (
     <>
       {/* Header */}
       <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-14 md:h-16">
+          <div className="flex items-center justify-between h-12 md:h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className="h-9 w-9 bg-primary rounded-lg flex items-center justify-center">
+              <div className="h-8 md:h-9 w-8 md:w-9 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold">
-                  <WorkerIcon size={28} />
+                  <WorkerIcon size={isMobile ? 24 : 28} />
                 </span>
               </div>
-              <span className="text-xl font-bold text-primary">Biko</span>
+              <span className="text-[18px] md:text-xl font-bold text-primary">Biko</span>
               {user?.role === UserRole.ADMIN && (
                 <Badge variant="secondary" className="ml-2">
                   Admin
