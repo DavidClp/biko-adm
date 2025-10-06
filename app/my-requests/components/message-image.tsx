@@ -5,9 +5,11 @@ import { Message } from "@/lib/types";
 import { formatDateWithTime } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock } from "lucide-react";
+import { CheckCircle, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface MessageImageProps {
   message: Message;
@@ -17,6 +19,7 @@ interface MessageImageProps {
 export function MessageImage({ message, isOwnMessage }: MessageImageProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
 
   const handleImageError = (e: any) => {
@@ -43,12 +46,7 @@ export function MessageImage({ message, isOwnMessage }: MessageImageProps) {
 
   const handleImageClick = () => {
     if (!imageError && message.content) {
-      // Adicionar token de autenticação à URL
-      const token = localStorage.getItem('token');
-      const urlWithAuth = token 
-        ? `${message.content}?token=${token}`
-        : message.content;
-      window.open(urlWithAuth, '_blank');
+      setIsModalOpen(true);
     }
   };
 
@@ -115,6 +113,30 @@ export function MessageImage({ message, isOwnMessage }: MessageImageProps) {
           )}
         </div>
       </div>
+
+      {/* Modal de imagem em tamanho completo */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden">
+          <div className="relative w-full h-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-background rounded-full"
+              onClick={() => setIsModalOpen(false)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <div className="flex items-center justify-center p-4">
+              <img
+                src={getImageUrlWithAuth()}
+                alt="Imagem enviada"
+                className="max-w-full max-h-[85vh] object-contain"
+                crossOrigin="anonymous"
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
