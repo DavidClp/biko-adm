@@ -10,16 +10,23 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/use-auth"
 import { useRedirectIfAuthenticated } from "@/hooks/use-auth-redirect"
 import { Loader2, ArrowLeft, Mail, Lock } from "lucide-react"
 import { UserRole } from "@/lib/types"
 import { WorkerIcon } from "@/lib/icons/worker"
+import { api } from "@/lib/api"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false)
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false)
+  const [forgotPasswordError, setForgotPasswordError] = useState("")
   const { login, loading, user, routerBeforeLogin, setRouterBeforeLogin } = useAuth()
   const router = useRouter()
   
@@ -35,6 +42,27 @@ export default function LoginPage() {
 
     } catch (err) {
       setError("Email ou senha incorretos. Tente novamente.")
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotPasswordError("")
+    setForgotPasswordSuccess(false)
+    setForgotPasswordLoading(true)
+
+    try {
+      await api.post("/password-recovery/request", {
+        email: forgotPasswordEmail,
+      })
+      setForgotPasswordSuccess(true)
+      setForgotPasswordEmail("")
+    } catch (err: any) {
+      setForgotPasswordError(
+        err?.response?.data?.error || "Erro ao enviar email. Tente novamente."
+      )
+    } finally {
+      setForgotPasswordLoading(false)
     }
   }
 
@@ -106,9 +134,18 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Senha
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                    Senha
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -166,6 +203,90 @@ export default function LoginPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de recuperação de senha */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Recuperar Senha</DialogTitle>
+            <DialogDescription>
+              Digite seu email para receber um link de recuperação de senha.
+            </DialogDescription>
+          </DialogHeader>
+
+          {forgotPasswordSuccess ? (
+            <div className="space-y-4">
+              <Alert className="border-green-500/20 bg-green-500/5">
+                <AlertDescription className="text-sm text-green-600 dark:text-green-400">
+                  Email enviado com sucesso! Verifique sua caixa de entrada.
+                </AlertDescription>
+              </Alert>
+              <Button
+                onClick={() => {
+                  setShowForgotPassword(false)
+                  setForgotPasswordSuccess(false)
+                }}
+                className="w-full"
+              >
+                Fechar
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              {forgotPasswordError && (
+                <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
+                  <AlertDescription className="text-sm">
+                    {forgotPasswordError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="forgot-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                    required
+                    disabled={forgotPasswordLoading}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowForgotPassword(false)}
+                  disabled={forgotPasswordLoading}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={forgotPasswordLoading}
+                  className="flex-1"
+                >
+                  {forgotPasswordLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Enviar"
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
