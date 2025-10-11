@@ -13,6 +13,8 @@ import { GiBathtub, GiHomeGarage, GiSofa } from "react-icons/gi";
 import { FaFaucet, FaLayerGroup, FaLightbulb, FaPalette, FaWarehouse } from "react-icons/fa";
 import { MdKitchen, MdLocalLaundryService, MdOutdoorGrill, MdOutlinePedalBike, MdOutlineStarOutline, MdPool } from "react-icons/md";
 import { maskFunctions } from "@/lib/maskServices";
+import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react";
 
 interface IPlanCard {
     plan: IPlan
@@ -21,21 +23,6 @@ interface IPlanCard {
 }
 /* ------------------------------------ */
 
-const tertiary = "#07C5A6";
-const four = "#394F8F";
-
-const fail = "#FF6B6B";
-const success = "#52C41A";
-const info = "#FAAD14";
-
-const gray = "#DBDBDB";
-const white = "#FFF";
-const backScan = "#BDE5F3";
-
-const inactiveItens = {
-    light: "#3a3a3a",
-    dark: "#8A8A8A",
-};
 
 export const background = {
     light: "#f8f8f8",
@@ -68,7 +55,7 @@ export const PlanCard: React.FC<IPlanCard> = (props) => {
              border: 2px solid ${secondary[props.theme as themeTypes]};
          `} */
         <div
-            className={`rounded-md flex flex-col cursor-pointer p-5 min-w-[300px] flex-1 ${selected ? "border-2 border-primary" : ""}`}
+            className={`rounded-md flex flex-col mb-5 cursor-pointer p-5 min-w-[300px] flex-1 ${selected ? "border-2 border-primary" : ""}`}
             style={{ boxShadow: "0.125rem 0.125rem 0.5rem rgba(0,0,0,0.1)" }}
             onClick={() => onClick(plan?.id)}
         >
@@ -86,6 +73,13 @@ export const PlanCard: React.FC<IPlanCard> = (props) => {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <div className="text-primary" style={{ fontWeight: 600, fontSize: 22, textAlign: "center" }}>{plan?.name?.toUpperCase()}</div>
                     <div style={{ opacity: 0.5, marginTop: -5, }}>Plano mensal</div>
+                    <div className="mt-2 mb-1">
+                    <Badge variant="outline" className={`${"border-primary text-primary"
+                        }`}>
+                        <Clock className="h-3 w-3 mr-1" />
+                        30 dias grátis
+                    </Badge>
+                </div>
                 </div>
                 <div className="text-primary" style={{ fontWeight: 600, fontSize: 22, marginTop: -10 }}>
                     {getPartIntAndDecimal(maskFunctions.currency.mask(plan?.value))}

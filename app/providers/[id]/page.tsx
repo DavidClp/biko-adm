@@ -215,7 +215,7 @@ export default function ProviderProfilePage() {
                   <div className="flex-1 text-center sm:text-left">
                     <CardTitle className="text-xl sm:text-2xl mb-2">{provider?.name}</CardTitle>
                     {provider?.servicesNames?.slice(0, 2)?.map((service, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs mb-3">
+                      <Badge key={index} variant="secondary" className="text-xs mb-3 ml-1">
                         {service}
                       </Badge>
                     ))}

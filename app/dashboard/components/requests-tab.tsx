@@ -357,10 +357,10 @@ export function RequestsTab() {
                 )
               })}
 
-              {user?.provider?.is_listed && requestsList?.length === 0 && (
+              {user?.provider?.is_listed && requestsList?.length === 0/*  && user?.provider?.subscription_situation === 'active' */ && (
                 <CardNotRequests />
               )}
-              {user?.provider?.is_listed && (user?.provider?.subscription_situation !== 'active' && user?.provider?.subscription_situation !== 'paid') && requestsList?.length === 0 && (
+        {/*       {user?.provider?.is_listed && (user?.provider?.subscription_situation !== 'active' && user?.provider?.subscription_situation !== 'paid') && requestsList?.length === 0 && (
                 <div className="mb-6">
 
                   <div className="mb-6">
@@ -390,7 +390,7 @@ export function RequestsTab() {
                     </AlertDescription>
                   </Alert>
                 </div>
-              )}
+              )} */}
             </ScrollArea>
           </CardContent>
         </Card>

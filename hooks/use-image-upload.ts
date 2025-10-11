@@ -25,7 +25,7 @@ export function useImageUpload() {
         },
       });
 
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
       const imageUrl = `${baseUrl}${data.imageUrl}`;
       
       return { ...data, imageUrl };

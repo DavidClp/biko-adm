@@ -584,7 +584,7 @@ const CreditDataFormComponent: React.ForwardRefRenderFunction<CreditDataRefProps
 
                                         <div className="space-y-2">
                                             <Label htmlFor="phone_number">
-                                                Telefone (SEM O DDD) <span className="text-red-500">*</span>
+                                                Telefone (SEM O DDI) <span className="text-red-500">*</span>
                                             </Label>
                                             <Controller
                                                 name="phone_number"

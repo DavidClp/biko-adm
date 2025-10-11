@@ -188,7 +188,7 @@ export default function ProviderLandingPage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Escolha o plano ideal para seu negócio</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Comece grátis e evolua conforme sua necessidade. O Plano Prestador é o mais escolhido pelos profissionais.
+              Comece grátis e evolua conforme sua necessidade. <span className="text-primary font-semibold">Ganhe 30 dias grátis</span> ao assinar qualquer plano pago. O Plano Prestador é o mais escolhido pelos profissionais.
             </p>
           </div>
 
@@ -232,6 +232,16 @@ export default function ProviderLandingPage() {
                       {plan.price}
                       <span className="text-sm text-muted-foreground font-normal">{plan.period}</span>
                     </div>
+                    {(plan.popular || plan.premium) && (
+                      <div className="mt-2 mb-1">
+                        <Badge variant="outline" className={`${
+                          plan.premium ? "border-purple-500 text-purple-500" : "border-primary text-primary"
+                        }`}>
+                          <Clock className="h-3 w-3 mr-1" />
+                          30 dias grátis
+                        </Badge>
+                      </div>
+                    )}
                     <CardDescription>{plan.description}</CardDescription>
                   </CardHeader>
 
@@ -267,24 +277,12 @@ export default function ProviderLandingPage() {
             })}
           </div>
 
-       {/*    <div className="text-center mt-12">
-            <p className="text-muted-foreground mb-4">Cadastro gratuito • Teste de 14 dias • Cancele quando quiser</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/register-provider">
-                <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-                  <Users className="mr-2 h-5 w-5" />
-                  Cadastrar-se Grátis
-                </Button>
-              </Link>
-              <Link href="/register-provider">
-                <Button size="lg" className="text-lg px-8 py-6">
-                  <Zap className="mr-2 h-5 w-5" />
-                  Assinar Plano Premium
-                </Button>
-              </Link>
-            </div>
-          </div> */}
           <div className="text-center mt-12">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-6 py-3 rounded-full text-base font-medium mb-6">
+              <Clock className="h-4 w-4" />
+              30 dias grátis em todos os planos pagos
+            </div>
+            <p className="text-muted-foreground mb-6">Cadastro gratuito • Cancele quando quiser</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href="/register-provider">
                 <Button size="lg" variant="outline" className="text-lg px-8 py-6">

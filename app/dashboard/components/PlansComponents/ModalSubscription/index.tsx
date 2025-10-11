@@ -152,18 +152,18 @@ export const ModalSubscription: React.FC<IModalResponsibleProps> = (props) => {
                 </div>
                 <div className="flex justify-center md:justify-between pb-10 flex-wrap py-5 gap-2.5 border-t-[1px] border-t-[#dee2e6]" >
                     <Button
-                        onClick={() => handleGoToNextStep(step + 1)}
-                        color={"#FFF"}
-                        disabled={planSelected === null}
-                        style={{ padding: 8, minWidth: 210, fontSize: 14 }}
-                        children={step === 1 ? "Próximo" : "Confirmar pagamento"}
-                    />
-                    <Button
                         onClick={() => step === 1 ? onCancel() : setStep((atual) => atual - 1)}
                         color={"#FFF"}
                         style={{ padding: 8, minWidth: 210, fontSize: 14, alignItems: "center" }}
                         children="Voltar"
                         variant='outline'
+                    />
+                    <Button
+                        onClick={() => handleGoToNextStep(step + 1)}
+                        color={"#FFF"}
+                        disabled={planSelected === null}
+                        style={{ padding: 8, minWidth: 210, fontSize: 14 }}
+                        children={step === 1 ? "Próximo" : "Confirmar pagamento"}
                     />
                 </div>
             </DialogContent>
