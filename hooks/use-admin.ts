@@ -182,25 +182,6 @@ export function useAdmin() {
     page: 1
   })
 
-  // Funções para Dashboard
-  const fetchStats = async () => {
-    try {
-      setStatsLoading(true)
-      setStatsError(null)
-      const response = await api.get('/admin/dashboard/stats')
-      if (response.success && response.data) {
-        setStats(response.data)
-      } else {
-        throw new Error('Erro ao buscar estatísticas')
-      }
-    } catch (err: any) {
-      console.error('Erro ao buscar estatísticas:', err)
-      setStatsError(err.message || 'Erro ao carregar estatísticas')
-    } finally {
-      setStatsLoading(false)
-    }
-  }
-
   // Funções para Analytics
   const fetchAnalytics = async (period: string = '6m') => {
     try {
@@ -298,7 +279,6 @@ export function useAdmin() {
   // Funções utilitárias
   const refetchAll = async () => {
     await Promise.all([
-      fetchStats(),
       fetchAnalytics(),
       fetchProviders(),
       fetchUsers(),
@@ -307,7 +287,6 @@ export function useAdmin() {
 
   // Auto-fetch inicial
   useEffect(() => {
-    fetchStats()
     fetchAnalytics()
     fetchProviders()
     fetchUsers()
@@ -318,7 +297,6 @@ export function useAdmin() {
     stats,
     statsLoading,
     statsError,
-    fetchStats,
 
     // Analytics
     analytics,
