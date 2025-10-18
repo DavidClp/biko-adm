@@ -14,9 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, TrendingUp, MousePointer, ArrowLeft, Upload, Image as ImageIcon, Settings, Users, Monitor, Smartphone } from "lucide-react";
 import { useAllBanners } from "@/hooks/use-banners";
-import { useUpdateBanner, useDeleteBanner } from "@/hooks/use-banner-mutations";
+import { useUpdateBanner, useDeleteBanner, useCreateBanner } from "@/hooks/use-banner-mutations";
+import { useAdvertisers } from "@/hooks/use-advertisers";
 import { ImageUploadBanner } from "@/components/image-upload-banner";
 import { useRouter } from "next/navigation";
+import { getBannerImageSpecs } from "@/lib/banner-specs";
 import { Header } from '@/components/navigation/header';
 
 interface Banner {
@@ -32,6 +34,7 @@ interface Banner {
   createdAt: string;
   updatedAt: string;
   publicVisibility: string;
+  advertiserId?: string;
   advertiser: {
     id: string;
     name: string;
@@ -59,6 +62,7 @@ const SIZES = [
 export default function BannersPage() {
   const router = useRouter();
   const { data: banners = [], isLoading: loading, error, refetch } = useAllBanners();
+  const { data: advertisers = [] } = useAdvertisers();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
@@ -69,7 +73,8 @@ export default function BannersPage() {
     position: '',
     size: '',
     publicVisibility: 'ALL',
-    isActive: true
+    isActive: true,
+    advertiserId: ''
   });
   const [filterPosition, setFilterPosition] = useState<string>('all');
   const [editImageUrl, setEditImageUrl] = useState<string>('');
@@ -77,9 +82,10 @@ export default function BannersPage() {
 
   const updateBannerMutation = useUpdateBanner();
   const deleteBannerMutation = useDeleteBanner();
+  const createBannerMutation = useCreateBanner();
 
   const handleCreateBanner = async () => {
-    if (!creatingBanner.title || !creatingBanner.position || !creatingBanner.size) {
+    if (!creatingBanner.title || !creatingBanner.position || !creatingBanner.size || !creatingBanner.advertiserId) {
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
@@ -94,27 +100,38 @@ export default function BannersPage() {
     }
 
     const createData = {
-      ...creatingBanner,
+      advertiserId: creatingBanner.advertiserId!,
+      title: creatingBanner.title,
+      description: creatingBanner.description,
+      position: creatingBanner.position,
+      size: creatingBanner.size,
+      publicVisibility: creatingBanner.publicVisibility || 'ALL',
+      isActive: creatingBanner.isActive ?? true,
       imageFile: imageFile,
       imageUrl: (!imageFile && createImageUrl && !createImageUrl.startsWith('blob:'))
         ? createImageUrl
         : undefined,
     };
 
-    // Aqui você implementaria a chamada para criar o banner
-    console.log('Creating banner:', createData);
-
-    // Simular sucesso por enquanto
-    setIsCreateDialogOpen(false);
-    setCreatingBanner({
-      title: '',
-      description: '',
-      position: '',
-      size: '',
-      publicVisibility: 'ALL',
-      isActive: true
+    createBannerMutation.mutate(createData, {
+      onSuccess: () => {
+        setIsCreateDialogOpen(false);
+        setCreatingBanner({
+          title: '',
+          description: '',
+          position: '',
+          size: '',
+          publicVisibility: 'ALL',
+          isActive: true,
+          advertiserId: ''
+        });
+        setCreateImageUrl('');
+        alert('Banner criado com sucesso!');
+      },
+      onError: (error) => {
+        alert(error.message || 'Erro ao criar banner');
+      },
     });
-    setCreateImageUrl('');
   };
 
   const handleUpdateBanner = async () => {
@@ -182,6 +199,11 @@ export default function BannersPage() {
 
   const getSizeLabel = (size: string) => {
     return SIZES.find(s => s.value === size)?.label || size;
+  };
+
+  const getImageSpecs = (position: string, size: string) => {
+    if (!position || !size) return null;
+    return getBannerImageSpecs(position as any, size as any);
   };
 
   const goToDashboard = () => {
@@ -448,133 +470,189 @@ export default function BannersPage() {
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Imagem */}
+            {/* Imagem */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <ImageIcon className="h-4 w-4" />
+                Imagem do Banner
+              </div>
+              <Separator />
+
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <ImageIcon className="h-4 w-4" />
-                  Imagem do Banner
+                {(() => {
+                  const specs = getImageSpecs(editingBanner.position || '', editingBanner.size || '');
+                  const canUpload = editingBanner.position && editingBanner.size;
+
+                  return (
+                    <>
+                      {!canUpload && (
+                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                          <div className="flex items-center gap-2 text-amber-800">
+                            <Smartphone className="h-4 w-4" />
+                            <span className="text-sm font-medium">Selecione posição e tamanho primeiro</span>
+                          </div>
+                          <p className="text-xs text-amber-700 mt-1">
+                            Escolha a posição e tamanho do banner para ver as especificações da imagem necessária.
+                          </p>
+                        </div>
+                      )}
+
+                      {canUpload && specs && (
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center gap-2 text-blue-800 mb-2">
+                            <Smartphone className="h-4 w-4" />
+                            <span className="text-sm font-medium">Especificações da Imagem</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-blue-700 font-medium">Dimensões:</span>
+                              <p className="text-blue-600">{specs.width} × {specs.height}px</p>
+                            </div>
+                            <div>
+                              <span className="text-blue-700 font-medium">Proporção:</span>
+                              <p className="text-blue-600">{specs.aspectRatio}</p>
+                            </div>
+                            <div className="col-span-2">
+                              <span className="text-blue-700 font-medium">Formato recomendado:</span>
+                              <p className="text-blue-600">{specs.recommendedFormat}</p>
+                            </div>
+                            <div className="col-span-2">
+                              <span className="text-blue-700 font-medium">Descrição:</span>
+                              <p className="text-blue-600 text-xs">{specs.description}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Imagem *</Label>
+                        <ImageUploadBanner
+                          onImageUploaded={setEditImageUrl}
+                          currentImageUrl={editImageUrl}
+                          inputId="edit-banner-image-upload"
+                          disabled={!canUpload}
+                        />
+                        {!canUpload && (
+                          <p className="text-xs text-muted-foreground">
+                            Selecione a posição e tamanho para habilitar o upload
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Configurações de Exibição */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <Monitor className="h-4 w-4" />
+                Configurações de Exibição
+              </div>
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Posição *</Label>
+                  <Select
+                    value={editingBanner.position || ''}
+                    onValueChange={(value) => setEditingBanner({ ...editingBanner, position: value })}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Selecione a posição" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {POSITIONS.map((position) => (
+                        <SelectItem key={position.value} value={position.value}>
+                          {position.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Separator />
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Imagem *</Label>
-                  <ImageUploadBanner
-                    onImageUploaded={setEditImageUrl}
-                    currentImageUrl={editImageUrl}
-                    inputId="edit-banner-image-upload"
+                  <Label className="text-sm font-medium">Tamanho *</Label>
+                  <Select
+                    value={editingBanner.size || ''}
+                    onValueChange={(value) => setEditingBanner({ ...editingBanner, size: value })}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Selecione o tamanho" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SIZES.map((size) => (
+                        <SelectItem key={size.value} value={size.value}>
+                          {size.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Configurações de Visibilidade */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <Users className="h-4 w-4" />
+                Visibilidade
+              </div>
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Visibilidade Pública *</Label>
+                  <Select
+                    value={editingBanner.publicVisibility || 'ALL'}
+                    onValueChange={(value) => setEditingBanner({ ...editingBanner, publicVisibility: value })}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Selecione a visibilidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">Todos os usuários</SelectItem>
+                      <SelectItem value="CLIENT">Apenas Clientes</SelectItem>
+                      <SelectItem value="PROVIDER">Apenas Prestadores</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-active" className="text-sm font-medium">
+                      Status do Banner
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {editingBanner.isActive ? 'Banner está ativo e visível' : 'Banner está inativo e oculto'}
+                    </p>
+                  </div>
+                  <Switch
+                    id="edit-active"
+                    checked={editingBanner.isActive || false}
+                    onCheckedChange={(checked) => setEditingBanner({ ...editingBanner, isActive: checked })}
                   />
-                </div>
-              </div>
-
-              {/* Configurações de Exibição */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <Monitor className="h-4 w-4" />
-                  Configurações de Exibição
-                </div>
-                <Separator />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Posição *</Label>
-                    <Select
-                      value={editingBanner.position || ''}
-                      onValueChange={(value) => setEditingBanner({ ...editingBanner, position: value })}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Selecione a posição" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {POSITIONS.map((position) => (
-                          <SelectItem key={position.value} value={position.value}>
-                            {position.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Tamanho *</Label>
-                    <Select
-                      value={editingBanner.size || ''}
-                      onValueChange={(value) => setEditingBanner({ ...editingBanner, size: value })}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Selecione o tamanho" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SIZES.map((size) => (
-                          <SelectItem key={size.value} value={size.value}>
-                            {size.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Configurações de Visibilidade */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <Users className="h-4 w-4" />
-                  Visibilidade
-                </div>
-                <Separator />
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Visibilidade Pública *</Label>
-                    <Select
-                      value={editingBanner.publicVisibility || 'ALL'}
-                      onValueChange={(value) => setEditingBanner({ ...editingBanner, publicVisibility: value })}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Selecione a visibilidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ALL">Todos os usuários</SelectItem>
-                        <SelectItem value="CLIENT">Apenas Clientes</SelectItem>
-                        <SelectItem value="PROVIDER">Apenas Prestadores</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="space-y-1">
-                      <Label htmlFor="edit-active" className="text-sm font-medium">
-                        Status do Banner
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        {editingBanner.isActive ? 'Banner está ativo e visível' : 'Banner está inativo e oculto'}
-                      </p>
-                    </div>
-                    <Switch
-                      id="edit-active"
-                      checked={editingBanner.isActive || false}
-                      onCheckedChange={(checked) => setEditingBanner({ ...editingBanner, isActive: checked })}
-                    />
-                  </div>
                 </div>
               </div>
             </div>
 
             <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-6">
               <Button
-                onClick={handleUpdateBanner}
-                className="w-full sm:w-auto"
-                disabled={updateBannerMutation.isPending}
-              >
-                {updateBannerMutation.isPending ? 'Atualizando...' : 'Atualizar Banner'}
-              </Button>
-              <Button
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(false)}
                 className="w-full sm:w-auto"
               >
                 Cancelar
+              </Button>
+              <Button
+                onClick={handleUpdateBanner}
+                className="w-full sm:w-auto"
+                disabled={updateBannerMutation.isPending}
+              >
+                {updateBannerMutation.isPending ? 'Atualizando...' : 'Atualizar Banner'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -606,32 +684,53 @@ export default function BannersPage() {
                 </div>
                 <Separator />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="create-title" className="text-sm font-medium">
-                      Título do Banner *
-                    </Label>
-                    <Input
-                      id="create-title"
-                      value={creatingBanner.title || ''}
-                      onChange={(e) => setCreatingBanner({ ...creatingBanner, title: e.target.value })}
-                      placeholder="Digite o título do banner"
-                      className="h-10"
-                    />
+                    <Label className="text-sm font-medium">Anunciante *</Label>
+                    <Select
+                      value={creatingBanner.advertiserId || ''}
+                      onValueChange={(value) => setCreatingBanner({ ...creatingBanner, advertiserId: value })}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Selecione o anunciante" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {advertisers.map((advertiser) => (
+                          <SelectItem key={advertiser.id} value={advertiser.id}>
+                            {advertiser.name} {advertiser.company && `• ${advertiser.company}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="create-description" className="text-sm font-medium">
-                      Descrição
-                    </Label>
-                    <Textarea
-                      id="create-description"
-                      value={creatingBanner.description || ''}
-                      onChange={(e) => setCreatingBanner({ ...creatingBanner, description: e.target.value })}
-                      placeholder="Descrição opcional do banner"
-                      rows={3}
-                      className="resize-none"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="create-title" className="text-sm font-medium">
+                        Título do Banner *
+                      </Label>
+                      <Input
+                        id="create-title"
+                        value={creatingBanner.title || ''}
+                        onChange={(e) => setCreatingBanner({ ...creatingBanner, title: e.target.value })}
+                        placeholder="Digite o título do banner"
+                        className="h-10"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="create-description" className="text-sm font-medium">
+                        Descrição
+                      </Label>
+                      <Textarea
+                        id="create-description"
+                        value={creatingBanner.description || ''}
+                        onChange={(e) => setCreatingBanner({ ...creatingBanner, description: e.target.value })}
+                        placeholder="Descrição opcional do banner"
+                        rows={3}
+                        className="resize-none"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -644,13 +743,69 @@ export default function BannersPage() {
                 </div>
                 <Separator />
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Imagem *</Label>
-                  <ImageUploadBanner
-                    onImageUploaded={setCreateImageUrl}
-                    currentImageUrl={createImageUrl}
-                    inputId="create-banner-image-upload"
-                  />
+                <div className="space-y-4">
+                  {(() => {
+                    const specs = getImageSpecs(creatingBanner.position || '', creatingBanner.size || '');
+                    const canUpload = creatingBanner.position && creatingBanner.size;
+
+                    return (
+                      <>
+                        {!canUpload && (
+                          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div className="flex items-center gap-2 text-amber-800">
+                              <Smartphone className="h-4 w-4" />
+                              <span className="text-sm font-medium">Selecione posição e tamanho primeiro</span>
+                            </div>
+                            <p className="text-xs text-amber-700 mt-1">
+                              Escolha a posição e tamanho do banner para ver as especificações da imagem necessária.
+                            </p>
+                          </div>
+                        )}
+
+                        {canUpload && specs && (
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center gap-2 text-blue-800 mb-2">
+                              <Smartphone className="h-4 w-4" />
+                              <span className="text-sm font-medium">Especificações da Imagem</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="text-blue-700 font-medium">Dimensões:</span>
+                                <p className="text-blue-600">{specs.width} × {specs.height}px</p>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 font-medium">Proporção:</span>
+                                <p className="text-blue-600">{specs.aspectRatio}</p>
+                              </div>
+                              <div className="col-span-2">
+                                <span className="text-blue-700 font-medium">Formato recomendado:</span>
+                                <p className="text-blue-600">{specs.recommendedFormat}</p>
+                              </div>
+                              <div className="col-span-2">
+                                <span className="text-blue-700 font-medium">Descrição:</span>
+                                <p className="text-blue-600 text-xs">{specs.description}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Imagem *</Label>
+                          <ImageUploadBanner
+                            onImageUploaded={setCreateImageUrl}
+                            currentImageUrl={createImageUrl}
+                            inputId="create-banner-image-upload"
+                            disabled={!canUpload}
+                          />
+                          {!canUpload && (
+                            <p className="text-xs text-muted-foreground">
+                              Selecione a posição e tamanho para habilitar o upload
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -759,14 +914,14 @@ export default function BannersPage() {
               <Button
                 onClick={handleCreateBanner}
                 className="w-full sm:w-auto"
+                disabled={createBannerMutation.isPending}
               >
-                Criar Banner
+                {createBannerMutation.isPending ? 'Criando...' : 'Criar Banner'}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
-
     </div>
   );
 }
