@@ -33,6 +33,7 @@ import { LoginRequiredModal } from "@/app/providers/components/login-required-mo
 import { PhotoGallery } from "@/components/photo-gallery"
 import { useAuth } from "@/hooks/use-auth"
 import { UserRole } from "@/lib/types"
+import { ProvidersListBanner } from "@/components/banner-display"
 
 export default function ProviderProfilePage() {
   const params = useParams()
@@ -198,6 +199,8 @@ export default function ProviderProfilePage() {
           </Link>
         </div>
 
+        <ProvidersListBanner position="PROVIDERS_LIST_TOP" />
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Provider Info */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
@@ -205,9 +208,9 @@ export default function ProviderProfilePage() {
               <CardHeader className="p-4 sm:p-6 pb-0">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
                   <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mx-auto sm:mx-0">
-                  {provider?.photoUrl && (
-                    <Image src={provider?.photoUrl} alt={provider?.name} fill={true} objectFit="cover" />
-                  )}
+                    {provider?.photoUrl && (
+                      <Image src={provider?.photoUrl} alt={provider?.name} fill={true} objectFit="cover" />
+                    )}
                     <AvatarFallback className="text-xl sm:text-2xl">
                       {provider?.name?.split(" ")?.map((n: string) => n[0])?.join("")}
                     </AvatarFallback>
@@ -246,9 +249,9 @@ export default function ProviderProfilePage() {
 
             {/* Vitrine de Fotos */}
             {photos.length > 0 && (
-            <PhotoGallery
-              photos={photos}
-              providerId={providerId}
+              <PhotoGallery
+                photos={photos}
+                providerId={providerId}
                 isOwner={user?.role === UserRole.PROVIDER && user.provider?.id === providerId}
                 onPhotoDelete={deletePhoto}
               />

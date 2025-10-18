@@ -10,6 +10,7 @@ import { MapPin, Star, MessageCircle } from "lucide-react"
 import { Provider, UserRole } from "@/lib/types"
 import { useAuth } from "@/hooks/use-auth"
 import Image from "next/image"
+import { ProvidersListBanner } from "@/components/banner-display"
 
 interface ProvidersListProps {
   providers: Provider[]
@@ -45,10 +46,20 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
     )
   }
 
+  // Calcular onde inserir o banner do meio
+  const middleIndex = Math.floor(providers.length / 2);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {providers.map((provider) => (
-        <Card key={provider?.id} className="border border-gray-100/80 group hover:shadow-xl gap-0 hover:shadow-primary/5 transition-all duration-300 shadow-md bg-gradient-to-br from-white to-gray-50/50 overflow-hidden">
+      {providers.map((provider, index) => (
+        <>
+          {index === middleIndex && (
+            <div className="col-span-full">
+              <ProvidersListBanner position="PROVIDERS_LIST_MIDDLE" />
+            </div>
+          )}
+          <div key={provider?.id} className="col-span-1">
+            <Card className="border border-gray-100/80 group hover:shadow-xl gap-0 hover:shadow-primary/5 transition-all duration-300 shadow-md bg-gradient-to-br from-white to-gray-50/50 overflow-hidden">
           {/* Header com foto e informações principais */}
           <CardHeader className="pb-0">
             <div className="flex flex-col items-center text-center space-y-4">
@@ -169,8 +180,15 @@ export function ProvidersList({ providers, loading, onRequestContact, onClearFil
               )}
             </div>
           </CardFooter>
-        </Card>
+            </Card>
+          </div>
+        </>
       ))}
+      
+      {/* Banner no final da lista */}
+      <div className="col-span-full">
+        <ProvidersListBanner position="PROVIDERS_LIST_BOTTOM" />
+      </div>
     </div>
   )
 }

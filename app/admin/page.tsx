@@ -65,14 +65,14 @@ export default function AdminPage() {
       color: "text-green-600",
       bgColor: "bg-green-50"
     },
-    {
+/*     {
       title: "Analytics",
       description: "Relatórios detalhados e métricas avançadas",
       icon: BarChart3,
       href: "/admin/analytics",
       color: "text-purple-600",
       bgColor: "bg-purple-50"
-    },
+    }, */
     {
       title: "Usuários",
       description: "Visualizar e gerenciar todos os usuários",
@@ -82,12 +82,20 @@ export default function AdminPage() {
       bgColor: "bg-orange-50"
     },
     {
-      title: "Logs",
-      description: "Visualizar e gerenciar todos os logs",
+      title: "Anunciantes",
+      description: "Visualizar e gerenciar todos os anunciantes",
       icon: LogOut,
-      href: "/admin/logs",
+      href: "/admin/advertisers",
       color: "text-orange-600",
       bgColor: "bg-orange-50"
+    },
+    {
+      title: "Banners",
+      description: "Gerenciar banners de publicidade",
+      icon: LogOut,
+      href: "/admin/banners",
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
     },
   ]
 

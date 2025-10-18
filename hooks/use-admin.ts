@@ -284,7 +284,7 @@ export function useAdmin() {
     try {
       setUsersError(null)
       const response = await api.get(`/admin/users/${userId}`)
-      if (response.success && response.data) {
+      if (response?.data?.success && response.data) {
         return response.data
       }
       return null
@@ -295,56 +295,6 @@ export function useAdmin() {
     }
   }
 
-  // Funções para Logs
-  const fetchLogs = async () => {
-    try {
-      setLogsLoading(true)
-      setLogsError(null)
-      
-      const params = new URLSearchParams()
-      if (logFilters.level !== undefined) params.append('level', logFilters.level.toString())
-      if (logFilters.method) params.append('method', logFilters.method)
-      if (logFilters.startTime) params.append('startTime', logFilters.startTime)
-      if (logFilters.endTime) params.append('endTime', logFilters.endTime)
-      if (logFilters.limit) params.append('limit', logFilters.limit.toString())
-      if (logFilters.page) params.append('page', logFilters.page.toString())
-
-      const response = await api.get(`/logs?${params.toString()}`)
-      if (response.success && response.data) {
-        setLogs(response.data)
-        setLogTotalPages(response.pagination?.totalPages || 0)
-        setLogCurrentPage(response.pagination?.page || 1)
-        setLogTotal(response.pagination?.total || 0)
-      } else {
-        throw new Error('Erro ao buscar logs')
-      }
-    } catch (err: any) {
-      console.error('Erro ao buscar logs:', err)
-      setLogsError(err.message || 'Erro ao carregar logs')
-    } finally {
-      setLogsLoading(false)
-    }
-  }
-
-  const fetchLogStats = async () => {
-    try {
-      setLogsError(null)
-      const response = await api.get('/logs/stats')
-      if (response.success && response.data) {
-        setLogStats(response.data)
-      } else {
-        throw new Error('Erro ao buscar estatísticas dos logs')
-      }
-    } catch (err: any) {
-      console.error('Erro ao buscar estatísticas dos logs:', err)
-      setLogsError(err.message || 'Erro ao carregar estatísticas')
-    }
-  }
-
-  const updateLogFilters = (newFilters: Partial<typeof logFilters>) => {
-    setLogFilters(prev => ({ ...prev, ...newFilters }))
-  }
-
   // Funções utilitárias
   const refetchAll = async () => {
     await Promise.all([
@@ -352,8 +302,6 @@ export function useAdmin() {
       fetchAnalytics(),
       fetchProviders(),
       fetchUsers(),
-      fetchLogs(),
-      fetchLogStats()
     ])
   }
 
@@ -363,14 +311,7 @@ export function useAdmin() {
     fetchAnalytics()
     fetchProviders()
     fetchUsers()
-    fetchLogs()
-    fetchLogStats()
   }, [])
-
-  // Auto-fetch logs quando filtros mudarem
-  useEffect(() => {
-    fetchLogs()
-  }, [logFilters])
 
   return {
     // Dashboard
@@ -408,10 +349,6 @@ export function useAdmin() {
     logCurrentPage,
     logTotal,
     logFilters,
-    fetchLogs,
-    fetchLogStats,
-    updateLogFilters,
-
     // Utilitários
     refetchAll
   }

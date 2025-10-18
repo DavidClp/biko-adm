@@ -13,6 +13,7 @@ import { CitiesSelector } from "@/components/cities-selector"
 import { ProvidersList } from "@/app/providers/components/providers-list"
 import { useProvidersWithFilters } from "@/hooks/use-providers"
 import { ServicesMultiSelect } from "@/components/services-multi-select"
+import { ProvidersListBanner } from "@/components/banner-display"
 
 export default function ProvidersPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -125,6 +126,10 @@ export default function ProvidersPage() {
             )} */}
           </div>
         </div>
+
+        {/* Banner no topo da lista de providers */}
+        <ProvidersListBanner position="PROVIDERS_LIST_TOP" />
+
         <ProvidersList
           providers={providers}
           loading={loading}
