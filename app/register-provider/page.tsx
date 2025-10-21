@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/use-auth"
+import { useRecommendations } from "@/hooks/use-recommendations"
 import {
   Loader2,
   ArrowLeft,
@@ -26,6 +27,9 @@ import {
   Phone,
   FileText,
   Building2,
+  Gift,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 import { ServicesMultiSelect } from "@/components/services-multi-select"
 import { CitiesSelector } from "@/components/cities-selector"
@@ -40,6 +44,7 @@ const registerProviderSchema = z.object({
   city: z.string().min(1, "Selecione uma cidade"),
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
   phone: z.string().min(10, "Telefone deve ter pelo menos 10 caracteres"),
+  recommendationCode: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
@@ -50,8 +55,13 @@ type RegisterProviderFormData = z.infer<typeof registerProviderSchema>
 export default function RegisterProviderPage() {
   const [selectedServices, setSelectedServices] = useState<string[]>([])
   const [error, setError] = useState("")
+  const [recommendationCode, setRecommendationCode] = useState("")
+  const [recommendationUser, setRecommendationUser] = useState<any>(null)
+  const [isValidatingCode, setIsValidatingCode] = useState(false)
   const { registerProvider, loading } = useAuth()
+  const { getUserByRecommendationCode } = useRecommendations()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const {
     register,
@@ -71,12 +81,39 @@ export default function RegisterProviderPage() {
       business_name: "",
       description: "",
       phone: "",
+      recommendationCode: "",
     },
   })
 
   useEffect(() => {
     setValue("services", selectedServices)
   }, [selectedServices, setValue])
+
+  // Captura o código de recomendação da URL
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (code) {
+      setRecommendationCode(code)
+      setValue("recommendationCode", code)
+      validateRecommendationCode(code)
+    }
+  }, [searchParams, setValue])
+
+  const validateRecommendationCode = async (code: string) => {
+    if (!code.trim()) return
+
+    setIsValidatingCode(true)
+    try {
+      const user = await getUserByRecommendationCode(code)
+      if (user) {
+        setRecommendationUser(user)
+      }
+    } catch (error) {
+      // Erro já tratado no hook
+    } finally {
+      setIsValidatingCode(false)
+    }
+  }
 
   const onSubmit = async (data: RegisterProviderFormData) => {
     setError("")
@@ -91,6 +128,7 @@ export default function RegisterProviderPage() {
         description: data.description,
         phone: data.phone,
         business_name: data.business_name || "",
+        recommendationCode: data.recommendationCode || "",
       })
 
       router.push("/dashboard")
@@ -223,6 +261,70 @@ export default function RegisterProviderPage() {
                       <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Seção de Código de Recomendação */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-border/30">
+                  <Gift className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Código de Recomendação <span className="text-sm font-normal text-muted-foreground">(opcional)</span>
+                  </h3>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="recommendationCode" className="text-sm font-medium text-foreground">
+                    Código de recomendação
+                  </Label>
+                  <div className="relative">
+                    <Gift className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="recommendationCode"
+                      type="text"
+                      placeholder="Digite o código de recomendação"
+                      disabled={loading || isValidatingCode}
+                      value={recommendationCode}
+                      onChange={(e) => {
+                        setRecommendationCode(e.target.value)
+                        setValue("recommendationCode", e.target.value)
+                        if (e.target.value.trim()) {
+                          validateRecommendationCode(e.target.value)
+                        } else {
+                          setRecommendationUser(null)
+                        }
+                      }}
+                      className={`pl-10 h-12 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200 ${errors.recommendationCode ? "border-destructive" : ""
+                        }`}
+                    />
+                    {isValidatingCode && (
+                      <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                  {errors.recommendationCode && (
+                    <p className="text-sm text-destructive">{errors.recommendationCode.message}</p>
+                  )}
+
+                  {/* Feedback do código de recomendação */}
+                  {recommendationCode && !isValidatingCode && (
+                    <div className="mt-2">
+                      {recommendationUser ? (
+                        <Alert className="border-green-200 bg-green-50">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <AlertDescription className="text-green-800">
+                            <strong>Código válido!</strong> Você foi recomendado por: {recommendationUser.email}
+                          </AlertDescription>
+                        </Alert>
+                      ) : (
+                        <Alert variant="destructive" className="border-red-200 bg-red-50">
+                          <XCircle className="h-4 w-4 text-red-600" />
+                          <AlertDescription className="text-red-800">
+                            Código de recomendação inválido ou não encontrado.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

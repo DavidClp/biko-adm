@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Header } from "@/components/navigation/header"
 import { ChatSection } from "./components/chat-section"
+import { ClientRecommendationsTab } from "./components/client-recommendations-tab"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Clock,
   CheckCircle,
@@ -14,6 +16,7 @@ import {
   MessageCircle,
   Search,
   MessageSquare,
+  Gift,
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { IRequestService, UserRole } from "@/lib/types"
@@ -27,6 +30,7 @@ export default function MyRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
   const [showChat, setShowChat] = useState(false)
   const [unreadMessages, setUnreadMessages] = useState<Record<string, number>>({})
+  const [activeTab, setActiveTab] = useState("requests")
   const searchParams = useSearchParams()
   const providerId = searchParams.get('providerId')
 
@@ -50,6 +54,14 @@ export default function MyRequestsPage() {
   }
 
   useEffect(() => {
+    // Verifica se há parâmetro 'tab' na URL
+    const tabParam = searchParams.get('tab')
+    if (tabParam === 'recommendations') {
+      setActiveTab('recommendations')
+    } else {
+      setActiveTab('requests')
+    }
+
     if (providerId) {
       // Forçar refetch dos dados para garantir que temos a versão mais atualizada
       refetchRequests().then((result) => {
@@ -73,7 +85,7 @@ export default function MyRequestsPage() {
         }
       })
     }
-  }, [providerId, refetchRequests, requestsList])
+  }, [providerId, refetchRequests, requestsList, searchParams])
 
   if (isLoadingRequests) {
     return (
@@ -92,14 +104,21 @@ export default function MyRequestsPage() {
     <div>
       <Header />
 
-      {/*   <div className="hidden md:block container mx-auto px-4 py-6">
-        <div className="mb-0">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Minhas Solicitações</h1>
-          <p className="text-gray-600">Acompanhe suas solicitações de orçamento e converse com os prestadores</p>
-        </div>
-      </div> */}
+      <div className="container mx-auto px-4 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="requests" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Minhas Solicitações ({requestsList?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger value="recommendations" className="flex items-center gap-2">
+              <Gift className="h-4 w-4" />
+              Recomendações
+            </TabsTrigger>
+          </TabsList>
 
-      <div className="flex h-[calc(100vh-165px)] md:h-[calc(100vh-200px)] md:container md:mx-auto md:px-4 md:border md:border-primary/20  rounded-md overflow-y-hidden">
+          <TabsContent value="requests" className="space-y-6">
+            <div className="flex h-[calc(100vh-300px)] md:h-[calc(100vh-350px)] md:border md:border-primary/20 rounded-md overflow-y-hidden">
         <div
           className={`${showChat ? "hidden" : "flex"} md:flex flex-col w-full md:w-1/3 bg-white border-r border-gray-200`}
         >
@@ -197,24 +216,31 @@ export default function MyRequestsPage() {
           </ScrollArea>
         </div>
 
-        <ChatSection
-          selectedRequest={selectedRequest}
-          showChat={showChat}
-          onBackToRequests={handleBackToRequests}
-          getStatusBadge={getStatusBadge}
-          onNewMessage={(msg) => {
-            // Incrementar contador de mensagens não lidas para outras solicitações
-            setUnreadMessages(prev => ({
-              ...prev,
-              [msg.request_id]: (prev[msg.request_id] || 0) + 1
-            }))
-          }}
-          onRequestCancelled={() => {
-            setShowChat(false);
-            setSelectedRequest(null);
-            refetchRequests();
-          }}
-        />
+              <ChatSection
+                selectedRequest={selectedRequest}
+                showChat={showChat}
+                onBackToRequests={handleBackToRequests}
+                getStatusBadge={getStatusBadge}
+                onNewMessage={(msg) => {
+                  // Incrementar contador de mensagens não lidas para outras solicitações
+                  setUnreadMessages(prev => ({
+                    ...prev,
+                    [msg.request_id]: (prev[msg.request_id] || 0) + 1
+                  }))
+                }}
+                onRequestCancelled={() => {
+                  setShowChat(false);
+                  setSelectedRequest(null);
+                  refetchRequests();
+                }}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="recommendations" className="space-y-6">
+            <ClientRecommendationsTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

@@ -44,6 +44,7 @@ import {
   UserRoundPen,
   Camera,
   BarChart3,
+  Gift,
 } from "lucide-react"
 import { ProfileTab } from "./components/profile-tab"
 import { RequestsTab } from "./components/requests-tab"
@@ -53,6 +54,7 @@ import { SettingsTab } from "./components/settings-tab"
 import { PhotoManagement } from "@/components/photo-management"
 import { ProviderDashboard } from "@/components/provider-dashboard"
 import { useSubscriptions } from "@/hooks/use-subscriptions"
+import { ProviderRecommendationsTab } from "./components/provider-recommendations-tab"
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -79,6 +81,8 @@ export default function DashboardPage() {
       setActiveTab('settings')
     } else if (tabParam === 'metrics') {
       setActiveTab('metrics')
+    } else if (tabParam === 'recommendations') {
+      setActiveTab('recommendations')
     } else {
       setActiveTab('requests')
     }
@@ -95,7 +99,7 @@ export default function DashboardPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="requests" className="flex items-center gap-2">
               <LuMessageCircleMore className="h-7 w-7" />
             </TabsTrigger>
@@ -107,6 +111,9 @@ export default function DashboardPage() {
             </TabsTrigger>
             <TabsTrigger value="metrics" className="flex items-center gap-2">
               <BarChart3 className="h-7 w-7" />
+            </TabsTrigger>
+            <TabsTrigger value="recommendations" className="flex items-center gap-2">
+              <Gift className="h-7 w-7" />
             </TabsTrigger>
             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Star className="h-7 w-7" />
@@ -146,6 +153,11 @@ export default function DashboardPage() {
           {/* Subscriptions Tab */}
           <TabsContent value="subscriptions" className="space-y-6">
             <SubscriptionsTab />
+          </TabsContent>
+
+          {/* Recommendations Tab */}
+          <TabsContent value="recommendations" className="space-y-6">
+            <ProviderRecommendationsTab />
           </TabsContent>
 
           {/* AI Tools Tab */}

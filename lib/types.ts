@@ -46,6 +46,9 @@ export interface User {
   name: string
   email: string
   role: UserRole;
+  recommendation_code?: string | null;
+  cpf?: string | null;
+  pix_key?: string | null;
   createdAt?: string
   updatedAt?: string;
   client?: Client | null;

@@ -26,9 +26,11 @@ interface AuthContextType {
     business_name: string
     city: string
     description: string
+    recommendationCode?: string
   }) => Promise<void>
   deleteAccount: () => Promise<void>
   setUser: (user: User | null) => void
+  refreshUser: () => Promise<void>
   routerBeforeLogin: string | null
   setRouterBeforeLogin: (router: string) => void
 }
@@ -161,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     description: string
     business_name: string
     city: string
+    recommendationCode?: string
   }) => {
     setLoading(true)
 
@@ -202,6 +205,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw error
     } finally {
       setLoading(false)
+    }
+  }
+
+  const refreshUser = async () => {
+    if (!user?.id) return
+
+    try {
+      const { data } = await api.get<User>(`/users/${user.id}`)
+      if (data) {
+        setUser(data)
+        localStorage.setItem("userData", JSON.stringify(data))
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar dados do usuário:", error)
     }
   }
 
@@ -258,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     deleteAccount,
     routerBeforeLogin,
     setUser,
+    refreshUser,
     setRouterBeforeLogin: setRouterBeforeLoginWithPersistence,
   }
 

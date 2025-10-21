@@ -250,12 +250,6 @@ export default function AdvertisersPage() {
           </DialogContent>
         </Dialog>
 
-        {error && (
-          <Alert className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {advertisers.map((advertiser) => (
             <Card key={advertiser.id} className="hover:shadow-lg transition-shadow">
