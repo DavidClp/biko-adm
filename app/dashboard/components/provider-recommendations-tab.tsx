@@ -193,10 +193,16 @@ export function ProviderRecommendationsTab() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gift className="h-5 w-5" />
-                Gerar Código de Recomendação
+                Código de Recomendação
               </CardTitle>
               <CardDescription>
-                Gere seu código único para recomendar novos prestadores e ganhe benefícios
+                🎯 <strong>Programa de Indicação de Prestadores</strong><br />
+                Recomende prestadores de serviços e ganhe <strong style={{ fontSize: '15px' }}>R$ 20,00</strong> para cada um que assinar qualquer plano!<br />
+                <span className="text-sm text-muted-foreground">
+                  • Compartilhe seu código único com prestadores<br />
+                  • Quando eles se cadastrarem e <strong style={{ fontSize: '15px' }}>assinarem um plano</strong>, você recebe R$ 20,00 via PIX<br />
+                  • Sem limite de indicações - quanto mais indicar, mais você ganha!
+                </span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -263,11 +269,14 @@ export function ProviderRecommendationsTab() {
 
               {recommendationCode && (
                 <Alert>
-                  <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-3">
                       <div>
-                        <strong>Seu código de recomendação:</strong>
+
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          <strong>Seu código de recomendação:</strong>
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="secondary" className="font-mono text-lg">
                             {recommendationCode}
@@ -282,20 +291,23 @@ export function ProviderRecommendationsTab() {
 
                       <div>
                         <strong>Link para compartilhar:</strong>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex md:flex-row flex-col items-center gap-2 mt-1">
                           <code className="text-sm bg-muted px-2 py-1 rounded flex-1">
                             {getRecommendationLink(recommendationCode)}
                           </code>
-                          <Button size="sm" variant="outline" onClick={handleCopyLink}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => window.open(getRecommendationLink(recommendationCode), '_blank')}
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
+
+                          <div className="flex md:flex-col flex-row justify-between gap-2">
+                            <Button size="sm" variant="outline" onClick={handleCopyLink}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(getRecommendationLink(recommendationCode), '_blank')}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
