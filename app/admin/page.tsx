@@ -21,7 +21,8 @@ import {
   MapPin,
   Calendar,
   AlertCircle,
-  LogOut
+  LogOut,
+  Gift
 } from "lucide-react"
 
 export default function AdminPage() {
@@ -29,10 +30,10 @@ export default function AdminPage() {
   const router = useRouter()
   
   // Proteger a rota - requer role de admin
-/*   useRequireRole("ADMIN", "/") */
-  
-  // Usar hook para buscar dados reais
-  const { stats, statsLoading: loading, statsError: error, fetchStats: refetch } = useAdmin()
+  /*   useRequireRole("ADMIN", "/") */
+    
+    // Usar hook para buscar dados reais
+  const { stats, statsLoading: loading, statsError: error, refetchAll } = useAdmin()
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -97,6 +98,14 @@ export default function AdminPage() {
       color: "text-purple-600",
       bgColor: "bg-purple-50"
     },
+    {
+      title: "Indicações",
+      description: "Visualizar todas as indicações de prestadores",
+      icon: Gift,
+      href: "/admin/recommendations",
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
   ]
 
   // Dados dinâmicos baseados nas estatísticas reais
@@ -149,7 +158,7 @@ export default function AdminPage() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Erro ao carregar dados</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
-          <Button onClick={refetch}>Tentar novamente</Button>
+          <Button onClick={refetchAll}>Tentar novamente</Button>
         </div>
       </div>
     )
