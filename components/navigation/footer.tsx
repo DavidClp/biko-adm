@@ -1,4 +1,4 @@
-import { WorkerIcon } from "@/lib/icons/worker"
+import Image from "next/image"
 import Link from "next/link"
 
 export function Footer() {
@@ -9,10 +9,9 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm"><WorkerIcon /></span>
+              <div className="h-15 w-15 flex items-center justify-center">
+                <Image src="/logo.svg" alt="Biko" width={50} height={50} style={{ width: "auto", height: "auto" }} className="max-w-full max-h-full" />
               </div>
-              <span className="text-xl font-bold text-primary">Biko</span>
             </div>
             <p className="text-muted-foreground text-sm">
               Conectando pessoas e transformando negócios através de serviços de qualidade.

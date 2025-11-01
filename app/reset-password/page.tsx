@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, ArrowLeft, Lock, CheckCircle } from "lucide-react"
-import { WorkerIcon } from "@/lib/icons/worker"
 import { api } from "@/lib/api"
+import Image from "next/image"
 
 export default function ResetPasswordPage() {
   const [newPassword, setNewPassword] = useState("")
@@ -148,11 +148,9 @@ export default function ResetPasswordPage() {
       <div className="flex-1 flex items-center justify-center px-4">
         <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-4 pt-4">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">
-                  <WorkerIcon />
-                </span>
+            <div className="mx-auto w-16 h-16 flex items-center justify-center">
+            <div className="w-15 h-15 flex items-center justify-center mb-4">
+                <Image src="/logo.svg" alt="Biko" width={50} height={50} style={{ width: "auto", height: "auto" }} className="max-w-full max-h-full" />
               </div>
             </div>
 

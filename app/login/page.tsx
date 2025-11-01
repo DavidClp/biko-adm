@@ -15,8 +15,8 @@ import { useAuth } from "@/hooks/use-auth"
 import { useRedirectIfAuthenticated } from "@/hooks/use-auth-redirect"
 import { Loader2, ArrowLeft, Mail, Lock } from "lucide-react"
 import { UserRole } from "@/lib/types"
-import { WorkerIcon } from "@/lib/icons/worker"
 import { api } from "@/lib/api"
+import Image from "next/image"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -29,7 +29,7 @@ export default function LoginPage() {
   const [forgotPasswordError, setForgotPasswordError] = useState("")
   const { login, loading, user, routerBeforeLogin, setRouterBeforeLogin } = useAuth()
   const router = useRouter()
-  
+
   // Redirecionar se já estiver autenticado
   useRedirectIfAuthenticated("/dashboard")
 
@@ -94,18 +94,17 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-4">
         <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-4 pt-4">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm"><WorkerIcon /></span>
+            <div className="mx-auto w-16 h-16 flex items-center justify-center">
+              <div className="w-15 h-15 flex items-center justify-center mb-4">
+                <Image src="/logo.svg" alt="Biko" width={50} height={50} style={{ width: "auto", height: "auto" }} className="max-w-full max-h-full" />
               </div>
             </div>
 
-            <CardTitle className="text-3xl font-bold text-primary">Biko</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Entre na sua conta para acessar a plataforma
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="pb-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (

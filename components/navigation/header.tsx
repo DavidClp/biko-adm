@@ -16,10 +16,10 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { User, LogOut, Shield, Search, Home, Menu, X, MessageCircle, ChevronRight } from "lucide-react"
 import { UserRole } from "@/lib/types"
-import { WorkerIcon } from "@/lib/icons/worker"
 import { cn } from "@/lib/utils"
 import { AvatarImage } from "@radix-ui/react-avatar"
 import { useIsMobile } from "@/hooks/use-mobile"
+import Image from "next/image"
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -58,12 +58,9 @@ export function Header() {
           <div className="flex items-center justify-between h-12 md:h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className="h-8 md:h-9 w-8 md:w-9 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold">
-                  <WorkerIcon size={isMobile ? 24 : 28} />
-                </span>
+              <div className="h-9 md:h-11 w-9 md:w-11 flex items-center justify-center">
+                <Image src="/logo.svg" alt="Biko" width={50} height={50} style={{ width: "auto", height: "auto" }} className="max-w-full max-h-full" />
               </div>
-              <span className="text-[18px] md:text-xl font-bold text-primary">Biko</span>
               {user?.role === UserRole.ADMIN && (
                 <Badge variant="secondary" className="ml-2">
                   Admin
@@ -178,12 +175,9 @@ export function Header() {
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold">
-                  <WorkerIcon size={20} />
-                </span>
+              <div className="h-10 w-10 flex items-center justify-center">
+                <Image src="/logo.svg" alt="Biko" width={50} height={50} style={{ width: "auto", height: "auto" }} className="max-w-full max-h-full" />
               </div>
-              <span className="text-lg font-bold text-primary">Biko</span>
             </div>
             <Button
               variant="ghost"
