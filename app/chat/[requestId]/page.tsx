@@ -32,7 +32,9 @@ import { useImageUpload } from "@/hooks/use-image-upload"
 
 export default function ChatPage() {
   const router = useRouter()
+  
   const params = useParams()
+
   const requestId = params.requestId as string
 
   const [selectedRequest, setSelectedRequest] = useState<IRequestService | null>(null)
