@@ -28,11 +28,13 @@ import { MessageComponent } from "@/app/my-requests/components/message-component
 import { SendProposalModal } from "@/components/send-proposal-modal"
 import { CancelRequestModal } from "@/components/cancel-request-modal"
 import { ImagePicker } from "@/components/image-picker"
+
 import { useImageUpload } from "@/hooks/use-image-upload"
+
 
 export default function ChatPage() {
   const router = useRouter()
-  
+
   const params = useParams()
 
   const requestId = params.requestId as string
