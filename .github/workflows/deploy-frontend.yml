@@ -11,38 +11,25 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
+      - name: Login no GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build e push da imagem
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
+            -t ghcr.io/${{ github.repository_owner }}/biko-frontend:latest .
+          docker push ghcr.io/${{ github.repository_owner }}/biko-frontend:latest
 
       - name: Deploy to VPS
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            set -e
-
-            # Clona ou atualiza o repositório
-            if [ ! -d "/root/biko-frontend/.git" ]; then
-              rm -rf /root/biko-frontend
-              git clone https://github.com/${{ github.repository }} /root/biko-frontend
-            else
-              cd /root/biko-frontend
-              git fetch origin main
-              git reset --hard origin/main
-            fi
-
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
             cd /root/biko-frontend
-
-            # Cria o .env
-            echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env
-            echo "NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID=${{ secrets.NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID }}" >> .env
-
-            # Para containers antigos do projeto (evita conflito de nomes)
-            docker compose down --remove-orphans
-
-            # Build e sobe o container
-            docker compose build --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-            docker compose up -d --force-recreate
-          EOF
+            docker pull ghcr.io/${{ github.repository_owner }}/biko-frontend:latest
+            docker compose up -d

@@ -1,19 +1,14 @@
-# docker-compose.yml
 services:
   biko-frontend:
-    build:
-      context: .
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    image: ghcr.io/seu-usuario/biko-frontend:latest
     container_name: biko-frontend
     restart: always
     networks:
       - proxy
     ports:
-      - "3000:3000" 
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID: ${NEXT_PUBLIC_GERENCIANET_ACCOUNT_ID}
+      - "3000:3000"
+    env_file:
+      - .env
 
 networks:
   proxy:
