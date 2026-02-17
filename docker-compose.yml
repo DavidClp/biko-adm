@@ -1,6 +1,10 @@
-# docker-compose.yml
 services:
   biko-frontend:
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2G
     build:
       context: .
       args:
