@@ -108,9 +108,10 @@ export function useSubscriptions() {
     queryKey: ["subscriptions", user?.provider?.id],
     queryFn: () => fetchSubscription(user?.provider?.id),
     enabled: !!user?.provider?.id,
-    staleTime: 2 * 60 * 1000, //,
-    refetchInterval: 30 * 1000,
-    refetchOnWindowFocus: true
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 60 * 1000, // 1 minuto (era 30s; reduz carga de CPU)
+    refetchIntervalInBackground: false, // não refetch com aba em segundo plano
+    refetchOnWindowFocus: true,
   })
 
   // Estados derivados

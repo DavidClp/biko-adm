@@ -225,44 +225,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user?.id) return
 
+    const providerId = user?.provider?.id
+    const clientId = user?.client?.id
+
     console.log("🔌 Conectando WebSocket para usuário:", user.id)
-    socket.auth = { userId: user?.id }
+    socket.auth = { userId: user.id }
     socket.connect()
 
-    socket.on('connect', () => {
+    const onConnect = () => {
       console.log("✅ WebSocket conectado")
       socket.emit("user:online")
-      
-      if (user?.provider?.id) {
-        console.log("📡 Inscrevendo provider em notificações:", user.provider.id)
-        socket.emit("request:subscribe-provider", { providerId: user.provider.id })
+      if (providerId) {
+        console.log("📡 Inscrevendo provider em notificações:", providerId)
+        socket.emit("request:subscribe-provider", { providerId })
       }
-
-      if (user?.client?.id) {
-        console.log("📡 Inscrevendo cliente em notificações:", user.client.id)
-        socket.emit("request:subscribe-client", { clientId: user.client.id })
+      if (clientId) {
+        console.log("📡 Inscrevendo cliente em notificações:", clientId)
+        socket.emit("request:subscribe-client", { clientId })
       }
-    })
+    }
 
-    socket.on('disconnect', () => {
+    const onDisconnect = () => {
       console.log("❌ WebSocket desconectado")
-    })
+    }
 
-    socket.on('connect_error', (error) => {
+    const onConnectError = (error: Error) => {
       console.error("❌ Erro de conexão WebSocket:", error)
-    })
+    }
+
+    socket.on("connect", onConnect)
+    socket.on("disconnect", onDisconnect)
+    socket.on("connect_error", onConnectError)
 
     return () => {
+      socket.off("connect", onConnect)
+      socket.off("disconnect", onDisconnect)
+      socket.off("connect_error", onConnectError)
       if (socket.connected) {
         console.log("🔌 Desconectando WebSocket")
         socket.emit("user:offline")
-        if (user?.provider?.id) {
-          socket.emit("request:unsubscribe-provider", { providerId: user?.provider?.id })
+        if (providerId) {
+          socket.emit("request:unsubscribe-provider", { providerId })
         }
         socket.disconnect()
       }
     }
-  }, [user?.id, user?.provider?.id])
+  }, [user?.id, user?.provider?.id, user?.client?.id])
 
   const value = {
     user,
